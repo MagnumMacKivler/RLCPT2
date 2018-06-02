@@ -22,3 +22,7 @@ If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "U
 ## In-Game Setup and Usage:
 
 READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
+
+## Changelog:
+
+6/2/2018 - Initial Upload, version 2.0.35
