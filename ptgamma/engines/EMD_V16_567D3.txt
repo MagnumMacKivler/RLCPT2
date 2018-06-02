@@ -1,0 +1,58 @@
+@name ptgamma/engines/EMD_V16_567D3
+#ENGINE CONFIG
+#For use in EMD 20,24, 30, and 35 Series Locomotives (GP20, SD24, GP30, SD35, DD35A).
+EngineType = "EMD 567D3 (V16)" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/emd567d3/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/emd567d3/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "gsgtrainsounds/emd567d3/idle.wav", #Idle
+    "gsgtrainsounds/emd567d3/notch1.wav", #Notch 1
+    "gsgtrainsounds/emd567d3/notch2.wav", #Notch 2
+    "gsgtrainsounds/emd567d3/notch3.wav", #Notch 3
+    "gsgtrainsounds/emd567d3/notch4.wav", #And so On
+    "gsgtrainsounds/emd567d3/notch5.wav",
+    "gsgtrainsounds/emd567d3/notch6.wav",
+    "gsgtrainsounds/emd567d3/notch7.wav",
+    "gsgtrainsounds/emd567d3/notch8.wav"
+)
+
+TransitionPath = "gsgtrainsounds/emd567d3/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+                #1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(2700,2920,3100,2700,3350,4170,3200) 
+                  #8-7  7-6  6-5  5-4  4-3  3-2  2-1
+DownDelays = array(1850,1550,1900,2100,2000,2300,2300)
+
+StartupClagDelay = 6 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 1 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/alco_compressor.wav"
+CompressorOff = "gsgtrainsounds/misc/compressor_end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/emd_dynb_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
+
+PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
+PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"

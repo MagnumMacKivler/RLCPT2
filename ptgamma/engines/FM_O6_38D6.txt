@@ -1,0 +1,58 @@
+@name ptgamma/engines/FM_O6_38D6
+#ENGINE CONFIG
+#For use in Fairbanks-Morse Switchers (H-10-44, H-12-44).
+EngineType = "FM 38D6 (6-Cyl Opposed Piston)" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/fm38d-6/startup_cold.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/fm38d-6/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "gsgtrainsounds/fm38d-6/idle.wav", #Idle
+    "gsgtrainsounds/fm38d-6/notch1.wav", #Notch 1
+    "gsgtrainsounds/fm38d-6/notch2.wav", #Notch 2
+    "gsgtrainsounds/fm38d-6/notch3.wav", #And so on
+    "gsgtrainsounds/fm38d-6/notch4.wav",
+    "gsgtrainsounds/fm38d-6/notch5.wav",
+    "gsgtrainsounds/fm38d-6/notch6.wav",
+    "gsgtrainsounds/fm38d-6/notch7.wav",
+    "gsgtrainsounds/fm38d-6/notch8.wav"
+)
+    
+TransitionPath = "gsgtrainsounds/fm38d-6/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  1,  1,  1,  1,  1,  1,  1)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+                    #1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(1000,1000,1000,1000,1000,1000,1000)
+                      #8-7  7-6  6-5  5-4  4-3  3-2  2-1
+DownDelays = array(1000,1000,1000,1000,1000,1000,1000)
+
+StartupClagDelay = 10 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 2 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/wh_3cdc_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/wh_3cdc_end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav" 
+DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
+
+PrimeOn = "gsgtrainsounds/fm38d-6/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/fm38d-6/prime_end.wav"

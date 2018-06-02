@@ -1,0 +1,37 @@
+@name GSG Gauge ALCO Speedometer
+@inputs MPH
+@outputs 
+@persist E:entity
+@trigger none
+@model models/gsgtrainprops/parts/cab/gauge_load_alco.mdl
+if(first()|duped()){
+    E = entity()
+    Skin = 0
+    
+    function void needleValue(HoloIndex, Value){
+        
+        local Frac = -clamp(Value/90,0,1)
+        local Angle = Frac*240 + 120
+        
+        holoAng(HoloIndex,E:angles():rotateAroundAxis(E:forward(),Angle))
+    }
+    E:propDraw(0)
+    holoCreate(0,E:pos(),vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/gauge_load_alco.mdl")
+    holoEntity(0):setSubMaterial(1,"models/proppertextures/cabmetal_gray")
+    holoSkin(0,2)
+    holoParent(0,E)
+    holoEntity(0):setSubMaterial(2,Skin ? "models/gsgtrainprops/cab/speedo_white_freight" : "models/gsgtrainprops/cab/speedo_black_freight")
+    
+    #holoCreate(1,E:pos()+(0.0625)*E:forward(),vec(3/64,3/64,1/64),E:angles():rotateAroundAxis(E:right(),90),vec(36),"cylinder")
+    #holoParent(1,E)
+    
+    holoCreate(2,E:pos()+0.125*E:forward(),vec(1),E:angles(),Skin ? vec(72) : vec(255),"models/gsgtrainprops/parts/cab/needle_brake_white.mdl")
+    holoParent(2,E)
+    
+    
+    needleValue(2,0)
+    
+}
+timer("clk",100)
+needleValue(2,abs(MPH))
+

@@ -1,0 +1,36 @@
+@name GSG Gauge EMD Loadmeter
+@inputs Load
+@outputs 
+@persist E:entity
+@trigger none
+@model models/gsgtrainprops/parts/cab/gauge_01.mdl
+if(first()|duped()){
+    E = entity()
+    
+    local Scale = 0.8
+    
+    function void needleValue(HoloIndex, Value){
+        
+        local Frac = -clamp(Value/1500,-1,1)
+        local Angle = Frac*150 - 0
+        
+        holoAng(HoloIndex,E:angles():rotateAroundAxis(E:forward(),Angle))
+    }
+    E:propDraw(0)
+    holoCreate(0,E:pos(),Scale*vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/gauge_01.mdl")
+    #holoSkin(0,2)
+    holoParent(0,E)
+    
+    #holoCreate(1,E:pos()+(0.0625)*E:forward(),vec(3/64,3/64,1/64),E:angles():rotateAroundAxis(E:right(),90),vec(36),"cylinder")
+    #holoParent(1,E)
+    
+    holoCreate(2,E:pos()+0.125*E:forward(),Scale*vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/needle_load.mdl")
+    holoParent(2,E)
+    
+    
+    needleValue(2,0)
+    
+}
+timer("clk",100)
+#needleValue(2,Load > 0 ? Load : Load/2)
+needleValue(2,Load)

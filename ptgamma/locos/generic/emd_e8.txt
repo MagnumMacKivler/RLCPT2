@@ -1,0 +1,58 @@
+@name ptgamma/locos/generic/emd_e8
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+#This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
+#NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
+
+#General:
+
+LocomotiveType = "EMD E8"
+    
+Horsepower = 2250 #Horsepower Rating; meaningless if there is no prime mover.
+Weight = 315000*0.66 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
+Adhesion = 0.25 #Factor of Adhesion:
+#Older Road Locomotives are about 25%
+#Switchers and Road Locomotives with High-Adhesion trucks are about 30-32%
+#Modern AC Traction locomotives are about 45-50%
+Motors = 4 #Can be 2, 4, 6, or 8. Anything else is just absurd, really. Meaningless for Cabcars/Snails.
+TopSpeed = 90 #Top Speed, in Miles per Hour, that the locomotive is capable of reaching due to the gearing. If you don't know, put 65.
+
+#Pick a Prime Mover Config File! You can find them in "ptgamma/engines/" !
+#include "ptgamma/engines/EMD_V16_567"
+#What Engine should you pick for your locomotive? Google it.
+
+UnitType = 0
+#0 - Locomotive
+#1 - Slug (No Prime Mover, has Traction Motors
+#2 - Snail (No Traction Motors, has Prime Mover
+#3 - Cab Car/Control Cab (No Traction Motors or Prime Mover)
+
+#Dynamic Braking Capabilities:
+
+DynamicsMode = 1
+#0 - No Dynamic Brakes
+#1 - Proportional Cooling Dynamic Brakes
+#2 - Fixed Cooling Dynamic Brakes
+FixedDynaThrottle = 50 #Throttle percentage engine goes to for Fixed Cooling mode
+BlendedBraking = 0 #Modern Passenger Thing, turns on dynamic brakes when air brake application is made.
+
+#Bonus Features:
+
+TractionMode = 1 #Traction Control Type:
+#0 - No Traction Control (Early)
+#1 - Automatic Power Reduction (Mid)
+#2 - Automatic Power Reduction and Sand (Late)
+#3 - Electronic Traction Control (Modern)
+DPM = 1 #Dual Prime Movers. Set to 1 if your locomotive has two engines (Like a DDA40X, E unit, or GE 45 Tonner).
+HEP = 0 #Head-End Power. Set to 1 if your locomotive is equipped with integrated HEP (like an F40PH or P42DC).
+HEP_Subtract = 200 #The Amount of Horsepower to subtract when in HEP mode. GE locomotives use 200, EMD locomotives usually use 700.
+HEPTYPE = 0 #0 for 4-8 HEP (Traditional), 1 for 2-4 HEP (For Modern, High-Horsepower Passenger Units like the GE Genesis series).
+
+#Misc:
+
+ExtraBrakeCylinders = 1 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
+TransitionVoltage = 2000 #Internal Voltage used to determine transition speeds.
+HeadlightRGB = vec(255,255,200) #What color do you want your MU Headlights to be, if used.

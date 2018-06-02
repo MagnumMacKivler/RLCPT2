@@ -1,0 +1,34 @@
+@name ptgamma/controls/MSTS
+
+#Control Scheme similar to what Microsoft Train Simulator used.
+
+#CONTROL CONFIG
+    
+Controls = table()
+
+Shift = "lshift" #When pressing this key, all controls with "+Shift" next to them will be triggered, and all the other will be ignored.
+
+Controls["ReverserF",string] = "W"
+Controls["ReverserB",string] = "S"
+    
+Controls["IncreaseThrottle",string] = "D"
+Controls["DecreaseThrottle",string] = "A"
+    
+Controls["IncreaseDynamics",string] = "period"
+Controls["DecreaseDynamics",string] = "comma"
+    
+Controls["TransitionUp",string] = "W +Shift"
+Controls["TransitionDown",string] = "S +Shift"
+    
+Controls["IncreaseTrainBrake",string] = "apostrophe"
+Controls["DecreaseTrainBrake",string] = "semicolon"
+    
+Controls["IncreaseLocoBrake",string] = "rbracket"
+Controls["DecreaseLocoBrake",string] = "lbracket"
+       
+Controls["EmergencyBrake",string] = "rshift"
+    
+Controls["HandBrake",string] = "H"
+Controls["Sander",string] = "M"
+
+Controls["UseButton",string] = "mouse_left"

@@ -1,0 +1,58 @@
+@name ptgamma/engines/ALCO_L6_539
+#ENGINE CONFIG
+#For use in Early ALCO Switchers (HH600, HH660, S1, S3). Also acceptable as a 531 or 538 substitute.
+EngineType = "Alco 539 (L6)" #What is the name of the Prime Mover?
+
+Startup_Hi = "flak/alco539/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "flak/alco539/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "flak/alco539/idle.wav", #Idle
+    "flak/alco539/idle.wav", #Notch 1
+    "flak/alco539/notch2.wav", #Notch 2
+    "flak/alco539/notch3.wav", #And so on
+    "flak/alco539/notch4.wav",
+    "flak/alco539/notch5.wav",
+    "flak/alco539/notch6.wav",
+    "flak/alco539/notch7.wav",
+    "flak/alco539/notch8.wav"
+)
+    
+TransitionPath = "flak/alco539/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(3,  1,  1,  1,  1,  1,  1,  1)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+                    #1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(1000,1000,1000,1000,1000,1000,1000)
+                      #8-7  7-6  6-5  5-4  4-3  3-2  2-1
+DownDelays = array(1000,1000,1000,1000,1000,1000,1000)
+
+StartupClagDelay = 6 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 3 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/wh_3cdc_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/wh_3cdc_end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav" #As if a 539-powered locomotive would ever have dynamic brakes lol
+DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
+
+PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"

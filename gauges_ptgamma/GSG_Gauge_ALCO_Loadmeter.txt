@@ -1,0 +1,36 @@
+@name GSG Gauge ALCO Loadmeter
+@inputs Load
+@outputs 
+@persist E:entity
+@trigger none
+@model models/gsgtrainprops/parts/cab/gauge_load_alco.mdl
+if(first()|duped()){
+    E = entity()
+    
+    
+    function void needleValue(HoloIndex, Value){
+        
+        local Frac = -clamp(Value/1500,0,1)
+        local Angle = Frac*150 + 75
+        
+        holoAng(HoloIndex,E:angles():rotateAroundAxis(E:forward(),Angle))
+    }
+    E:propDraw(0)
+    holoCreate(0,E:pos(),vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/gauge_load_alco.mdl")
+    holoEntity(0):setSubMaterial(1,"models/proppertextures/cabmetal_gray")
+    holoSkin(0,2)
+    holoParent(0,E)
+    
+    #holoCreate(1,E:pos()+(0.0625)*E:forward(),vec(3/64,3/64,1/64),E:angles():rotateAroundAxis(E:right(),90),vec(36),"cylinder")
+    #holoParent(1,E)
+    
+    holoCreate(2,E:pos()+0.125*E:forward(),vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/needle_load.mdl")
+    holoParent(2,E)
+    
+    
+    needleValue(2,0)
+    
+}
+timer("clk",100)
+needleValue(2,abs(Load))
+
