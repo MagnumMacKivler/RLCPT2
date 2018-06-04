@@ -1,0 +1,1126 @@
+@name LOCOS Display
+@inputs Power EGP1:wirelink EGP2:wirelink Cycle1 Cycle2 RLCPT:entity Number:string Bell Horn 
+@outputs 
+@persist MPH Throttle Load Dynamics DynamicBrakingPower Reverser Emergency BrakeWarn WheelSlip ForceSand EqualRes MainRes BrakePipe Cyl
+@persist MU_F MU_R Voltage AirBrakeMode CarCount TrainWeight
+@persist [HeaderText]:string Page1 Page2 T1:table T2:table SpeedoType [Green Orange Yellow Red Gray]:vector AC 
+@persist RLCPTW:wirelink NumNotches NotchedThrottle NotchedDynamics [SC LC TC RC BC]:vector2 MaxSpeed Version:string
+@persist On BootN CycleQ SkipBoot MonDefault1 MonDefault2 PersistPages
+@trigger Power Cycle1 Cycle2
+if(first()|dupefinished()){
+    Version = "1.2"
+    
+    HeaderText = "APPALACHIA NORTHERN - No."
+    
+    AC = 1 #1 for AC Traction, 0 for DC Traction
+    
+    SpeedoType = 1 #0 for Freight (0-90), 1 for Passenger (0-120)
+    NotchedThrottle = 1
+    NotchedDynamics = 0
+    NumNotches = 8
+    
+    MaxSpeed = 65
+    
+    SkipBoot = 0 #Skip the totally awesome boot sequence (Mostly for testing)
+    
+    PersistPages = 1 #Remember Page states through reboots?
+    MonDefault1 = 0 #Default Page for Monitor 1
+    MonDefault2 = 1 #Default Page for Monitor 2
+    
+    #Page -1 - Splash Screen
+    #Page 0 - Throttle, Speed, Load, Basic Loco Readout
+    #Page 1 - Air System
+    #Page 2 - Misc Train Info
+    #Page 3 - Off
+    
+    Green = vec(63,191,63)
+    Orange = vec(255,95,0)
+    Yellow = vec(255,191,0)
+    Red = vec(255,0,0)
+    Gray = vec(191)
+    
+    Page1 = MonDefault1
+    Page2 = MonDefault2
+    
+    EGP1:egpClear()
+    EGP2:egpClear()
+    
+    function normal adc(MinVal, MaxVal, Resolution, Input){
+        local Output = 0
+        if(inrange(Input,MinVal,MaxVal)){
+            Output = round(Resolution*((Input - MinVal)/(MaxVal-MinVal)))
+            
+        }elseif(Input < MinVal){
+            Output = 0
+        }elseif(Input > MaxVal){
+            Output = Resolution
+        }
+        
+        return Output
+    }
+    
+    function normal dac(MinVal, MaxVal, Resolution, Input){
+        local Output = 0
+        if(inrange(Input,0,Resolution)){
+            Input = round(Input)
+            Output = (MaxVal - MinVal)*(Input/Resolution) + MinVal
+        }elseif(Input < 0){
+            Output = MinVal
+        }elseif(Input > Resolution){
+            Output = MaxVal
+        }
+        return Output
+    }
+    
+    
+    
+    
+    function void wirelink:initPage(PageNum,IS){
+        
+        local I = IS*150
+        
+        This:egpClear()
+        switch(PageNum){
+            case -1, #Splash Screen
+                
+                #Logo
+                local LC = vec2(288,128)
+                
+                This:egpBoxOutline(1+I,LC,vec2(256,96)) #Boiler
+                This:egpLine(2+I,LC+vec2(-64,-50),LC+vec2(-64,50))
+                This:egpLine(3+I,LC+vec2(0,-50),LC+vec2(0,50))
+                This:egpLine(4+I,LC+vec2(64,-50),LC+vec2(64,50))
+                
+                This:egpPolyOutline(5+I,LC+vec2(-128,48),LC+vec2(-192,48),LC+vec2(-192,-64),LC+vec2(-224,-96),LC+vec2(-128,-96)) #Cab
+                
+                This:egpBoxOutline(6+I,LC+vec2(96,-80),vec2(32,64)) #Smokestack
+                
+                This:egpTriangleOutline(7+I,LC+vec2(128,48),LC+vec2(128,96),LC+vec2(176,96))#CowCatcher
+                
+                This:egpText(8+I,"L",LC+vec2(-140,84)) #L
+                This:egpAlign(8+I,1,1)
+                This:egpFont(8+I,"Arial",72)
+                This:egpColor(8+I,Red)
+                
+                This:egpText(9+I,"OC",LC+vec2(-56,92)) #OC
+                This:egpAlign(9+I,1,1)
+                This:egpFont(9+I,"Arial",96)
+                This:egpColor(9+I,Red)
+                
+                This:egpText(10+I,"o  s",LC+vec2(72,100)) #os
+                This:egpAlign(10+I,1,1)
+                This:egpFont(10+I,"Arial",64)
+                This:egpColor(10+I,Red)
+                
+                This:egpBoxOutline(11+I,LC+vec2(72,64),vec2(64,32)) #Piston
+                
+                local TC = LC+vec2(-16,128)
+                
+                This:egpBoxOutline(12+I,TC,vec2(384,8)) #Track
+                This:egpBoxOutline(13+I,TC+vec2(-160,8),vec2(16,8))
+                This:egpBoxOutline(14+I,TC+vec2(-128,8),vec2(16,8))
+                This:egpBoxOutline(15+I,TC+vec2(-96,8),vec2(16,8))
+                This:egpBoxOutline(16+I,TC+vec2(-64,8),vec2(16,8))
+                This:egpBoxOutline(17+I,TC+vec2(-32,8),vec2(16,8))
+                This:egpBoxOutline(18+I,TC+vec2(0,8),vec2(16,8))
+                This:egpBoxOutline(19+I,TC+vec2(32,8),vec2(16,8))
+                This:egpBoxOutline(20+I,TC+vec2(64,8),vec2(16,8))
+                This:egpBoxOutline(21+I,TC+vec2(96,8),vec2(16,8))
+                This:egpBoxOutline(22+I,TC+vec2(128,8),vec2(16,8))
+                This:egpBoxOutline(23+I,TC+vec2(160,8),vec2(16,8))
+                
+                #Description Text
+                
+                local TXC = vec2(32,304)
+                
+                This:egpText(24+I,"L.OCOMOTIVE",TXC+vec2(0,0))
+                This:egpAlign(24+I,0,1)
+                This:egpFont(24+I,"Lucida Console",32)
+                This:egpColor(24+I,Gray)
+                
+                This:egpText(25+I,"O.VERSIGHT and",TXC+vec2(0,32))
+                This:egpAlign(25+I,0,1)
+                This:egpFont(25+I,"Lucida Console",32)
+                This:egpColor(25+I,Gray)
+                
+                This:egpText(26+I,"C.ONTROL",TXC+vec2(0,64))
+                This:egpAlign(26+I,0,1)
+                This:egpFont(26+I,"Lucida Console",32)
+                This:egpColor(26+I,Gray)
+                
+                This:egpText(27+I,"O.PERATING",TXC+vec2(0,96))
+                This:egpAlign(27+I,0,1)
+                This:egpFont(27+I,"Lucida Console",32)
+                This:egpColor(27+I,Gray)
+                
+                This:egpText(28+I,"S.YSTEM",TXC+vec2(0,128))
+                This:egpAlign(28+I,0,1)
+                This:egpFont(28+I,"Lucida Console",32)
+                This:egpColor(28+I,Gray)
+                
+                This:egpBoxOutline(29+I,TXC+vec2(140,64),vec2(304,176))
+                
+                #Copyright
+                
+                This:egpText(30+I,"Copyright 1995 Magnum Technologies, Inc.",vec2(504,496))
+                This:egpAlign(30+I,2,1)
+                This:egpFont(30,"Lucida Console",16)
+                This:egpColor(30+I,Gray)
+
+                
+                
+                break
+            case 0, #General
+            
+                #Header Text
+                This:egpText(85+I,HeaderText + " " + Number,vec2(256,14))
+                This:egpAlign(85+I,1,1)
+                This:egpFont(85+I,"Lucida Console",24)
+                
+                #Speedometer
+                SC = vec2(128,152)
+                This:egpWedge(1+I,SC,vec2(118,88.5)) #Speedo Green Fill
+                This:egpColor(1+I,Green)
+                This:egpAngle(1+I,270)
+                This:egpSize(1+I,-0.5)
+                #This:egpSize(1,360)
+                #This:egpPoly(2+I,polycover(SC,0)) #Polygonal Gauge Cover
+                #This:egpColor(2+I,vec(0,0,0))
+                
+                #Loadmeter
+                LC = vec2(384,152)
+                This:egpWedge(35+I,LC,vec2(118,88.5)) #Load Gauge Fill
+                This:egpColor(35+I,Green)
+                This:egpAngle(35+I,270)
+                This:egpSize(35+I,-0.5)
+                #This:egpPoly(36+I,polycover(LC,0)) #Polygonal Gauge Cover
+                #This:egpColor(36+I,vec(0,0,0))
+                
+                #Speedometer Gauge Stuff
+                This:egpCircle(3+I,SC,vec2(79.6,106)) #Black Gauge Center
+                This:egpColor(3+I,vec(0))
+                This:egpTriangle(108+I,SC,SC+vec2(-96,128),SC+vec2(96,128))
+                This:egpColor(108+I,vec(0))
+                This:egpCircleOutline(4+I,SC,vec2(88.5,118))
+                This:egpCircleOutline(5+I,SC,vec2(79.6,106))
+                
+                
+                if(SpeedoType){ #Passenger
+                    local Index = 6
+                    for(N=0,12){
+                        local VAng = 45 + N*22.5
+                        This:egpLine(Index+I, SC + vec2(-72*sin(VAng),96*cos(VAng)), SC + vec2(-88.5*sin(VAng),118*cos(VAng)))
+                        Index++
+                        This:egpText(Index+I,(N*10):toString(), SC + vec2(-61.5*sin(VAng),82*cos(VAng)))
+                        This:egpAlign(Index+I,1,1)
+                        This:egpFont(Index+I,"Arial")
+                        Index++   
+                    }
+                    #32
+                    
+                    VAng = MaxSpeed*270/120 + 45 #Overspeed Tick
+                    This:egpLine(105+I, SC + vec2(-76.5*sin(VAng),102*cos(VAng)), SC + vec2(-91.5*sin(VAng),122*cos(VAng)))
+                    This:egpColor(105+I,Red)
+                }else{ #Freight
+                    
+                    local Index = 6
+                    for(N=0,9){
+                        local VAng = 45 + N*30
+                        This:egpLine(Index+I, SC + vec2(-72*sin(VAng),96*cos(VAng)), SC + vec2(-88.5*sin(VAng),118*cos(VAng)))
+                        Index++
+                        This:egpText(Index+I,(N*10):toString(), SC + vec2(-61.5*sin(VAng),82*cos(VAng)))
+                        This:egpAlign(Index+I,1,1)
+                        This:egpFont(Index+I,"Arial")
+                        Index++   
+                    }
+                    #26
+                    
+                    local VAng = MaxSpeed*270/90 + 45 #Overspeed Tick
+                    This:egpLine(105+I, SC + vec2(-76.5*sin(VAng),102*cos(VAng)), SC + vec2(-91.5*sin(VAng),122*cos(VAng)))
+                    This:egpColor(105+I,Red)
+                }
+                
+                This:egpRoundedBoxOutline(32+I,SC,vec2(186,248))
+                This:egpRadius(32+I,32)
+                
+                This:egpText(33+I,"MPH",SC+vec2(0,-14))
+                This:egpAlign(33+I,1,1)
+                This:egpFont(33+I,"Arial",32)
+                
+                This:egpText(34+I,"0",SC+vec2(0,14))
+                This:egpAlign(34+I,1,1)
+                This:egpFont(34+I,"Arial",32)
+                
+                #Loadmeter Gauge Stuff
+                
+                This:egpCircle(37+I,LC,vec2(79.6,106)) #Black Gauge Center
+                This:egpColor(37+I,vec(0))
+                This:egpTriangle(109+I,LC,LC+vec2(-96,128),LC+vec2(96,128))
+                This:egpColor(109+I,vec(0))
+                This:egpCircleOutline(38+I,LC,vec2(88.5,118))
+                This:egpCircleOutline(39+I,LC,vec2(79.5,106))
+                
+                local Index = 40
+                for(N=0,15){
+                    local VAng = 45 + N*18
+                    This:egpLine(Index+I, LC + vec2(-72*sin(VAng),96*cos(VAng)), LC + vec2(-88.5*sin(VAng),118*cos(VAng)))
+                    Index++
+                    if((N%3)==0){
+                        This:egpText(Index+I,(N*100):toString(), LC + vec2(-58.5*sin(VAng),78*cos(VAng)))
+                        This:egpAlign(Index+I,1,1)
+                        This:egpFont(Index+I,"Arial")
+                        Index++   
+                    }
+                }
+                
+                This:egpRoundedBoxOutline(62+I,LC,vec2(186,248))
+                This:egpRadius(62+I,32)
+                
+                This:egpText(63+I,"AMPS " + (AC ? "AC" : "DC"),LC+vec2(0,-14))
+                This:egpAlign(63+I,1,1)
+                This:egpFont(63+I,"Arial",28)
+                This:egpSize(63,20)
+                
+                This:egpText(64+I,"0",LC+vec2(0,14))
+                This:egpAlign(64+I,1,1)
+                This:egpFont(64+I,"Arial",32)
+                
+                #Throttle / Dynamic Brakes / Reverser
+                local TC = vec2(256,308)
+                This:egpBox(65+I,TC,vec2(320,16))
+                This:egpColor(65+I,Green) #Throttle Filler
+                This:egpBox(66+I,TC+vec2(160,0),vec2(640,16))
+                This:egpColor(66+I,vec(0))
+                This:egpBoxOutline(67+I,TC,vec2(320,16))
+                
+                This:egpLine(68+I,TC+vec2(-160,-8),TC+vec2(-160,16))
+                This:egpLine(69+I,TC+vec2(-120,-8),TC+vec2(-120,16))
+                This:egpLine(70+I,TC+vec2(-80,-8),TC+vec2(-80,16))
+                This:egpLine(71+I,TC+vec2(-40,-8),TC+vec2(-40,16))
+                This:egpLine(72+I,TC+vec2(0,-8),TC+vec2(0,16))
+                This:egpLine(73+I,TC+vec2(40,-8),TC+vec2(40,16))
+                This:egpLine(74+I,TC+vec2(80,-8),TC+vec2(80,16))
+                This:egpLine(75+I,TC+vec2(120,-8),TC+vec2(120,16))
+                This:egpLine(78+I,TC+vec2(159,-8),TC+vec2(159,16))
+                
+                This:egpBoxOutline(79+I,TC+vec2(-208,8),vec2(80,32))
+                This:egpBoxOutline(80+I,TC+vec2(208,8),vec2(80,32))
+                
+                This:egpText(81+I,"Reverser",TC+vec2(-208,-16))
+                This:egpAlign(81,1,1)
+                This:egpFont(81+I,"Arial",12)
+                
+                This:egpText(82+I,"Throttle",TC+vec2(208,-16))
+                This:egpAlign(82,1,1)
+                This:egpFont(82+I,"Arial",12)
+                
+                This:egpText(83+I,"N",TC+vec2(-208,8))
+                This:egpAlign(83+I,1,1)
+                This:egpFont(83+I,"Arial",24)
+                
+                This:egpText(84+I,"IDLE",TC+vec2(208,8))
+                This:egpAlign(84+I,1,1)
+                This:egpFont(84+I,"Arial",24)
+                
+                #Warnings/Indications
+                local WC = vec2(256,404)
+                #Index 85 is Header Text
+                This:egpRoundedBoxOutline(86+I,WC,vec2(480,132))
+                
+                #PCS Open - 87,88,89
+                This:egpBoxOutline(87+I,WC+vec2(-2*64,-1*32),vec2(62,30))
+                This:egpText(88+I,"PCS",WC+vec2(-2*64,-1*32)+vec2(0,-7))
+                This:egpAlign(88+I,1,1)
+                This:egpFont(88+I,"Arial")
+                This:egpText(89+I,"OPEN",WC+vec2(-2*64,-1*32)+vec2(0,7))
+                This:egpAlign(89+I,1,1)
+                This:egpFont(89+I,"Arial")
+                This:egpColor(87+I,Red)
+                This:egpColor(88+I,Red)
+                This:egpColor(89+I,Red)
+                
+                #Brake Warn - 90,91,92
+                This:egpBoxOutline(90+I,WC+vec2(-1*64,-1*32),vec2(62,30))
+                This:egpText(91+I,"BRAKE",WC+vec2(-1*64,-1*32)+vec2(0,-7))
+                This:egpAlign(91+I,1,1)
+                This:egpFont(91+I,"Arial")
+                This:egpText(92+I,"WARN",WC+vec2(-1*64,-1*32)+vec2(0,7))
+                This:egpAlign(92+I,1,1)
+                This:egpFont(92+I,"Arial")
+                This:egpColor(90+I,Orange)
+                This:egpColor(91+I,Orange)
+                This:egpColor(92+I,Orange)
+                
+                #Wheel Slip - 93,94,95
+                This:egpBoxOutline(93+I,WC+vec2(-3*64,-1*32),vec2(62,30))
+                This:egpText(94+I,"WHEEL",WC+vec2(-3*64,-1*32)+vec2(0,-7))
+                This:egpAlign(94+I,1,1)
+                This:egpFont(94+I,"Arial")
+                This:egpText(95+I,"SLIP",WC+vec2(-3*64,-1*32)+vec2(0,7))
+                This:egpAlign(95+I,1,1)
+                This:egpFont(95+I,"Arial")
+                This:egpColor(93+I,Orange)
+                This:egpColor(94+I,Orange)
+                This:egpColor(95+I,Orange)
+                
+                #Sand - 96,97
+                This:egpBoxOutline(96+I,WC+vec2(-2*64,0*32),vec2(62,30))
+                This:egpText(97+I,"SAND",WC+vec2(-2*64,0*32))
+                This:egpAlign(97+I,1,1)
+                This:egpFont(97+I,"Arial")
+                
+                #Bell - 98,99
+                This:egpBoxOutline(98+I,WC+vec2(3*64,-1*32),vec2(62,30))
+                This:egpText(99+I,"BELL",WC+vec2(3*64,-1*32))
+                This:egpAlign(99+I,1,1)
+                This:egpFont(99+I,"Arial")
+                
+                #Horn - 100,101
+                This:egpBoxOutline(100+I,WC+vec2(3*64,0*32),vec2(62,30))
+                This:egpText(101+I,"HORN",WC+vec2(3*64,0*32))
+                This:egpAlign(101+I,1,1)
+                This:egpFont(101+I,"Arial")
+                
+                #Overspeed - 102,103,104
+                This:egpBoxOutline(102+I,WC+vec2(1*64,1*32),vec2(62,30))
+                This:egpText(103+I,"OVER",WC+vec2(1*64,1*32)+vec2(0,-7))
+                This:egpAlign(103+I,1,1)
+                This:egpFont(103+I,"Arial")
+                This:egpText(104+I,"SPEED",WC+vec2(1*64,1*32)+vec2(0,7))
+                This:egpAlign(104+I,1,1)
+                This:egpFont(104+I,"Arial")
+                This:egpColor(102+I,Red)
+                This:egpColor(103+I,Red)
+                This:egpColor(104+I,Red)
+                
+                #Index 105 is Overspeed Speedometer Tick
+                #Version and Page Marker
+                This:egpText(106+I,"L.O.C.O.S. Version " + Version,vec2(12,492))
+                This:egpAlign(106+I,0,1)
+                This:egpFont(106+I,"Lucida Console",16)
+                This:egpText(107+I,"Page 1 of 3",vec2(500,492))
+                This:egpAlign(107+I,2,1)
+                This:egpFont(107+I,"Lucida Console",24)
+                
+                break
+            case 1, #Pneumatic
+            
+                #Header Text
+                This:egpText(85+I,HeaderText + " " + Number,vec2(256,14))
+                This:egpAlign(85+I,1,1)
+                This:egpFont(85+I,"Lucida Console",24)
+                #Main Res / Equal Res
+                RC = vec2(128,256)
+                This:egpWedge(1+I,RC,vec2(118,88.5)) #MainRes Fill
+                This:egpColor(1+I,Red)
+                This:egpAngle(1+I,270)
+                This:egpSize(1+I,-0.5)
+                
+                This:egpCircle(2+I,RC,vec2(79.5,106)) #Black Gauge Center
+                This:egpColor(2+I,vec(0))
+                
+                This:egpWedge(3+I,RC,vec2(106,79.5)) #EqualRes Fill
+                This:egpColor(3+I,Gray)
+                This:egpAngle(3+I,270)
+                This:egpSize(3+I,-0.5)
+                
+                This:egpCircle(4+I,RC,vec2(70.5,94)) #Black Gauge Center
+                This:egpColor(4+I,vec(0))
+                
+                This:egpTriangle(88+I,RC,RC+vec2(-96,128),RC+vec2(96,128))
+                This:egpColor(88+I,vec(0))
+                
+                This:egpCircleOutline(6+I,RC,vec2(88.5,118))
+                This:egpCircleOutline(7+I,RC,vec2(79.5,106))
+                This:egpCircleOutline(8+I,RC,vec2(70.5,94))
+                
+                local Index = 9
+                for(N=0,18){
+                    local VAng = 45 + N*15
+                    This:egpLine(Index+I, RC + vec2(-67.5*sin(VAng),90*cos(VAng)), RC + vec2(-88.5*sin(VAng),118*cos(VAng)))
+                    Index++
+                    if(N%2){
+                        This:egpText(Index+I,(N*10):toString(), RC + vec2(-57*sin(VAng),76*cos(VAng)))
+                        This:egpAlign(Index+I,1,1)
+                        This:egpFont(Index+I,"Arial")
+                        Index++
+                    }
+                }
+                #39
+                #ER Readout
+                This:egpText(39+I,"ER",RC+vec2(0,-40))
+                This:egpAlign(39+I,1,1)
+                This:egpFont(39+I,"Arial",24)
+                This:egpText(40+I,"0",RC+vec2(0,-16))
+                This:egpAlign(40+I,1,1)
+                This:egpFont(40+I,"Arial",32)
+                
+                #MR Readout
+                This:egpText(41+I,"Main",RC+vec2(0,16))
+                This:egpAlign(41+I,1,1)
+                This:egpFont(41+I,"Arial",24)
+                This:egpColor(41+I,Red)
+                This:egpText(42+I,"0",RC+vec2(0,40))
+                This:egpAlign(42+I,1,1)
+                This:egpFont(42+I,"Arial",32)
+                This:egpColor(42+I,Red)
+                
+                #Brake Pipe / Brake Cyl
+                BC = vec2(384,256)
+                This:egpWedge(43+I,BC,vec2(118,88.5)) #BrakeCyl Fill
+                This:egpColor(43+I,Red)
+                This:egpAngle(43+I,270)
+                This:egpSize(43+I,-0.5)
+                
+                This:egpCircle(44+I,BC,vec2(79.5,106)) #Black Gauge Center
+                This:egpColor(44+I,vec(0))
+                
+                This:egpWedge(45+I,BC,vec2(106,79.5)) #BrakePipe Fill
+                This:egpColor(45+I,Gray)
+                This:egpAngle(45+I,270)
+                This:egpSize(45+I,-0.5)
+                
+                This:egpCircle(46+I,BC,vec2(70.5,94)) #Black Gauge Center
+                This:egpColor(46+I,vec(0))
+                
+                This:egpTriangle(89+I,BC,BC+vec2(-96,128),BC+vec2(96,128))
+                This:egpColor(89+I,vec(0))
+                
+                This:egpCircleOutline(47+I,BC,vec2(88.5,118))
+                This:egpCircleOutline(48+I,BC,vec2(79.5,106))
+                This:egpCircleOutline(49+I,BC,vec2(70.5,94))
+                
+                local Index = 50
+                for(N=0,12){
+                    local VAng = 45 + N*22.5
+                    This:egpLine(Index+I, BC + vec2(-67.5*sin(VAng),90*cos(VAng)), BC + vec2(-88.5*sin(VAng),118*cos(VAng)))
+                    Index++
+                    if(N%2){
+                        This:egpText(Index+I,(N*10):toString(), BC + vec2(-57*sin(VAng),76*cos(VAng)))
+                        This:egpAlign(Index+I,1,1)
+                        This:egpFont(Index+I,"Arial")
+                        Index++
+                    }
+                }
+                #78 - Not really but fuck 150 is a lot of indices who cares
+                #BP Readout
+                This:egpText(78+I,"BP",BC+vec2(0,-40))
+                This:egpAlign(78+I,1,1)
+                This:egpFont(78+I,"Arial",24)
+                This:egpText(79+I,"0",BC+vec2(0,-16))
+                This:egpAlign(79+I,1,1)
+                This:egpFont(79+I,"Arial",32)
+                
+                #BC Readout
+                This:egpText(80+I,"BC",BC+vec2(0,16))
+                This:egpAlign(80+I,1,1)
+                This:egpFont(80+I,"Arial",24)
+                This:egpColor(80+I,Red)
+                This:egpText(81+I,"0",BC+vec2(0,40))
+                This:egpAlign(81+I,1,1)
+                This:egpFont(81+I,"Arial",32)
+                This:egpColor(81+I,Red)
+                
+                
+                #PSI Labels and Frame
+                This:egpText(82+I,"PSI",RC+vec2(0,80))
+                This:egpAlign(82+I,1,1)
+                This:egpFont(82+I,"Arial",16)
+                
+                This:egpText(83+I,"PSI",BC+vec2(0,80))
+                This:egpAlign(83+I,1,1)
+                This:egpFont(83+I,"Arial",16)
+                
+                This:egpRoundedBoxOutline(84+I,(RC+BC)/2,vec2(480,248))
+                This:egpRadius(84+I,32)
+                
+                #Index 85 is for header text
+                
+                #Version and Page Marker
+                This:egpText(86+I,"L.O.C.O.S. Version " + Version,vec2(12,492))
+                This:egpAlign(86+I,0,1)
+                This:egpFont(86+I,"Lucida Console",16)
+                This:egpText(87+I,"Page 2 of 3",vec2(500,492))
+                This:egpAlign(87+I,2,1)
+                This:egpFont(87+I,"Lucida Console",24)
+
+                
+                
+                break
+            case 2, #Misc Info
+                #2,4 MU Connections, 6 Generator Voltage, 8 AirBrakeMode, 10 CarCount, 12 Train Weight
+                
+                #Header Text
+                This:egpText(85+I,HeaderText + " " + Number,vec2(256,14))
+                This:egpAlign(85+I,1,1)
+                This:egpFont(85+I,"Lucida Console",24)
+                
+                #MU Connectivity
+                
+                local LC = vec2(16,96)
+                local RC = vec2(498,96)
+                local TxtSize = 20
+                
+                This:egpText(1+I,"Front MU:",LC)
+                This:egpAlign(1+I,0,1)
+                This:egpFont(1+I,"Lucida Console",TxtSize)
+                
+                This:egpText(2+I,"Disconnected",RC)
+                This:egpAlign(2+I,2,1)
+                This:egpFont(2+I,"Lucida Console",TxtSize)
+                This:egpColor(2+I,Yellow)
+                
+                This:egpText(3+I,"Rear MU:",LC + vec2(0,1*48))
+                This:egpAlign(3+I,0,1)
+                This:egpFont(3+I,"Lucida Console",TxtSize)
+                
+                This:egpText(4+I,"Disconnected",RC+vec2(0,1*48))
+                This:egpAlign(4+I,2,1)
+                This:egpFont(4+I,"Lucida Console",TxtSize)
+                This:egpColor(4+I,Yellow)
+                
+                #Generator Voltage
+                
+                This:egpText(5+I,"Main Gen Voltage:",LC + vec2(0,2*48))
+                This:egpAlign(5+I,0,1)
+                This:egpFont(5+I,"Lucida Console",TxtSize)
+                
+                This:egpText(6+I,"0 " + (AC ? "VAC" : "VDC"),RC + vec2(0,2*48))
+                This:egpAlign(6+I,2,1)
+                This:egpFont(6+I,"Lucida Console",TxtSize)
+                #This:egpColor(6+I,Yellow)
+                
+                #Air Brakes
+                
+                This:egpText(7+I,"Air Brake Config:",LC + vec2(0,3*48))
+                This:egpAlign(7+I,0,1)
+                This:egpFont(7+I,"Lucida Console",TxtSize)
+                
+                This:egpText(8+I,"-",RC + vec2(0,3*48))
+                #This:egpText(6+I,select(AirBrakeMode+1,"Self-Lapping","Manual Lapping","26L","24RL"),RC + vec2(0,-2*48))
+                This:egpAlign(8+I,2,1)
+                This:egpFont(8+I,"Lucida Console",TxtSize)
+                #This:egpColor(6+I,Yellow)
+                
+                #Car Count
+                This:egpText(9+I,"Car Cnt (+Trailing Locos):",LC + vec2(0,4*48))
+                This:egpAlign(9+I,0,1)
+                This:egpFont(9+I,"Lucida Console",TxtSize)
+                
+                This:egpText(10+I,"0",RC + vec2(0,4*48))
+                This:egpAlign(10+I,2,1)
+                This:egpFont(10+I,"Lucida Console",TxtSize)
+                #This:egpColor(6+I,Yellow)
+                
+                #Train Weight
+                This:egpText(11+I,"Total Train Wgt:",LC + vec2(0,5*48))
+                This:egpAlign(11+I,0,1)
+                This:egpFont(11+I,"Lucida Console",TxtSize)
+                
+                This:egpText(12+I,"0" + " SCE",RC + vec2(0,5*48))
+                This:egpAlign(12+I,2,1)
+                This:egpFont(12+I,"Lucida Console",TxtSize)
+                #This:egpColor(6+I,Yellow)
+                
+                #Index 85 is for header text
+                
+                #Version and Page Marker
+                This:egpText(86+I,"L.O.C.O.S. Version " + Version,vec2(12,492))
+                This:egpAlign(86+I,0,1)
+                This:egpFont(86+I,"Lucida Console",16)
+                This:egpText(87+I,"Page 3 of 3",vec2(500,492))
+                This:egpAlign(87+I,2,1)
+                This:egpFont(87+I,"Lucida Console",24)
+                
+                break
+            case 3, #Off
+                This:egpClear()
+                break
+            default,
+                break
+        }
+        
+        
+        return void
+    }
+    function void wirelink:updatePage(PageNum,IS){
+        local I = IS*150
+        switch(PageNum){
+            case 0, #General
+                
+                #MPH Throttle Load Dynamics DynamicBrakingPower Reverser Emergency BrakeWarn WheelSlip ForceSand
+                MPH = RLCPTW["MPH",number]
+                Throttle = RLCPTW["Throttle",number]
+                Load = RLCPTW["Load",number]
+                Dynamics = RLCPTW["Dynamics",number]
+                DynamicBrakingPower = RLCPTW["DynamicBrakingPower",number]
+                Reverser = RLCPTW["Reverser",number]
+                Emergency = RLCPTW["Emergency",number]
+                BrakeWarn = RLCPTW["BrakeWarn",number]
+                WheelSlip = RLCPTW["WheelSlip",number]
+                ForceSand = RLCPTW["ForceSand",number]
+            
+                #Speedometer
+                #This:egpPoly(2+I,polycover(SC,SpeedoType ? MPH*270/120 : MPH*270/90))
+                This:egpSize(1+I,(MPH<1) ? -40 : (SpeedoType ? -MPH*270/120 : -MPH*270/90) - 45)
+                This:egpSetText(34+I,round(MPH):toString())
+                This:egpColor(1+I,(MPH>MaxSpeed) ? Red : Green)
+                
+                #Loadmeter
+                if(Dynamics){
+                    This:egpColor(35+I,(BrakeWarn) ? Red : Yellow)
+                }elseif(AC){
+                    This:egpColor(35+I,Green)
+                }else{
+                    This:egpColor(35+I,(abs(Load)>=1200) ? Orange : Green)
+                }
+                #This:egpPoly(36+I,polycover(LC,Load*270/1500))
+                This:egpSize(35+I,(abs(Load)<1) ? -40 : -abs(Load)*270/1500 - 45)
+                This:egpSetText(64+I,round(abs(Load)):toString())
+                
+                #Throttle/Dynamics
+                
+                This:egpSize(66+I,vec2((Dynamics ? 100-DynamicBrakingPower : 100-Throttle)*6.40,16))
+                This:egpColor(65+I,Dynamics ? Yellow : Green)
+                This:egpSetText(82+I,Dynamics ? "Dynamic Brake" : "Throttle")
+                
+                
+                local TD_Text = ""
+                if(Dynamics){
+                    local DynaNotch = adc(10,100,NumNotches,DynamicBrakingPower)
+                    if(DynaNotch==0){
+                        TD_Text = "SETUP"
+                    }elseif(NotchedDynamics){
+                        TD_Text = "D"+DynaNotch:toString()
+                    }else{
+                        TD_Text = round(DynamicBrakingPower):toString() + "%"
+                    }
+                }else{
+                    local Notch = adc(0,100,NumNotches,Throttle)
+                    if(Notch==0){
+                        TD_Text = "IDLE"
+                    }elseif(NotchedThrottle){
+                        TD_Text = "N"+Notch:toString()
+                    }else{
+                        TD_Text = round(Throttle):toString() + "%"
+                    }
+                }
+                This:egpSetText(84+I,TD_Text)
+                This:egpColor(84+I,((Reverser*Throttle | Dynamics)==0) ? vec(255) : (Dynamics ? Yellow : Green))
+                
+                #Reverser
+                This:egpSetText(83+I,select(Reverser+2,"REV","N","FWD"))
+                This:egpColor(83+I,((Reverser*Throttle | Dynamics)==0) ? vec(255) : (Dynamics ? Yellow : Green))
+                
+                #Indicator Panel
+                
+                #PCS Open - 87,88,89
+                This:egpAlpha(87+I,Emergency*255)
+                This:egpAlpha(88+I,Emergency*255)
+                This:egpAlpha(89+I,Emergency*255)
+                #Brake Warn - 90,91,92
+                This:egpAlpha(90+I,BrakeWarn*255)
+                This:egpAlpha(91+I,BrakeWarn*255)
+                This:egpAlpha(92+I,BrakeWarn*255)
+                #Wheel Slip - 93,94,95
+                This:egpAlpha(93+I,WheelSlip*255)
+                This:egpAlpha(94+I,WheelSlip*255)
+                This:egpAlpha(95+I,WheelSlip*255)
+                #Sand - 96,97
+                This:egpAlpha(96+I,ForceSand*255)
+                This:egpAlpha(97+I,ForceSand*255)
+                #Bell - 98,99
+                This:egpAlpha(98+I,Bell*255)
+                This:egpAlpha(99+I,Bell*255)
+                #Horn - 100,101
+                This:egpAlpha(100+I,Horn*255)
+                This:egpAlpha(101+I,Horn*255)
+                #Overspeed - 102,103,104
+                This:egpAlpha(102+I,(MPH>MaxSpeed)*255)
+                This:egpAlpha(103+I,(MPH>MaxSpeed)*255)
+                This:egpAlpha(104+I,(MPH>MaxSpeed)*255)
+                
+                break
+            case 1, #Pneumatic
+                
+                #EqualRes MainRes BrakePipe Cyl
+                EqualRes = RLCPTW["EqualRes",number]
+                MainRes = RLCPTW["MainRes",number]
+                BrakePipe = RLCPTW["BrakePipe",number]
+                Cyl = RLCPTW["Cyl",number]
+                
+                #Main Reservoir
+                This:egpSize(1+I,(MainRes<1) ? -40 : (-MainRes*270/180) - 45)
+                This:egpSetText(42+I,round(MainRes):toString())
+
+                #Equalizing Reservoir
+                This:egpSize(3+I,(EqualRes<1) ? -40 : (-EqualRes*270/180) - 45)
+                This:egpSetText(40+I,round(EqualRes):toString())
+                
+                #Brake Cylinder
+                This:egpSize(43+I,(Cyl<1) ? -40 : (-Cyl*270/120) -45)
+                This:egpSetText(81+I,round(Cyl):toString())
+
+                #Brake Pipe
+                This:egpSize(45+I,(BrakePipe<1) ? -40 : (-BrakePipe*270/120) - 45)
+                This:egpSetText(79+I,round(BrakePipe):toString())
+                
+                
+
+                break
+            case 2, #Misc Info
+                
+                MU_F = RLCPTW["MU_F",number]
+                MU_R = RLCPTW["MU_R",number]
+                Voltage = RLCPTW["Voltage",number]
+                AirBrakeMode = RLCPTW["AirBrakeMode",number]
+                CarCount = RLCPTW["CarCount",number]
+                TrainWeight = RLCPTW["TrainWeight",number]
+                
+                #2,4 MU Connections, 6 Generator Voltage, 8 AirBrakeMode, 10 CarCount, 12 Train Weight
+                
+                This:egpSetText(2+I,MU_F ? "Connected" : "Disconnected")
+                This:egpColor(2+I,MU_F ? Green : Yellow)
+                
+                This:egpSetText(4+I,MU_R ? "Connected" : "Disconnected")
+                This:egpColor(4+I,MU_R ? Green : Yellow)
+                
+                This:egpSetText(6+I,Voltage:toString() + (AC ? " VAC" : " VDC"))
+                
+                This:egpSetText(8+I,select(AirBrakeMode+1,"Self-Lap","Man-Lap","26L","24RL"))
+                
+                This:egpSetText(10+I,CarCount:toString())
+                
+                This:egpSetText(12+I,(round(TrainWeight/25000,1)):toString() + " SCE")
+                
+                break
+            default,
+                break
+        }
+        
+        return void
+    }
+    
+    #EGP1:initPage(Page1,0)
+    #EGP2:initPage(Page2,1)
+    #timer("clk",100)
+}
+
+if(Power & !On){
+    On = 1
+    soundPlay(0,1,"gsgtrainsounds/misc/switch1.wav")
+    
+    if(!PersistPages){
+        Page1 = MonDefault1
+        Page2 = MonDefault2
+    }
+    RLCPTW = RLCPT:wirelink()
+    if(SkipBoot){
+        timer("finishboot",100)
+    }else{
+        BootN = 1
+        timer("wakeup",500)
+    }
+}elseif(!Power & On){
+    On = 0
+    soundPlay(0,1,"gsgtrainsounds/misc/switch2.wav")
+    EGP1:egpClear()
+    EGP2:egpClear()
+    stopAllTimers()
+}
+if(On){
+    if(Cycle1 & !CycleQ){
+        CycleQ = 1
+        Page1++
+        if(Page1>3){Page1 = -1}
+        EGP1:initPage(Page1,0)
+        soundPlay(1,0.5,"buttons/blip1.wav")
+    }elseif(Cycle2 & !CycleQ){
+        CycleQ = 1
+        Page2++
+        if(Page2>3){Page2 = -1}
+        EGP2:initPage(Page2,1)
+        soundPlay(1,0.5,"buttons/blip1.wav")
+    }elseif(!Cycle1 & !Cycle2 & CycleQ){
+        CycleQ = 0
+    }
+}
+
+if(clk("clk")){
+    EGP1:updatePage(Page1,0)
+    EGP2:updatePage(Page2,1)
+    timer("clk",100)
+}elseif(clk("wakeup")){
+    soundPlay(1,10,"ambient/machines/refrigerator.wav")
+    soundVolume(1,0,10)
+    timer("boot",1000)
+}elseif(clk("boot")){
+    local Spin = 150
+    switch(BootN){
+        case 1,
+            EGP1:egpText(1,"L.O.C.O.S. Version " + Version + " initial boot",vec2(8,BootN*24))
+            EGP1:egpAlign(1,0,1)
+            EGP1:egpFont(1,"Lucida Console",16)
+            BootN++
+            timer("boot",200)
+            break
+        case 2,
+            EGP1:egpText(2,"Loading EEPROM Cache 128x07AJG23...",vec2(8,BootN*24))
+            EGP1:egpAlign(2,0,1)
+            EGP1:egpFont(2,"Lucida Console",16)
+            BootN++
+            timer("boot",1000)
+            break
+        case 3,
+            EGP1:egpSetText(2,"Loading EEPROM Cache 128x07AJG23... Done!")
+            EGP1:egpAlign(2,0,1)
+            EGP1:egpFont(2,"Lucida Console",16)
+            BootN++
+            timer("boot",200)
+            break
+        case 4,
+            EGP1:egpText(3,"***LOCOS_funcdisplay.exe bootdump***",vec2(8,(BootN-1)*24))
+            EGP1:egpAlign(3,0,1)
+            EGP1:egpFont(3,"Lucida Console",16)
+            
+            EGP1:egpText(4,"Starting Rotors... Done!",vec2(8,(BootN)*24))
+            EGP1:egpAlign(4,0,1)
+            EGP1:egpFont(4,"Lucida Console",16)
+            BootN++
+            timer("boot",500)
+            break
+        case 5,
+            EGP1:egpText(5,"Checking RLC PT Interface...",vec2(8,(BootN)*24))
+            EGP1:egpAlign(5,0,1)
+            EGP1:egpFont(5,"Lucida Console",16)
+            BootN++
+            timer("boot",2000)
+            break
+        case 6,
+            EGP1:egpSetText(5,"Checking RLC PT Interface... Done!")
+            EGP1:egpAlign(5,0,1)
+            EGP1:egpFont(5,"Lucida Console",16)
+            
+            EGP1:egpText(6,"Activating Phase 1 Emitters... Done!",vec2(8,(BootN)*24))
+            EGP1:egpAlign(6,0,1)
+            EGP1:egpFont(6,"Lucida Console",16)
+            
+            BootN++
+            timer("boot",100)
+            break
+        case 7,
+            EGP1:egpText(7,"Initializing MSDOS-JTAG-IDE-OSX... Done!",vec2(8,(BootN)*24))
+            EGP1:egpAlign(7,0,1)
+            EGP1:egpFont(7,"Lucida Console",16)
+            BootN++
+            timer("boot",200)
+            break
+        case 8,
+            EGP1:egpText(8,"Activating Phase 2 Emitters... Done!",vec2(8,(BootN)*24))
+            EGP1:egpAlign(8,0,1)
+            EGP1:egpFont(8,"Lucida Console",16)
+            BootN++
+            timer("boot",200)
+            break
+        case 9,
+            EGP1:egpText(9,"Warning: Silos Needed! [924/1024 kB Used!]",vec2(8,(BootN)*24))
+            EGP1:egpAlign(9,0,1)
+            EGP1:egpFont(9,"Lucida Console",16)
+            EGP1:egpColor(9,Yellow)
+            BootN++
+            timer("boot",200)
+            break
+        case 10,
+            EGP1:egpText(10,"Dialing P3X-7572: -",vec2(8,(10)*24))
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.05,
+            EGP1:egpSetText(10,"Dialing P3X-7572: \\")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.10,
+            EGP1:egpSetText(10,"Dialing P3X-7572: |")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.15,
+            EGP1:egpSetText(10,"Dialing P3X-7572: /")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.20,
+            EGP1:egpSetText(10,"Dialing P3X-7572: -")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.25,
+            EGP1:egpSetText(10,"Dialing P3X-7572: \\")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.30,
+            EGP1:egpSetText(10,"Dialing P3X-7572: |")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.35,
+            EGP1:egpSetText(10,"Dialing P3X-7572: /")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.40,
+            EGP1:egpSetText(10,"Dialing P3X-7572: -")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.45,
+            EGP1:egpSetText(10,"Dialing P3X-7572: \\")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.50,
+            EGP1:egpSetText(10,"Dialing P3X-7572: |")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.55,
+            EGP1:egpSetText(10,"Dialing P3X-7572: /")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.60,
+            EGP1:egpSetText(10,"Dialing P3X-7572: -")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.65,
+            EGP1:egpSetText(10,"Dialing P3X-7572: \\")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.70,
+            EGP1:egpSetText(10,"Dialing P3X-7572: |")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.75,
+            EGP1:egpSetText(10,"Dialing P3X-7572: /")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.80,
+            EGP1:egpSetText(10,"Dialing P3X-7572: -")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.85,
+            EGP1:egpSetText(10,"Dialing P3X-7572: \\")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.90,
+            EGP1:egpSetText(10,"Dialing P3X-7572: |")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",Spin)
+            break
+        case 10.95,
+            EGP1:egpSetText(10,"Dialing P3X-7572: Chevron 7 Locked!")
+            EGP1:egpAlign(10,0,1)
+            EGP1:egpFont(10,"Lucida Console",16)
+            BootN+=0.05
+            timer("boot",200)
+            break
+        case 11,
+            EGP1:egpText(11,"Charging Overhead Capacitors...",vec2(8,(BootN)*24))
+            EGP1:egpAlign(11,0,1)
+            EGP1:egpFont(11,"Lucida Console",16)
+            BootN++
+            timer("boot",2000)
+            break
+        case 12,
+            EGP1:egpSetText(11,"Charging Overhead Capacitors... 105%")
+            EGP1:egpAlign(11,0,1)
+            EGP1:egpFont(11,"Lucida Console",16)
+            
+            EGP1:egpText(12,"Inserting GG-889...",vec2(8,(BootN)*24))
+            EGP1:egpAlign(12,0,1)
+            EGP1:egpFont(12,"Lucida Console",16)
+            
+            BootN++
+            timer("boot",2000)
+            break
+        case 13,
+            EGP1:egpText(13,"Resonance Cascade Complete!",vec2(8,(BootN)*24))
+            EGP1:egpAlign(13,0,1)
+            EGP1:egpFont(13,"Lucida Console",16)
+            BootN++
+            timer("splash0",1000)
+            break
+    }
+    
+    
+}elseif(clk("splash0")){
+    EGP1:initPage(-1,0)
+    #EGP2:initPage(-1,1)
+    timer("splash1",500)
+}elseif(clk("splash1")){
+    soundPlay(1,0,"synth/triangle_440.wav")
+    soundPitch(1,63)
+    timer("splash2",300)
+}elseif(clk("splash2")){
+    soundPitch(1,75)
+    timer("splash3",100)
+}elseif(clk("splash3")){
+    soundPitch(1,50)
+    timer("splash4",100)
+}elseif(clk("splash4")){
+    soundPitch(1,100)
+    timer("splash5",600)
+}elseif(clk("splash5")){
+    soundStop(1)
+    timer("finishboot",3000)
+}elseif(clk("finishboot")){
+    EGP1:initPage(Page1,0)
+    EGP2:initPage(Page2,1)
+    timer("clk",100)
+}

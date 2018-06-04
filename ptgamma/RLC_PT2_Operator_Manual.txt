@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.35
+                                                                    For RLC Pt 2.0.36
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -113,7 +113,13 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             In a pinch, you can wire "Allow Buttons" and "Crosshair" back to the Pod Controller "Active" too, but beware of visual bugs.
         6 - Spawn a Wire Advanced Entity Marker (Adv Ent Marker) and link it to the Locomotive's trucks/bogies (Right Click the Marker, then Shift+Right Click the two trucks).
             Wire RLC's "Trucks[ARRAY]" to the Adv Ent Marker's "Entities[ARRAY]" output.
-        7 - Spawn an RLC PT2 Control Reader (ptgamma/RLC PT2 Control Reader.txt) or suitable control stand (ptgamma/cstands_bg/cstand_aar.txt for example) in an accessible area.
+        7 - Spawn an RLC PT2 Control Reader (ptgamma/RLC PT2 Control Reader.txt) or modernized control stand (ptgamma/cstands_bg/cstand_aar.txt for example) in an accessible area.
+        
+            "Control Stand? Control Reader? Which one do I use?"
+            Use the Modernized Control Stand if you're using one of the new Control Stand models. That chip contains the control reader within it.
+            Use the Control Reader if you're using any other control stand, like the older control stands... or none at all!
+            If you're using an older control stand, use the E2 "RLC_Platinum_Control_Stand_GAMMA.txt"
+            
             Wire the Control Reader/Stand's "Pod[ENTITY]" input to the Pod Controller's "Entity[ENTITY]" output (For B units, you can skip this substep).
             Wire the Control Reader/Stand's "Active" input to the Pod Controller's "Active" output (For B units, you can skip this substep).
             Wire the Control Reader/Stand's "MU_Master" input to the MU Master Switch (For B units, you can skip this substep).

@@ -14,7 +14,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.35 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.36 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -27,7 +27,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Magnum"
+    #include "ptgamma/controls/Standard"
     
     AirBrakeMode = 3
     #0 - Simple Self-Lapping (Easy)
@@ -632,7 +632,9 @@ if(clk("clk")){
         SetEqualRes = 0
         
         SetThrottle = 0
+        Notch = 0
         SetDynamics = 0
+        DynaNotch = 0
 
         SetBrakeNotch = 6
         

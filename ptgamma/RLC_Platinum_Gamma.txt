@@ -1,7 +1,7 @@
 @name ptgamma/RLC Platinum Gamma
 @inputs Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master RemoteControl CtlTable:table Active Pod:entity Trucks:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode Number:string
 @outputs RLCPT:entity Primed1 Primed2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load Voltage TransitionNotch
-@outputs MainRes EqualRes BrakePipe BrakeCyl Cyl LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
+@outputs MainRes EqualRes BrakePipe BrakeCyl Cyl LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
 @outputs AvCurrent Currents:array
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches Motors
@@ -31,11 +31,9 @@
 @trigger Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master
 @model models/cheeze/beta/white_button.mdl
 
-#MAKE OFF NOTCH FOR SELECTOR
-
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.35"
+    local Version = "Gamma 2.0.36"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -47,7 +45,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_sd40_2"
+    #include "ptgamma/locos/generic/emd_sd50"
     
     #That's pretty much all the config!
     
@@ -80,7 +78,7 @@ if(first()|dupefinished()){
     #Sound Index Register
     #0 - Prime Mover 1
     #1 - Prime Mover 2
-    #2 - Primer
+    #2 - Primer/TM Drone
     #3 - Cab Levers
     #4 - Brake Hiss
     #5 - Dynamic Brake Fans
@@ -601,6 +599,14 @@ if(first()|dupefinished()){
         return Cars
         
     }
+    function number trainWeight(){
+        local WeightProps = E:getConstraints()
+        local TotalMass = 0
+        foreach(K,V:entity=WeightProps){
+            TotalMass += V:mass()
+        }
+        return TotalMass
+    }
     function void abRelease(){
         local Ents = E:getConstraints()
         foreach(K,V:entity=Ents){
@@ -678,7 +684,7 @@ if(HasPM){ #Actual Engine Starting
             timer("StartCheck1",StartupClagDelay*1000)
             timer("FinishStart1",sdr(Snd))
             #print("Start1")
-        }elseif(On1 & ~Start){
+        }elseif(On1 & ~Start & !Run){
             On1 = 0
             if(CompQ1){
                 CompQ1 = 0
@@ -765,7 +771,7 @@ if(HasPM){ #Actual Engine Starting
                 timer("StartCheck2",StartupClagDelay*1000)
                 timer("FinishStart2",sdr(Snd))
                 #print("Start1")
-            }elseif(On2 & ~Start_DPM){
+            }elseif(On2 & ~Start_DPM & !Run_DPM){
                 On2 = 0
                 if(CompQ2){
                     CompQ2 = 0
@@ -843,9 +849,10 @@ if(HasPM){ #Actual Engine Starting
 }
 if(clk("CarCount")){
     CarCount = carCount()
+    TrainWeight = trainWeight()
     timer("CarCount",5000)
     LastProps = E:getConstraints()
-    if(MU_Master){
+    if(MU_Master & (MainRes>0)){
         MainRes += -1
     }
     WheelSlipRand = random()<0.75
@@ -1301,14 +1308,19 @@ if(On1|On2){
                 Pod:soundPlay(13,2,SanderOff)
             }
             
-        #TRACTION MOTOR DRONE ON/OFF    
-            if(((Power>0) | RollQ) & !DroneQ){
-                DroneQ = 1
-                H1:soundPlay(2,0,TractionDrone)
-                #soundPitch(2,0)
-            }elseif((Power==0) & !RollQ & DroneQ){
-                DroneQ = 0
-                soundStop(2,0.1)
+            #TRACTION MOTOR DRONE ON/OFF    
+            if(HasTM){
+                #if(((Power>0) | RollQ) & !DroneQ){
+                if((RollQ) & !DroneQ){
+                    DroneQ = 1
+                    H1:soundPlay(2,0,TractionDrone)
+                    #print("Drone On")
+                #}elseif((Power==0) & !RollQ & DroneQ){
+                }elseif(!RollQ & DroneQ){
+                    DroneQ = 0
+                    soundStop(2,0.1)
+                    #print("Drone Off")
+                }
             }
             
         } 
@@ -1347,8 +1359,71 @@ if(On1|On2){
                     break
                 case 4, #4 Motors
                     if(TransitionMode==1){
-                        if((TransitionControlType==1 | TransitionControlType==2)){ #Automatic
-                            TransitionNotch = 1 + (MPH>TransitionThreshold01) + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23)
+                        if((TransitionControlType==1)){ #Automatic With Selector
+                            
+                            if(SelectorNotch==0){
+                                TransitionNotch==0
+                            }else{
+                                switch(TransitionNotch){
+                                    case 0,
+                                        TransitionNotch = 1
+                                        break
+                                    case 1,
+                                        if(MPH > (TransitionThreshold01 + 1)){
+                                            TransitionNotch++
+                                        }
+                                        break
+                                    case 2,
+                                        if(MPH > (TransitionThreshold12 + 1)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold01 - 1)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 3,
+                                        if(MPH > (TransitionThreshold23 + 1)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold12 - 1)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 4,
+                                        if(MPH < (TransitionThreshold23 - 1)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                }
+                            }
+                        }elseif(TransitionControlType==2){ #Fully Automatic
+                            switch(TransitionNotch){
+                                case 0,
+                                    TransitionNotch = 1
+                                    break
+                                case 1,
+                                    if(MPH > (TransitionThreshold01 + 1)){
+                                        TransitionNotch++
+                                    }
+                                    break
+                                case 2,
+                                    if(MPH > (TransitionThreshold12 + 1)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold01 - 1)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 3,
+                                    if(MPH > (TransitionThreshold23 + 1)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold12 - 1)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 4,
+                                    if(MPH < (TransitionThreshold23 - 1)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                            }
                         }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
                             TransitionNotch = 3 + (MPH>TransitionThreshold23)
                         }else{ #Manual
@@ -1376,15 +1451,78 @@ if(On1|On2){
                     break
                 case 6, #6 Motors
                     if(TransitionMode){
-                        if((TransitionControlType==1 | TransitionControlType==2)){ #Automatic
-                            TransitionNotch = 1 + (MPH>TransitionThreshold01) + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23)
-                        }elseif(TransitionControlType==3){ #Automatic
+                        if((TransitionControlType==1)){ #Automatic With Selector
+                            
+                            if(SelectorNotch==0){
+                                TransitionNotch==0
+                            }else{
+                                switch(TransitionNotch){
+                                    case 0,
+                                        TransitionNotch = 1
+                                        break
+                                    case 1,
+                                        if(MPH > (TransitionThreshold01)){
+                                            TransitionNotch++
+                                        }
+                                        break
+                                    case 2,
+                                        if(MPH > (TransitionThreshold12)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold01 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 3,
+                                        if(MPH > (TransitionThreshold23)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold12 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 4,
+                                        if(MPH < (TransitionThreshold23 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                }
+                            }
+                        }elseif(TransitionControlType==2){ #Fully Automatic
+                            switch(TransitionNotch){
+                                case 0,
+                                    TransitionNotch = 1
+                                    break
+                                case 1,
+                                    if(MPH > (TransitionThreshold01)){
+                                        TransitionNotch++
+                                    }
+                                    break
+                                case 2,
+                                    if(MPH > (TransitionThreshold12)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold01 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 3,
+                                    if(MPH > (TransitionThreshold23)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold12 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 4,
+                                    if(MPH < (TransitionThreshold23 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                            }
+                        }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
                             TransitionNotch = 3 + (MPH>TransitionThreshold23)
                         }else{ #Manual
                             TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
                         }
                     }else{
-                        TransitionNotch = 0
+                        TransitionNotch = 1
                     }
                     
                     ShuntFactor = select(TransitionNotch+1, 1, 1, 1, 1, 0.5)
@@ -1409,8 +1547,71 @@ if(On1|On2){
                     break
                 case 8, #8 Motors - Basically a Clone of 4 Motors.
                     if(TransitionMode==1){
-                        if((TransitionControlType==1 | TransitionControlType==2)){ #Automatic
-                            TransitionNotch = 1 + (MPH>TransitionThreshold01) + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23)
+                        if((TransitionControlType==1)){ #Automatic With Selector
+                            
+                            if(SelectorNotch==0){
+                                TransitionNotch==0
+                            }else{
+                                switch(TransitionNotch){
+                                    case 0,
+                                        TransitionNotch = 1
+                                        break
+                                    case 1,
+                                        if(MPH > (TransitionThreshold01)){
+                                            TransitionNotch++
+                                        }
+                                        break
+                                    case 2,
+                                        if(MPH > (TransitionThreshold12)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold01 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 3,
+                                        if(MPH > (TransitionThreshold23)){
+                                            TransitionNotch++
+                                        }elseif(MPH < (TransitionThreshold12 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                    case 4,
+                                        if(MPH < (TransitionThreshold23 - 2)){
+                                            TransitionNotch--
+                                        }
+                                        break
+                                }
+                            }
+                        }elseif(TransitionControlType==2){ #Fully Automatic
+                            switch(TransitionNotch){
+                                case 0,
+                                    TransitionNotch = 1
+                                    break
+                                case 1,
+                                    if(MPH > (TransitionThreshold01)){
+                                        TransitionNotch++
+                                    }
+                                    break
+                                case 2,
+                                    if(MPH > (TransitionThreshold12)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold01 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 3,
+                                    if(MPH > (TransitionThreshold23)){
+                                        TransitionNotch++
+                                    }elseif(MPH < (TransitionThreshold12 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                                case 4,
+                                    if(MPH < (TransitionThreshold23 - 2)){
+                                        TransitionNotch--
+                                    }
+                                    break
+                            }
                         }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
                             TransitionNotch = 3 + (MPH>TransitionThreshold23)
                         }else{ #Manual
@@ -1491,8 +1692,11 @@ if(On1|On2){
         
         #Traction Motor Drone
         if(DroneQ){
-            soundPitch(2,100*MPH/TopSpeed)
-            soundVolume(2,clamp((Load/750),0.5,1))
+            #Y - Y1 = m(X - X1)
+            #P - 100 = m(MPH - 20)
+            #P = m(MPH) - m(20) + 100
+            soundPitch(2,100*MPH/40)
+            soundVolume(2,clamp((MPH/5),0,1)*clamp(abs(Load)/200,0.5,1))
         }
         
     }else{#End of Running Block
