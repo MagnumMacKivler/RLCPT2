@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.36
+                                                                    For RLC Pt 2.0.36-37
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -72,7 +72,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     Bleedable Independent Brakes
     Realistic Wheel Slip
     Electronic Traction Control
-    Extra Brake Cylinders Option
+    Extra Brake Cylinders (Clasp Brakes) Option
     Manual/Automatic Transition with Selector Lever Support
     Integrated Cabcar/Slug/Snail Modes
     Remote Control Support
@@ -121,7 +121,6 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             If you're using an older control stand, use the E2 "RLC_Platinum_Control_Stand_GAMMA.txt"
             
             Wire the Control Reader/Stand's "Pod[ENTITY]" input to the Pod Controller's "Entity[ENTITY]" output (For B units, you can skip this substep).
-            Wire the Control Reader/Stand's "Active" input to the Pod Controller's "Active" output (For B units, you can skip this substep).
             Wire the Control Reader/Stand's "MU_Master" input to the MU Master Switch (For B units, you can skip this substep).
             Wire RLC's "CtlTable[TABLE]" input to the Control Reader/Stand's "CtlTable[TABLE]" output.
         8 - Refresh the RLC Chip (You can do this easily by taking out the E2 tool and pressing Reload on it)!
@@ -173,7 +172,6 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         1 - Spawn a TOGGLED Wire Button somewhere accessible.
             Wire the Control Reader/Stand's "RemoteControl" input to this Button (Henceforth referred to as the "Remote Control Switch").
             Wire the Control Reader/Stand's "Active" input to the Pod Controller's "Active" Output.
-            Wire the Control Reader/Stand's "RemoteControl" input to the Remote Control Switch.
             Wire RLC's "RemoteMode" input to the Control Reader/Stand's "RemoteMode" output.
             You can now control the locomotive using the Wire Remote Controller SWEP, provided the RemoteControl button is on.
         
