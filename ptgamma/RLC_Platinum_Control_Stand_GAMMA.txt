@@ -1,4 +1,4 @@
-@name RLC Platinum Control Stand GAMMA
+@name ptgamma/RLC Platinum Control Stand GAMMA
 @inputs MU_Master RLCPT:entity Override:entity Horn BellToggle LightToggle MiscToggle
 @outputs Bell Light Misc CONSTANT Reverser EqualRes TB_Notch LB_Notch
 @persist CS:entity DisableHorn Type RLCPTW:wirelink AirBrakeType DynamicsType DS:array

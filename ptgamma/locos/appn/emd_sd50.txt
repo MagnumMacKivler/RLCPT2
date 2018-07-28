@@ -1,4 +1,4 @@
-@name ptgamma/locos/generic/emd_sd50
+@name ptgamma/locos/appn/emd_sd50
 @inputs 
 @outputs 
 @persist 
@@ -12,12 +12,12 @@
 LocomotiveType = "EMD SD50"
     
 Horsepower = 3500 #Horsepower Rating; meaningless if there is no prime mover.
-Weight = 420000 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
-Adhesion = 0.30 #Factor of Adhesion:
+Weight = 400000 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
+Adhesion = 0.32 #Factor of Adhesion:
 #Older Road Locomotives are about 25%
 #Switchers and Road Locomotives with High-Adhesion trucks are about 30-32%
 #Modern AC Traction locomotives are about 45-50%
-Motors = 6 #Number of Traction Motors. Anything else is just absurd, really. Meaningless for Cabcars/Snails.
+Motors = 6 #Can be 2, 4, 6, or 8. Anything else is just absurd, really. Meaningless for Cabcars/Snails.
 TopSpeed = 65 #Top Speed, in Miles per Hour, that the locomotive is capable of reaching due to the gearing. If you don't know, put 65.
 
 #Pick a Prime Mover Config File! You can find them in "ptgamma/engines/" !
@@ -29,13 +29,6 @@ UnitType = 0
 #1 - Slug (No Prime Mover, has Traction Motors
 #2 - Snail (No Traction Motors, has Prime Mover
 #3 - Cab Car/Control Cab (No Traction Motors or Prime Mover)
-
-#Transition
-#                       Off 1st 2nd 3rd 4th
-TransitionGroups = array(1,  1,  1,  1,  1) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
-TransitionShunts = array(1,  1,  1,  1,  1) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
-NominalVoltage = 3000
-MaxRatedCurrent = 9000
 
 #Dynamic Braking Capabilities:
 
@@ -60,5 +53,6 @@ HEPTYPE = 0 #0 for 4-8 HEP (Traditional), 1 for 2-4 HEP (For Modern, High-Horsep
 
 #Misc:
 
-ExtraBrakeCylinders = 0 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
+ExtraBrakeCylinders = 1 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
+TransitionVoltage = 2000 #Internal Voltage used to determine transition speeds.
 HeadlightRGB = vec(255,255,200) #What color do you want your MU Headlights to be, if used.

@@ -32,3 +32,8 @@ Controls["HandBrake",string] = "H"
 Controls["Sander",string] = "M"
 
 Controls["UseButton",string] = "mouse_left"
+
+LeverBased = 0 #0 for Control-Based, 1 for Lever-Based
+#When available, this enables the Lever-Based Control mode. This means that the key controls the LEVER, not the CONTROL.
+#For example consider a locomotive with a Selector Lever. Normally you'd press [IncreaseDynamics] to turn on the dynamic braking
+#With LeverBased mode, in order to turn on the dynamics you have to be in the "Off" selector notch and press [DecreaseTransition] to turn on the dynamics.

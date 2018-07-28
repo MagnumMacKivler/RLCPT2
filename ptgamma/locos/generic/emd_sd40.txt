@@ -1,4 +1,4 @@
-@name ptgamma/locos/generic/emd_sd50
+@name ptgamma/locos/generic/emd_sd40
 @inputs 
 @outputs 
 @persist 
@@ -9,11 +9,11 @@
 
 #General:
 
-LocomotiveType = "EMD SD50"
+LocomotiveType = "EMD SD40"
     
-Horsepower = 3500 #Horsepower Rating; meaningless if there is no prime mover.
-Weight = 420000 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
-Adhesion = 0.30 #Factor of Adhesion:
+Horsepower = 3000 #Horsepower Rating; meaningless if there is no prime mover.
+Weight = 368000 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
+Adhesion = 0.25 #Factor of Adhesion:
 #Older Road Locomotives are about 25%
 #Switchers and Road Locomotives with High-Adhesion trucks are about 30-32%
 #Modern AC Traction locomotives are about 45-50%
@@ -21,7 +21,7 @@ Motors = 6 #Number of Traction Motors. Anything else is just absurd, really. Mea
 TopSpeed = 65 #Top Speed, in Miles per Hour, that the locomotive is capable of reaching due to the gearing. If you don't know, put 65.
 
 #Pick a Prime Mover Config File! You can find them in "ptgamma/engines/" !
-#include "ptgamma/engines/EMD_V16_645F"
+#include "ptgamma/engines/EMD_V16_645T_Standard"
 #What Engine should you pick for your locomotive? Google it.
 
 UnitType = 0
@@ -32,10 +32,10 @@ UnitType = 0
 
 #Transition
 #                       Off 1st 2nd 3rd 4th
-TransitionGroups = array(1,  1,  1,  1,  1) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
-TransitionShunts = array(1,  1,  1,  1,  1) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
+TransitionGroups = array(3,  3,  2,  1,  1) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
+TransitionShunts = array(1,  1,  1,  1,  0.5) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
 NominalVoltage = 3000
-MaxRatedCurrent = 9000
+MaxRatedCurrent = 3000
 
 #Dynamic Braking Capabilities:
 

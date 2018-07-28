@@ -5,12 +5,13 @@
 @outputs AvCurrent Currents:array
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches Motors
-@persist TransitionMode TransitionVoltage TransitionControlType TransitionThreshold01 TransitionThreshold12 TransitionThreshold23 TransitionQ
+@persist TransitionMode TransitionVoltage TransitionControlType TransitionThreshold12 TransitionThreshold23 TransitionThreshold34 TransitionQ
 #Engine Sounds
 @persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
 @persist NQ TQ1 TQ2 ABQ1 ABQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force
+@persist TransitionGroups:array TransitionShunts:array NominalVoltage MaxRatedCurrent
 #Locomotive Config
 @persist Horsepower Weight Adhesion AirBrakeMode DynamicsMode FixedDynaThrottle BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle TopSpeed ExtraBrakeCylinders TractionMode
 #Locomotive Sounds
@@ -31,9 +32,17 @@
 @trigger Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master
 @model models/cheeze/beta/white_button.mdl
 
+#To-Do for 38
+
+#Dual Prime Mover - Double Current
+#Revisit Permanent Parallel
+#AC Traction
+#Load Smoothing
+#Variable Load Ratings
+
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.37"
+    local Version = "Gamma 2.0.39"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -45,7 +54,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_sd50"
+    #include "ptgamma/locos/generic/emd_gp38"
     
     #That's pretty much all the config!
     
@@ -175,24 +184,18 @@ if(first()|dupefinished()){
     HEPCLAG = 0
     HEPTHROTTLEBASE = 0
     
-    #4m
-    #ShuntFactor = select(TransitionNotch+1, 1, 0.75, 1, 0.75)
-    #Voltage = (MPH/20)*3000*select(TransitionNotch+1, 2/3, 2/3, 1/3, 1/3)*(65/TopSpeed)*ShuntFactor
     
-    #Voltage*20/(3000*select(TransitionNotch+1, 2/3, 2/3, 1/3, 1/3)*(65/TopSpeed)*select(TransitionNotch+1, 1, 0.75, 1, 0.75)) = MPH
+    #   -4X^2 + 4NomX - 746*HP = 0
+    #   -0.25X^2 + MaxX - 746*HP = 0
     
-    #6m
-    #ShuntFactor = select(TransitionNotch+1, 1, 1, 1, 0.5)
-    #Voltage = (MPH/20)*3000*select(TransitionNotch+1, 1, 2/3, 1/3, 1/3)*(65/TopSpeed)*ShuntFactor
-    if(Motors==4 | Motors==8){
-        TransitionThreshold01 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)))
-        TransitionThreshold12 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)*0.75))
-        TransitionThreshold23 = round(TransitionVoltage*20/(3000*(1/3)*(65/TopSpeed)))
-    }elseif(Motors==6){
-        TransitionThreshold01 = round(TransitionVoltage*20/(3000*(65/TopSpeed)))
-        TransitionThreshold12 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)))
-        TransitionThreshold23 = round(TransitionVoltage*20/(3000*(1/3)*(65/TopSpeed)))
-    }
+    #Voltage = MPH*NominalVoltage*ShuntFactor*TransitionGroups[1,number]/TopSpeed -> MPH = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[N,number]*TransitionGroups[N,number])
+    #TransitionVoltage1 = ( -(4*NominalVoltage) + sqrt((4*NominalVoltage)^2 - 4*4*746*Horsepower) )/(2*-4)
+    TransitionVoltage = ( -(4*NominalVoltage) - sqrt((4*NominalVoltage)^2 - 4*4*746*Horsepower) )/(2*-4)
+    
+    TransitionThreshold12 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[1,number]*TransitionGroups[1,number])
+    TransitionThreshold23 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[2,number]*TransitionGroups[2,number])
+    TransitionThreshold34 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[3,number]*TransitionGroups[3,number])   
+    
     if(TransitionControlType==3){
         TransitionControlType = 2
         print("[RLCPT] Permanent Parallel not yet implemented! Setting Transition mode to Full Automatic (2).")
@@ -617,6 +620,7 @@ if(first()|dupefinished()){
         local Ents = E:getConstraints()
         foreach(K,V:entity=Ents){
             V:propPhysicalMaterial("friction_00")
+            V:propDrag(0)
         }
     }
     function void abRest(Ents:array){
@@ -1029,23 +1033,23 @@ if(On1|On2){
             #SetDynamics = CtlTable["SetDynamics",number]
             #SetSelector = CtlTable["SetSelector",number]
             
-            ReverserF = CtlTable["ReverserF",number]
-            ReverserB = CtlTable["ReverserB",number]
+            #ReverserF = CtlTable["ReverserF",number]
+            #ReverserB = CtlTable["ReverserB",number]
             
-            IncreaseThrottle = CtlTable["IncreaseThrottle",number]
-            DecreaseThrottle = CtlTable["DecreaseThrottle",number]
+            #IncreaseThrottle = CtlTable["IncreaseThrottle",number]
+            #DecreaseThrottle = CtlTable["DecreaseThrottle",number]
             
-            IncreaseDynamics = CtlTable["IncreaseDynamics",number]
-            DecreaseDynamics = CtlTable["DecreaseDynamics",number]
+            #IncreaseDynamics = CtlTable["IncreaseDynamics",number]
+            #DecreaseDynamics = CtlTable["DecreaseDynamics",number]
             
-            IncreaseTrainBrake = CtlTable["IncreaseTrainBrake",number]
-            DecreaseTrainBrake = CtlTable["DecreaseTrainBrake",number]
+            #IncreaseTrainBrake = CtlTable["IncreaseTrainBrake",number]
+            #DecreaseTrainBrake = CtlTable["DecreaseTrainBrake",number]
             
-            IncreaseLocoBrake = CtlTable["IncreaseLocoBrake",number]
-            DecreaseLocoBrake = CtlTable["DecreaseLocoBrake",number]
+            #IncreaseLocoBrake = CtlTable["IncreaseLocoBrake",number]
+            #DecreaseLocoBrake = CtlTable["DecreaseLocoBrake",number]
             
-            TransitionUp = CtlTable["TransitionUp",number]
-            TransitionDown = CtlTable["TransitionDown",number]
+            #TransitionUp = CtlTable["TransitionUp",number]
+            #TransitionDown = CtlTable["TransitionDown",number]
             
             EmergencyBrake = CtlTable["EmergencyBrake",number]
             
@@ -1083,7 +1087,7 @@ if(On1|On2){
                 
                 LocoBrakePressure = FrontPlugIn[5,number] + RearPlugIn[5,number]
                 HumpMultiplier = FrontPlugIn[6,number]*RearPlugIn[6,number]
-                if(!TransitionControlType){TransitionNotch = max(FrontPlugIn[13,number],RearPlugIn[13,number])}
+                if(TransitionControlType<2){SelectorNotch = max(FrontPlugIn[13,number],RearPlugIn[13,number])}
             }else{
                 Reverser = 0
                 Throttle = 0
@@ -1259,7 +1263,7 @@ if(On1|On2){
             
             
             #Manual Transition
-            SelectorNotch = CtlTable["SetSelector",number]
+            SelectorNotch = (TransitionControlType < 2) ? CtlTable["SetSelector",number] : 1
             
             #REVERSER
             
@@ -1335,7 +1339,7 @@ if(On1|On2){
         
         
         #POWER
-        local Motoring = (TransitionControlType>0) ? (1) : (SelectorNotch>0)
+        local Motoring = (TransitionControlType>1) ? (1) : (SelectorNotch>0)
         if((Power>0) & !Dynamics & abs(Reverser) & (MPH<TopSpeed) & Motoring){
             
             #local MaxGenCurrent = 4250+(Horsepower/4) #Calibration Point: 3000HP -> 5000A
@@ -1344,308 +1348,54 @@ if(On1|On2){
             if(!HasTM){
                 Motors = max(FrontCurrentIn[2,number],RearCurrentIn[2,number])
             }
-            if(changed(Motors)){
-                if(Motors==4){
-                    TransitionThreshold01 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)))
-                    TransitionThreshold12 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)*0.75))
-                    TransitionThreshold23 = round(TransitionVoltage*20/(3000*(1/3)*(65/TopSpeed)))
-                }elseif(Motors==6){
-                    TransitionThreshold01 = round(TransitionVoltage*20/(3000*(65/TopSpeed)))
-                    TransitionThreshold12 = round(TransitionVoltage*20/(3000*(2/3)*(65/TopSpeed)))
-                    TransitionThreshold23 = round(TransitionVoltage*20/(3000*(1/3)*(65/TopSpeed)))
-                }
-            }
             
             local PowerNormal = 0.2 + (Power/100)*0.8
             local ShuntFactor = 1
             local HP_Effective = HEP_Notch ? (Horsepower-HEP_Subtract) : Horsepower
-            local MaxRatedCurrent = (TransitionControlType==3) ? Motors*1500 : 3000
-            switch(Motors){
-                case 0, #No Transition
+            
+            if(TransitionMode){
+                if((TransitionControlType==1)){ #Automatic With Selector
                     
-                    break
-                case 4, #4 Motors
-                    if(TransitionMode==1){
-                        if((TransitionControlType==1)){ #Automatic With Selector
-                            
-                            if(SelectorNotch==0){
-                                TransitionNotch==0
-                            }else{
-                                switch(TransitionNotch){
-                                    case 0,
-                                        TransitionNotch = 1
-                                        break
-                                    case 1,
-                                        if(MPH > (TransitionThreshold01 + 1)){
-                                            TransitionNotch++
-                                        }
-                                        break
-                                    case 2,
-                                        if(MPH > (TransitionThreshold12 + 1)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold01 - 1)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 3,
-                                        if(MPH > (TransitionThreshold23 + 1)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold12 - 1)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 4,
-                                        if(MPH < (TransitionThreshold23 - 1)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                }
-                            }
-                        }elseif(TransitionControlType==2){ #Fully Automatic
-                            switch(TransitionNotch){
-                                case 0,
-                                    TransitionNotch = 1
-                                    break
-                                case 1,
-                                    if(MPH > (TransitionThreshold01 + 1)){
-                                        TransitionNotch++
-                                    }
-                                    break
-                                case 2,
-                                    if(MPH > (TransitionThreshold12 + 1)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold01 - 1)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 3,
-                                    if(MPH > (TransitionThreshold23 + 1)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold12 - 1)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 4,
-                                    if(MPH < (TransitionThreshold23 - 1)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                            }
-                        }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
-                            TransitionNotch = 3 + (MPH>TransitionThreshold23)
-                        }else{ #Manual
-                            TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
-                        }
+                    if(SelectorNotch==0){
+                        TransitionNotch==0
                     }else{
-                        TransitionNotch = 1
+                        TransitionNotch = 1 + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23) + (MPH>TransitionThreshold34)
                     }
-                    
-                    ShuntFactor = select(TransitionNotch+1, 1, 1, 0.75, 1, 0.75)
-                    
-                    if(SlugMode){
-                        AvCurrent = InputCurrent
-                    }else{
-                        Voltage = (MPH/20)*3000*select(TransitionNotch+1, 2/3, 2/3, 2/3, 1/3, 1/3)*(65/TopSpeed)*ShuntFactor
-                        local MaxPowerCurve = 746*1.5*HP_Effective*sqrt(PowerNormal)/(Voltage+1)
-                        local MaxLoadCurve = (MaxRatedCurrent - Voltage/4)*PowerNormal
-                        local MaxFieldCurve = -(Voltage^2)/2000 + 1000 + 4000*PowerNormal
-                        GenCurrent = clamp(min(MaxPowerCurve,MaxLoadCurve,MaxFieldCurve),0,MaxRatedCurrent)
-                        AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
-                    }
-                    
-                    Load = HasTM ? AvCurrent/select(TransitionNotch+1,0,2,2,4,4) : 0
-                    
-                    break
-                case 6, #6 Motors
-                    if(TransitionMode){
-                        if((TransitionControlType==1)){ #Automatic With Selector
-                            
-                            if(SelectorNotch==0){
-                                TransitionNotch==0
-                            }else{
-                                switch(TransitionNotch){
-                                    case 0,
-                                        TransitionNotch = 1
-                                        break
-                                    case 1,
-                                        if(MPH > (TransitionThreshold01)){
-                                            TransitionNotch++
-                                        }
-                                        break
-                                    case 2,
-                                        if(MPH > (TransitionThreshold12)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold01 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 3,
-                                        if(MPH > (TransitionThreshold23)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold12 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 4,
-                                        if(MPH < (TransitionThreshold23 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                }
-                            }
-                        }elseif(TransitionControlType==2){ #Fully Automatic
-                            switch(TransitionNotch){
-                                case 0,
-                                    TransitionNotch = 1
-                                    break
-                                case 1,
-                                    if(MPH > (TransitionThreshold01)){
-                                        TransitionNotch++
-                                    }
-                                    break
-                                case 2,
-                                    if(MPH > (TransitionThreshold12)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold01 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 3,
-                                    if(MPH > (TransitionThreshold23)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold12 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 4,
-                                    if(MPH < (TransitionThreshold23 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                            }
-                        }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
-                            TransitionNotch = 3 + (MPH>TransitionThreshold23)
-                        }else{ #Manual
-                            TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
-                        }
-                    }else{
-                        TransitionNotch = 1
-                    }
-                    
-                    ShuntFactor = select(TransitionNotch+1, 1, 1, 1, 1, 0.5)
-                    
-                    if(SlugMode){
-                        AvCurrent = InputCurrent
-                        #print(AvCurrent)
-                    }else{
-                        Voltage = (MPH/20)*3000*select(TransitionNotch+1, 1, 1, 2/3, 1/3, 1/3)*(65/TopSpeed)*ShuntFactor
-                        local MaxPowerCurve = 746*1.5*HP_Effective*sqrt(PowerNormal)/(Voltage+1)
-                        local MaxLoadCurve = (MaxRatedCurrent - Voltage/4)*PowerNormal
-                        local MaxFieldCurve = -(Voltage^2)/2000 + 1000 + 4000*PowerNormal
-                        GenCurrent = clamp(min(MaxPowerCurve,MaxLoadCurve,MaxFieldCurve),0,MaxRatedCurrent)
-                        AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
-                        Currents = array(MaxLoadCurve, MaxPowerCurve, MaxFieldCurve)
-                        
-                    }
-                    
-                    Load = HasTM ? AvCurrent/select(TransitionNotch+1,0,2,3,6,6) : 0
-                    
-                    
-                    break
-                case 8, #8 Motors - Basically a Clone of 4 Motors.
-                    if(TransitionMode==1){
-                        if((TransitionControlType==1)){ #Automatic With Selector
-                            
-                            if(SelectorNotch==0){
-                                TransitionNotch==0
-                            }else{
-                                switch(TransitionNotch){
-                                    case 0,
-                                        TransitionNotch = 1
-                                        break
-                                    case 1,
-                                        if(MPH > (TransitionThreshold01)){
-                                            TransitionNotch++
-                                        }
-                                        break
-                                    case 2,
-                                        if(MPH > (TransitionThreshold12)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold01 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 3,
-                                        if(MPH > (TransitionThreshold23)){
-                                            TransitionNotch++
-                                        }elseif(MPH < (TransitionThreshold12 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                    case 4,
-                                        if(MPH < (TransitionThreshold23 - 2)){
-                                            TransitionNotch--
-                                        }
-                                        break
-                                }
-                            }
-                        }elseif(TransitionControlType==2){ #Fully Automatic
-                            switch(TransitionNotch){
-                                case 0,
-                                    TransitionNotch = 1
-                                    break
-                                case 1,
-                                    if(MPH > (TransitionThreshold01)){
-                                        TransitionNotch++
-                                    }
-                                    break
-                                case 2,
-                                    if(MPH > (TransitionThreshold12)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold01 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 3,
-                                    if(MPH > (TransitionThreshold23)){
-                                        TransitionNotch++
-                                    }elseif(MPH < (TransitionThreshold12 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                                case 4,
-                                    if(MPH < (TransitionThreshold23 - 2)){
-                                        TransitionNotch--
-                                    }
-                                    break
-                            }
-                        }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
-                            TransitionNotch = 3 + (MPH>TransitionThreshold23)
-                        }else{ #Manual
-                            TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
-                        }
-                    }else{
-                        TransitionNotch = 1
-                    }
-                    
-                    ShuntFactor = select(TransitionNotch+1, 1, 1, 0.75, 1, 0.75)
-                    
-                    if(SlugMode){
-                        AvCurrent = InputCurrent
-                    }else{
-                        Voltage = (MPH/20)*3000*select(TransitionNotch+1, 2/3, 2/3, 2/3, 1/3, 1/3)*(65/TopSpeed)*ShuntFactor
-                        local MaxPowerCurve = 746*1.5*HP_Effective*sqrt(PowerNormal)/(Voltage+1)
-                        local MaxLoadCurve = (MaxRatedCurrent - Voltage/4)*PowerNormal
-                        local MaxFieldCurve = -(Voltage^2)/2000 + 1000 + 4000*PowerNormal
-                        GenCurrent = clamp(min(MaxPowerCurve,MaxLoadCurve,MaxFieldCurve),0,MaxRatedCurrent)
-                        AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
-                    }
-                    
-                    Load = HasTM ? AvCurrent/select(TransitionNotch+1,0,2,2,4,4) : 0
-                    break
-                default,
-                    break
+                }elseif(TransitionControlType==2){ #Fully Automatic
+                    TransitionNotch = 1 + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23) + (MPH>TransitionThreshold34)
+                }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
+                    TransitionNotch = 3 + (MPH>TransitionThreshold23)
+                }else{ #Manual
+                    TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
+                }
+            }else{
+                TransitionNotch = 1
             }
+            
+            ShuntFactor = TransitionShunts[TransitionNotch+1,number]
+            SeriesFactor = TransitionGroups[TransitionNotch+1,number]
+            
+            if(SlugMode){
+                AvCurrent = InputCurrent
+                #print(AvCurrent)
+            }else{
+                local TM_Voltage = (MPH/TopSpeed)*NominalVoltage*ShuntFactor
+                local Voltage = TM_Voltage*SeriesFactor
+                #local Voltage = X
+                local MaxPowerCurve = 746*HP_Effective*sqrt(PowerNormal)/max(Voltage,1)
+                local MaxLoadCurve = (-0.125*Voltage + MaxRatedCurrent)*PowerNormal
+                local MaxFieldCurve = -4*(Voltage-NominalVoltage)
+                
+                GenCurrent = min(MaxLoadCurve,MaxPowerCurve,MaxFieldCurve)
+
+
+                AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
+                Currents = array(MaxLoadCurve, MaxPowerCurve, MaxFieldCurve)
+                
+            }
+            
+            Load = HasTM ? AvCurrent*SeriesFactor/Motors : 0
+            
             #Wheel Slip
             
             if(TractionMode>0){
@@ -1660,11 +1410,12 @@ if(On1|On2){
             if(TractionMode<3){
                 local Bonus = Sanding*0.125
                 
-                WheelSlipThreshold = 1200 + (MPH*3 + 10)*((Adhesion+Bonus)/0.25)*(Weight/350000)*10
-                if((Load>WheelSlipThreshold) & !WheelSlip & WheelSlipRand){
+                #WheelSlipThreshold = 1200 + (MPH*3 + 10)*((Adhesion+Bonus)/0.25)*(Weight/350000)*10
+                WheelSlipThreshold = TE_Starting*(1+Bonus)*0.016
+                if((Load>WheelSlipThreshold) & !WheelSlip & 1){
                     WheelSlip = 1
                     W:soundPlay(12,0,WheelSlipOn)
-                }elseif(Load<WheelSlipThreshold & WheelSlip){
+                }elseif(Load<(WheelSlipThreshold*0.75) & WheelSlip){
                     WheelSlip = 0
                     W:soundPlay(12,0,WheelSlipOff)
                     WheelSlipRand = 0
@@ -1674,12 +1425,13 @@ if(On1|On2){
                 }
             }
             local DPMF = DPM ? ((On1&Run) + (On2&Run_DPM))/2 : 1
-            TE = DPMF*sign(Reverser)*(Load/1500)*(169/12)*TE_Starting*0.6*(65/TopSpeed)*ShuntFactor
+            #TE = DPMF*sign(Reverser)*(Load/1500)*(169/12)*TE_Starting*0.6*(65/TopSpeed)*ShuntFactor
+            TE = sign(Reverser)*Load*(65/TopSpeed)*ShuntFactor*Motors*1500/18
         }elseif(Dynamics & (Reverser==sign(V)) & HasTM){
             Voltage = 0
             Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
             TE = WillItBlend ? 0 : -sign(Reverser)*abs(Load)*(Motors)*(65/TopSpeed)*200
-            BrakeWarn = Load>700
+            BrakeWarn = Load<-700
         }else{
             Load = Voltage = TE = 0
             if(WheelSlip){
@@ -2256,9 +2008,9 @@ if(chatClk(O)|chatClk(Pod:driver())){
             case ".transitions",
                 if(MU_Master){
                     if(TransitionMode & TransitionControlType){
-                        Speaker:printProper("[RLCPT] This Locomotive has Automatic Transitions at " + TransitionThreshold01:toString() + ", " + TransitionThreshold12:toString() + ", and " + TransitionThreshold23:toString() + " MPH.")
+                        Speaker:printProper("[RLCPT] This Locomotive has Automatic Transitions at " + TransitionThreshold12:toString() + ", " + TransitionThreshold23:toString() + ", and " + TransitionThreshold34:toString() + " MPH.")
                     }elseif(TransitionMode & !TransitionControlType){
-                                                Speaker:printProper("[RLCPT] This Locomotive has Manual Transition! Shift at " + TransitionThreshold01:toString() + ", " + TransitionThreshold12:toString() + ", and " + TransitionThreshold23:toString() + " MPH.")
+                                                Speaker:printProper("[RLCPT] This Locomotive has Manual Transition! Shift at " + TransitionThreshold12:toString() + ", " + TransitionThreshold23:toString() + ", and " + TransitionThreshold34:toString() + " MPH.")
                     }elseif(!TransitionMode){
                         Speaker:printProper("[RLCPT] This Locomotive has no transitions!")
                     }
