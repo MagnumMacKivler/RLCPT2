@@ -13,7 +13,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.36 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.40 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -208,8 +208,8 @@ if(MU_Master){
             HandBrake = Driver:keyPressed(Controls["HandBrake",string]) & (Routing["HandBrake",number] ? Shifting : !Shifting)
             Sander = Driver:keyPressed(Controls["Sander",string]) & (Routing["Sander",number] ? Shifting : !Shifting)
             
-            SelectorUp = Driver:keyPressed(Controls["TransitionUp",string]) & (Routing["TransitionUp",number] ? Shifting : !Shifting)
-            SelectorDown = Driver:keyPressed(Controls["TransitionDown",string]) & (Routing["TransitionDown",number] ? Shifting : !Shifting)
+            SelectorUp = Driver:keyPressed(Controls["SelectorUp",string]) & (Routing["SelectorUp",number] ? Shifting : !Shifting)
+            SelectorDown = Driver:keyPressed(Controls["SelectorDown",string]) & (Routing["SelectorDown",number] ? Shifting : !Shifting)
             
         }
     }
