@@ -8,13 +8,14 @@
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
 @persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding
+@persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector
 @persist CS:entity LeverBased
 @trigger 
 if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.39 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.40 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -48,6 +49,8 @@ if(first()){
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
+    HornType = 1 #0 for Lever, 1 for Cord
+    
     #Sounds (Don't touch unless you know what you're doing!)
     
     Lever_Throttle = "gsgtrainsounds/misc/switch_rotating.wav"
@@ -65,6 +68,10 @@ if(first()){
     LocoBrakeFull = "gsgtrainsounds/misc/airbrakes/air_ind_full.wav"
     LocoBrakeReleaseSoft = "gsgtrainsounds/misc/airbrakes/air_ind_release2.wav"
     LocoBrakeReleaseHard = "gsgtrainsounds/misc/airbrakes/air_ind_release1.wav"
+    
+    function vector linpos(V1:vector, V2:vector, P){
+        return V1 + P*(V2-V1)
+    }
     
     function normal adc(MinVal, MaxVal, Resolution, Input){
         local Output = 0
@@ -158,9 +165,41 @@ if(first()){
     
     
     #Control Stand Init
-    
-    
     CS = ControlStand:entity()
+    
+    if(HornType){
+        if(CS:lookupAttachment("horncord1")){
+            local Hpos1 = CS:attachmentPos("horncord1")
+            local Hang1 = CS:attachmentAng("horncord1")
+            rangerFilter(CS)
+            local Hpos2 = rangerOffset(128,Hpos1 + 8*Hang1:forward(), vec(0,0,1)):pos() 
+            CordAnchor1 = CS:toLocal(Hpos2)
+            local Hpos3 = linpos(Hpos1,Hpos2,0.25) + 4*Hang1:forward()
+            #local Haxis1 = (Hpos2-Hpos1)
+            local Length1 = Hpos1:distance(Hpos3)
+            local Ang1 = -heading(Hpos1,ang(),Hpos3)
+            local Ang1a = Ang1:rotateAroundAxis(Ang1:right(),-90)
+            
+            local Length2 = Hpos2:distance(Hpos3)
+            local Ang2 = -heading(Hpos3,ang(),Hpos2)
+            local Ang2a = Ang2:rotateAroundAxis(Ang2:right(),-90)
+            
+            holoCreate(1,linpos(Hpos1,Hpos3,0.5),vec(0.125,0.125,(Length1/60)),Ang1a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+            holoCreate(2,linpos(Hpos2,Hpos3,0.5),vec(0.125,0.125,(Length2/60)),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+            holoCreate(3,Hpos3 + 1*Ang2a:up(),vec(0.125,0.125,0.25),Ang2a,vec(255),"models/sprops/misc/fittings/cred_12_9_tall.mdl")
+            holoParent(1,CS)
+            holoParent(2,CS)
+            holoParent(3,CS)
+            holoMaterial(1,"models/debug/debugwhite")
+            holoMaterial(2,"models/debug/debugwhite")
+            holoMaterial(3,"sprops/textures/sprops_wood2")
+            
+            C1P = CS:toLocal(Hpos1)
+            C1A = CS:toLocal(Hang1)
+        }
+    }
+    
+    
     runOnChat(1)
     timer("clk",100)
 }
@@ -215,8 +254,8 @@ if(MU_Master){
             HandBrake = Driver:keyPressed(Controls["HandBrake",string]) & (Routing["HandBrake",number] ? Shifting : !Shifting)
             Sander = Driver:keyPressed(Controls["Sander",string]) & (Routing["Sander",number] ? Shifting : !Shifting)
             
-            SelectorUp = Driver:keyPressed(Controls["TransitionUp",string]) & (Routing["TransitionUp",number] ? Shifting : !Shifting)
-            SelectorDown = Driver:keyPressed(Controls["TransitionDown",string]) & (Routing["TransitionDown",number] ? Shifting : !Shifting)
+            SelectorUp = Driver:keyPressed(Controls["SelectorUp",string]) & (Routing["SelectorUp",number] ? Shifting : !Shifting)
+            SelectorDown = Driver:keyPressed(Controls["SelectorDown",string]) & (Routing["SelectorDown",number] ? Shifting : !Shifting)
             
         }
     }
@@ -702,8 +741,34 @@ if(clk("clk")){
         LBB = SetBleeding ? 0 : adc(0,90,6,SetLocoBrakePressure)+1
     }
     CS:setBodygroup(5,LBB)
-    #Horn 1 - Only lever for now
-    CS:setBodygroup(6,Horn1 ? 2-Quill1 : 0)
+    #Horn 1
+    if(HornType){
+        local Hpos1 = CS:toWorld(C1P)
+        local Hang1 = CS:toWorld(C1A)
+        #CordDir1 = CS:toLocal(Hang1:forward())
+        #rangerFilter(CS)
+        local Hpos2 = CS:toWorld(CordAnchor1)
+        local Hpos3 = linpos(Hpos1,Hpos2,0.25) + Hang1:forward()*(4 + 1*Horn1) + Horn1*vec(0,0,-2)
+        #local Haxis1 = (Hpos2-Hpos1)
+        local Length1 = Hpos1:distance(Hpos3)
+        local Ang1 = -heading(Hpos1,ang(),Hpos3)
+        local Ang1a = Ang1:rotateAroundAxis(Ang1:right(),-90)
+        local Length2 = Hpos2:distance(Hpos3)
+        local Ang2 = -heading(Hpos3,ang(),Hpos2)
+        local Ang2a = Ang2:rotateAroundAxis(Ang2:right(),-90)
+        
+        #holoCreate(6,linpos(Hpos1,Hpos3,0.5),vec(0.25,0.25,(Length1/60)),Ang1a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+        #holoCreate(7,linpos(Hpos2,Hpos3,0.5),vec(0.25,0.25,(Length2/60)),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+        holoScale(1,vec(0.125,0.125,(Length1/60)))
+        holoScale(2,vec(0.125,0.125,(Length2/60)))
+        holoPos(1,linpos(Hpos1,Hpos3,0.5))
+        holoPos(2,linpos(Hpos2,Hpos3,0.5))
+        holoPos(3,Hpos3 + 1*Ang2a:up())
+        holoAng(1,Ang1a)
+        holoAng(2,Ang2a)
+    }else{
+        CS:setBodygroup(6,Horn1 ? 2-Quill1 : 0)
+    }
     #Horn 2 Unused
     #CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)
     #Selector Lever

@@ -1,0 +1,160 @@
+@name ptgamma/RLC PT2 Control Reader
+@inputs MU_Master Pod:entity Active RemoteControl UsingRearSeat RemoteMode
+@outputs CtlTable:table CONSTANT
+@persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
+@trigger 
+if(duped()){
+    reset()
+}
+if(first()){
+    
+    function void entity:printProper(Message:string){
+        if(This==owner()){
+            print(Message)
+        }else{
+            Pod:printDriver(Message)
+        }
+    }
+    
+    #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
+    #include "ptgamma/controls/Magnum"
+    
+    ControlPrintOrder = array(
+        "ReverserF",
+        "ReverserB",
+        "IncreaseThrottle",
+        "DecreaseThrottle",
+        "IncreaseDynamics",
+        "DecreaseDynamics",
+        "TransitionUp",
+        "TransitionDown",
+        "IncreaseTrainBrake",
+        "DecreaseTrainBrake",
+        "IncreaseLocoBrake",
+        "DecreaseLocoBrake",
+        "EmergencyBrake",
+        "HandBrake",
+        "Sander",
+        "UseButtons"
+    )
+    
+    #Controls Init
+    foreach(K,V:string = Controls){
+        if(V:find(" +Shift")){
+            Routing[K,number] = 1
+            local EXP = V:explode(" ")
+            Controls[K,string] = EXP[1,string]
+        }else{
+            Routing[K,number] = 0
+        }
+    }
+    
+    CONSTANT = 1
+    runOnChat(1)
+}
+if(MU_Master){
+            
+    #MASTER MODE
+    local Driver = noentity()
+    local PodDriver = Pod:driver()
+    if(RemoteControl | RemoteMode){
+        if(Active & !PodDriver){
+            Driver = owner()
+        }
+    }else{
+        Driver = Pod:driver()
+    }
+    if(Driver & !DriverQ){
+        DriverQ = 1
+        runOnKeys(Driver,1)
+    }elseif(!Driver & DriverQ){
+        DriverQ = 0
+        runOnKeys(DriverOld,0)
+    }
+    DriverOld = Driver
+    
+    if(keyClk(Driver)){
+        local Shifting = Driver:keyPressed(Shift)
+        
+        UseButton = Driver:keyPressed(Controls["UseButton",string]) & (Routing["UseButton",number] ? Shifting : !Shifting)
+        
+        if(!UseButton){
+        
+            local RF = UsingRearSeat ? "ReverserB" : "ReverserF"
+            local RB = UsingRearSeat ? "ReverserF" : "ReverserB"
+            
+            ReverserF = Driver:keyPressed(Controls[RF,string]) & (Routing[RF,number] ? Shifting : !Shifting)
+            ReverserB = Driver:keyPressed(Controls[RB,string]) & (Routing[RB,number] ? Shifting : !Shifting)
+            
+            IncreaseThrottle = Driver:keyPressed(Controls["IncreaseThrottle",string]) & (Routing["IncreaseThrottle",number] ? Shifting : !Shifting)
+            DecreaseThrottle = Driver:keyPressed(Controls["DecreaseThrottle",string]) & (Routing["DecreaseThrottle",number] ? Shifting : !Shifting)
+            
+            IncreaseTrainBrake = Driver:keyPressed(Controls["IncreaseTrainBrake",string]) & (Routing["IncreaseTrainBrake",number] ? Shifting : !Shifting)
+            DecreaseTrainBrake = Driver:keyPressed(Controls["DecreaseTrainBrake",string]) & (Routing["DecreaseTrainBrake",number] ? Shifting : !Shifting)
+            
+            IncreaseLocoBrake = Driver:keyPressed(Controls["IncreaseLocoBrake",string]) & (Routing["IncreaseLocoBrake",number] ? Shifting : !Shifting)
+            DecreaseLocoBrake = Driver:keyPressed(Controls["DecreaseLocoBrake",string]) & (Routing["DecreaseLocoBrake",number] ? Shifting : !Shifting)
+            
+            IncreaseDynamics = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
+            DecreaseDynamics = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
+            
+            EmergencyBrake = Driver:keyPressed(Controls["EmergencyBrake",string]) & (Routing["EmergencyBrake",number] ? Shifting : !Shifting)
+            
+            HandBrake = Driver:keyPressed(Controls["HandBrake",string]) & (Routing["HandBrake",number] ? Shifting : !Shifting)
+            Sander = Driver:keyPressed(Controls["Sander",string]) & (Routing["Sander",number] ? Shifting : !Shifting)
+            
+            TransitionUp = Driver:keyPressed(Controls["TransitionUp",string]) & (Routing["TransitionUp",number] ? Shifting : !Shifting)
+            TransitionDown = Driver:keyPressed(Controls["TransitionDown",string]) & (Routing["TransitionDown",number] ? Shifting : !Shifting)
+            
+        }
+    }
+}else{
+    if(DriverQ){
+        DriverQ = 0
+        runOnKeys(owner(),0)
+    }
+}
+
+CtlTable["ReverserF",number] = ReverserF
+CtlTable["ReverserB",number] = ReverserB
+
+CtlTable["IncreaseThrottle",number] = IncreaseThrottle
+CtlTable["DecreaseThrottle",number] = DecreaseThrottle
+
+CtlTable["IncreaseTrainBrake",number] = IncreaseTrainBrake
+CtlTable["DecreaseTrainBrake",number] = DecreaseTrainBrake
+
+CtlTable["IncreaseLocoBrake",number] = IncreaseLocoBrake
+CtlTable["DecreaseLocoBrake",number] = DecreaseLocoBrake
+
+CtlTable["IncreaseDynamics",number] = IncreaseDynamics
+CtlTable["DecreaseDynamics",number] = DecreaseDynamics
+
+CtlTable["EmergencyBrake",number] = EmergencyBrake
+
+CtlTable["TransitionUp",number] = TransitionUp
+CtlTable["TransitionDown",number] = TransitionDown
+
+CtlTable["HandBrake",number] = HandBrake
+CtlTable["Sander",number] = Sander
+
+if(chatClk(owner())|chatClk(Pod:driver())){
+    local Speaker = lastSpoke()
+    local LS = Speaker:lastSaid()
+    
+    if(LS==".controls"){
+        if(MU_Master){
+            for(K=1,ControlPrintOrder:count()){
+                local ControlName = ControlPrintOrder[K,string]
+                local X = Controls[ControlName,string]
+                if(Routing[ControlName,number]){
+                    Speaker:printProper(ControlName + ": Shift + " + X)
+                }else{
+                    Speaker:printProper(ControlName + ": " + X)
+                }
+            }
+        }
+        hideChat(1)
+    }
+    
+}

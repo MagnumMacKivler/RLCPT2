@@ -5,13 +5,14 @@
 @outputs AvCurrent Currents:array
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches Motors
-@persist TransitionMode TransitionVoltage TransitionControlType TransitionThreshold12 TransitionThreshold23 TransitionThreshold34 TransitionQ
+@persist TransitionMode GeneratorTransition TransitionVoltage TransitionControlType TransitionQ
 #Engine Sounds
 @persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
 @persist NQ TQ1 TQ2 ABQ1 ABQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force
-@persist TransitionGroups:array TransitionShunts:array NominalVoltage MaxRatedCurrent
+#New Traction Stuff
+@persist TransitionGroups:array TransitionShunts:array NominalVoltage MaxRatedCurrent TransitionNotches TransitionThresholds:array GenThreshold
 #Locomotive Config
 @persist Horsepower Weight Adhesion AirBrakeMode DynamicsMode FixedDynaThrottle BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle TopSpeed ExtraBrakeCylinders TractionMode
 #Locomotive Sounds
@@ -32,17 +33,19 @@
 @trigger Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 38
+#To-Do for 41
 
 #Dual Prime Mover - Double Current
-#Revisit Permanent Parallel
-#AC Traction
 #Load Smoothing
 #Variable Load Ratings
+#MU Forwarding without regard for engine state
+#Base Speed Config Var
+#Improve ETC somehow
+#Generalize Low Idle sounds
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.39"
+    local Version = "Gamma 2.0.40"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -54,7 +57,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_gp38"
+    #include "ptgamma/locos/generic/emd_sd40"
     
     #That's pretty much all the config!
     
@@ -116,6 +119,7 @@ if(first()|dupefinished()){
     #11 - "Heartbeat"
     #12 - Sand
     #13 - TransitionNotch
+    
     
     #Config Init
     if(->CtlTable){
@@ -188,22 +192,18 @@ if(first()|dupefinished()){
     #   -4X^2 + 4NomX - 746*HP = 0
     #   -0.25X^2 + MaxX - 746*HP = 0
     
-    #Voltage = MPH*NominalVoltage*ShuntFactor*TransitionGroups[1,number]/TopSpeed -> MPH = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[N,number]*TransitionGroups[N,number])
-    #TransitionVoltage1 = ( -(4*NominalVoltage) + sqrt((4*NominalVoltage)^2 - 4*4*746*Horsepower) )/(2*-4)
     TransitionVoltage = ( -(4*NominalVoltage) - sqrt((4*NominalVoltage)^2 - 4*4*746*Horsepower) )/(2*-4)
     
-    TransitionThreshold12 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[1,number]*TransitionGroups[1,number])
-    TransitionThreshold23 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[2,number]*TransitionGroups[2,number])
-    TransitionThreshold34 = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[3,number]*TransitionGroups[3,number])   
+    TransitionNotches = TransitionGroups:count() - 1
     
-    if(TransitionControlType==3){
-        TransitionControlType = 2
-        print("[RLCPT] Permanent Parallel not yet implemented! Setting Transition mode to Full Automatic (2).")
+    for(N=1,TransitionNotches){
+        TransitionThresholds[N+1,number] = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[N+1,number]*TransitionGroups[N+1,number])
     }
-    
-    #TransitionThreshold01 *= TopSpeed/65
-    #TransitionThreshold12 *= TopSpeed/65
-    #TransitionThreshold23 *= TopSpeed/65
+
+    #Generator Transition
+    if(GeneratorTransition){
+        GenThreshold = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[2,number]*TransitionGroups[2,number]*2.5)
+    }
     
         
     #MU Init
@@ -1359,12 +1359,26 @@ if(On1|On2){
                     if(SelectorNotch==0){
                         TransitionNotch==0
                     }else{
-                        TransitionNotch = 1 + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23) + (MPH>TransitionThreshold34)
+                        local T_N = 1
+                        if(!GeneratorTransition){
+                            for(N=1,TransitionNotches){
+                                if(MPH > TransitionThresholds[N+1,number]){
+                                    T_N++
+                                }
+                            }
+                        }
+                        TransitionNotch = T_N
                     }
                 }elseif(TransitionControlType==2){ #Fully Automatic
-                    TransitionNotch = 1 + (MPH>TransitionThreshold12) + (MPH>TransitionThreshold23) + (MPH>TransitionThreshold34)
-                }elseif(TransitionControlType==3){ #Permanent Parallel (unused)
-                    TransitionNotch = 3 + (MPH>TransitionThreshold23)
+                    local T_N = 1
+                        if(!GeneratorTransition){
+                            for(N=1,TransitionNotches){
+                                if(MPH > TransitionThresholds[N+1,number]){
+                                    T_N++
+                                }
+                            }
+                        }
+                    TransitionNotch = T_N
                 }else{ #Manual
                     TransitionNotch = min(4,MU_Master ? SelectorNotch : TransitionNotch)
                 }
@@ -1379,14 +1393,22 @@ if(On1|On2){
                 AvCurrent = InputCurrent
                 #print(AvCurrent)
             }else{
+            
+                GenSeries = 0
+                if(GeneratorTransition){
+                    GenSeries = (MPH) > GenThreshold
+                }
+                
                 local TM_Voltage = (MPH/TopSpeed)*NominalVoltage*ShuntFactor
-                local Voltage = TM_Voltage*SeriesFactor
+                local Voltage = TM_Voltage*SeriesFactor*(GenSeries ? 0.5 : 1)
                 #local Voltage = X
                 local MaxPowerCurve = 746*HP_Effective*sqrt(PowerNormal)/max(Voltage,1)
                 local MaxLoadCurve = (-0.125*Voltage + MaxRatedCurrent)*PowerNormal
-                local MaxFieldCurve = -4*(Voltage-NominalVoltage)
+                local MaxFieldCurve = GeneratorTransition ? -4*(Voltage - 2*NominalVoltage)  : -4*(Voltage-NominalVoltage) 
                 
-                GenCurrent = min(MaxLoadCurve,MaxPowerCurve,MaxFieldCurve)
+                
+                
+                GenCurrent = min(MaxLoadCurve,MaxPowerCurve,MaxFieldCurve)*(GenSeries ? 0.5 : 1)
 
 
                 AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
@@ -2008,9 +2030,28 @@ if(chatClk(O)|chatClk(Pod:driver())){
             case ".transitions",
                 if(MU_Master){
                     if(TransitionMode & TransitionControlType){
-                        Speaker:printProper("[RLCPT] This Locomotive has Automatic Transitions at " + TransitionThreshold12:toString() + ", " + TransitionThreshold23:toString() + ", and " + TransitionThreshold34:toString() + " MPH.")
+                        local PrintString = "[RLCPT] This Locomotive has Automatic Transitions at "
+                        for(N=1,TransitionNotches){
+                            PrintString += (TransitionThresholds[N+1,number]:toString())
+                            if(N<TransitionNotches){
+                                PrintString += ", "
+                            }else{
+                                PrintString += " MPH."
+                            }
+                        }
+                        
+                        Speaker:printProper(PrintString)
                     }elseif(TransitionMode & !TransitionControlType){
-                                                Speaker:printProper("[RLCPT] This Locomotive has Manual Transition! Shift at " + TransitionThreshold12:toString() + ", " + TransitionThreshold23:toString() + ", and " + TransitionThreshold34:toString() + " MPH.")
+                        local PrintString = "[RLCPT] This Locomotive has Manual Transition! Shift at "
+                            for(N=1,TransitionNotches){
+                                PrintString += (TransitionThresholds[N+1,number]:toString())
+                                if(N<TransitionNotches){
+                                    PrintString += ", "
+                                }else{
+                                    PrintString += " MPH."
+                                }
+                            }
+                        Speaker:printProper(PrintString)
                     }elseif(!TransitionMode){
                         Speaker:printProper("[RLCPT] This Locomotive has no transitions!")
                     }
@@ -2023,3 +2064,4 @@ if(chatClk(O)|chatClk(Pod:driver())){
     }
     
 }
+
