@@ -14,6 +14,8 @@ Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
 FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
 FuelSaverDelay = 30 #Time, in seconds, for engine to fall into Low Idle, if used.
 
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
 Idle_Low = "" #Sound for Low Idle, if used.
 
 
@@ -38,8 +40,8 @@ EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
-                #1-2  2-3  3-4  4-5  5-6  6-7  7-8 
-UpDelays = array(1000,2100,1000,2500,2020,1950,4100) 
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(0,   1000,2100,1000,2500,2020,1950,4100) 
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
 DownDelays = array(700, 700, 2600, 2000, 1850, 2500, 2000)
 

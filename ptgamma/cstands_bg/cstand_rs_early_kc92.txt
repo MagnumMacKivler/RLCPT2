@@ -1,15 +1,15 @@
-@name ptgamma/cstands_bg/cstand_aar
+@name ptgamma/cstands_bg/cstand_rs_early_kc92
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat
-@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode
+@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SelectorUp SelectorDown IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode InitialReduction Lock_26L Bleeding
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
-@persist NQ Notch DNQ DynaNotch Dynamics TransitionQ RevQ ABQ HissQ LBQ LHissQ
+@persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
-@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
+@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
 @persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector
-@persist CS:entity
+@persist CS:entity LeverBased
 @trigger 
 if(duped()){
     reset()
@@ -28,7 +28,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Standard"
+    #include "ptgamma/controls/standard_leverbased"
     
     AirBrakeMode = 3
     #0 - Simple Self-Lapping (Easy)
@@ -47,7 +47,7 @@ if(first()){
     NotchedDynamics = 1 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
-    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
+    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
     HornType = 1 #0 for Lever, 1 for Cord
     
@@ -165,9 +165,6 @@ if(first()){
     
     
     #Control Stand Init
-    
-    
-    #Control Stand Init
     CS = ControlStand:entity()
     
     if(HornType){
@@ -248,8 +245,11 @@ if(MU_Master){
             IncreaseLocoBrake = Driver:keyPressed(Controls["IncreaseLocoBrake",string]) & (Routing["IncreaseLocoBrake",number] ? Shifting : !Shifting)
             DecreaseLocoBrake = Driver:keyPressed(Controls["DecreaseLocoBrake",string]) & (Routing["DecreaseLocoBrake",number] ? Shifting : !Shifting)
             
-            IncreaseDynamics = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
-            DecreaseDynamics = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
+            KeyDynUp = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
+            KeyDynDn = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
+            
+            IncreaseDynamics = 0
+            DecreaseDynamics = 0
             
             EmergencyBrake = Driver:keyPressed(Controls["EmergencyBrake",string]) & (Routing["EmergencyBrake",number] ? Shifting : !Shifting)
             
@@ -270,6 +270,38 @@ if(MU_Master){
 if(clk("clk")){
     local Tick = 1
     Dynamics = SetDynamics>0
+    
+    
+    #Lever-Based Controlling - This part is different for every control stand!
+    if(LeverBased){
+        #Initial Control Resets
+        
+        #Selector/Dynamics Interlock
+        if(!SelectorQ & !DNQ){
+            if((SetSelector>=0) & !Dynamics & SelectorDown){
+                SelectorUp = 1
+                SelectorDown = 0
+            }elseif((SetSelector>0) & !Dynamics & SelectorUp){
+                SelectorUp = 0
+                SelectorDown = 1
+            }elseif((SetSelector==0) & !Dynamics & SelectorUp){
+                SelectorUp = 0
+                IncreaseDynamics = 1
+            }elseif(Dynamics & (SetDynamics==10) & SelectorDown){
+                SelectorDown = 0
+                DecreaseDynamics = 1
+            }elseif(Dynamics & (SetDynamics>=10) & SelectorUp){
+                SelectorUp = 0
+                IncreaseDynamics = 1
+            }elseif(Dynamics & (SetDynamics>10) & SelectorDown){
+                SelectorDown = 0
+                DecreaseDynamics = 1
+            }
+        }
+    }else{
+        IncreaseDynamics = KeyDynUp
+        DecreaseDynamics = KeyDynDn
+    }
     
     #Throttle
     if(!Dynamics){
@@ -337,20 +369,20 @@ if(clk("clk")){
     
     #Selector
     if((TransitionMode==1) & (TransitionControlType<2)){
-        if(SelectorUp & !TransitionQ){
-            TransitionQ = 1
-            if(SetSelector<4){
+        if(SelectorUp & !SelectorQ){
+            SelectorQ = 1
+            if(!Dynamics & (SetSelector<4)){
                 SetSelector++
                 Pod:soundPlay(1,0.5,Lever_Throttle)
             }
-        }elseif(SelectorDown & !TransitionQ){
-            TransitionQ = 1
-            if(SetSelector>0){
+        }elseif(SelectorDown & !SelectorQ){
+            SelectorQ = 1
+            if(!Dynamics & (SetSelector>0)){
                 SetSelector--
                 Pod:soundPlay(1,0.5,Lever_Throttle)
             }
-        }elseif(!SelectorUp & !SelectorDown & TransitionQ){
-            TransitionQ = 0
+        }elseif(!SelectorUp & !SelectorDown & SelectorQ){
+            SelectorQ = 0
         }
         
     }
@@ -688,8 +720,8 @@ if(clk("clk")){
     CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)
     #Throttle
     CS:setBodygroup(2,adc(0,100,8,SetThrottle))
-    #Dynamic Brakes
-    CS:setBodygroup(3,Dynamics ? adc(10,100,8,SetDynamics)+1 : 0)
+    #Selector/Dynamic Brakes
+    CS:setBodygroup(3,Dynamics ? 5+adc(10,100,32,SetDynamics) : SetSelector)
     #Train Brake
     local TBB = 0
     switch(AirBrakeMode){

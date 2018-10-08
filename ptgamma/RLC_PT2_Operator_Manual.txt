@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.36-40
+                                                                    For RLC Pt 2.0.48
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -35,14 +35,15 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
                                                                                
     I- What's New
     II- Installation Instructions
-        A- Basic Setup
-        B- Multiple Unit (MU) Setup
-        C- MU Headlights Setup
-        D- Dual Prime Mover (DPM) Setup
-        E- Head-End Power (HEP) Setup
-        F- Slug Compatibility
-        G- Remote Control Compatibility
-        H- Extra Inputs
+        A- Where to Get It
+        B- Basic Setup
+        C- Multiple Unit (MU) Setup
+        D- MU Headlights Setup
+        E- Dual Prime Mover (DPM) Setup
+        F- Head-End Power (HEP) Setup
+        G- Slug Compatibility
+        H- Remote Control Compatibility
+        I- Extra Inputs
     III- Locomotive Operation
         A- Startup & Shutdown
         B- Reverser
@@ -72,8 +73,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     Bleedable Independent Brakes
     Realistic Wheel Slip
     Electronic Traction Control
-    Extra Brake Cylinders (Clasp Brakes) Option
-    Manual/Automatic Transition with Selector Lever Support
+    Clasp Brakes Option
+    Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
     Integrated Cabcar/Slug/Snail Modes
     Remote Control Support
     Fully Configurable Controls
@@ -81,7 +82,11 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     Per-Unit Chat Commands
     MU Headlights
     Top-Speed-Based Custom Gearing
+    Scale Weight System for Cars and Locomotives
+    Abusable Traction Motors with Parameterized Ratings
+    Variable Dynamic Brake Ratings
     Stand-Specific Special Control Rule Support
+    Automatic Config Version Validation
     Include-based configs for Control, Locomotive, and Engine settings
     
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -91,8 +96,12 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
  |___|___(_) |___|_|\_|___/ |_/_/ \_\____|____/_/ \_\_| |___\___/|_|\_| |___|_|\_|___/ |_| |_|_\\___/ \___| |_| |___\___/|_|\_|___/
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                                                                                                                                   
-    A: Basic Setup (Required):
+    A: Where to Get It (Probably Required):   
+        1 - Visit https://github.com/MagnumMacKivler/RLCPT2 and install RLC PT 2 to your Expression 2 folder by following the instructions on the site.
+            Updated versions of RLC PT2 can be found here!  
+            Visit the RLC PT2 Wiki at https://github.com/MagnumMacKivler/RLCPT2/wiki (or click the Wiki link from the Github page) for helpful info on PT setup, locomotives, or
+            general information about locomotives!                                                                                                                       
+    B: Basic Setup (Required):
         1 - Select or Make an RLC PT2 Locomotive Config file. These can be found in "ptgamma/locos/". There's a lot to configure, so take your time and read through everything!
         2 - Configure RLC PT 2.0 (Henceforth referred to as "RLC"). A lot of the config has been outsourced to the Locomotive Config and Control Reader/Stand E2s.
         3 - Spawn RLC on the locomotive like you'd attach a thruster. Don't worry about the error message just yet.
@@ -109,7 +118,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             You may find it convenient to label these buttons using the Wire Namer Tool.
         5 - Spawn a Wire Pod Controller and link it to the Engineer's Seat (For B units, you can skip this step).
             Wire RLC's "Pod[ENTITY]" to the Pod Controller's "Entity[ENTITY]" output. DO NOT WIRE IT TO "CREATE ENTITY"!
-            You will probably also want to wire the Pod Controller's "Allow Buttons" and "Crosshair" inputs to a Constant Value of 1. All of Magnum's control stand/reader E2s have a "CONSTANT" output for this.
+            You will probably also want to wire the Pod Controller's "Allow Buttons" and "Crosshair" inputs to a Constant Value of 1. All of Magnum's control stand/reader E2s
+            have a "CONSTANT" output for this.
             In a pinch, you can wire "Allow Buttons" and "Crosshair" back to the Pod Controller "Active" too, but beware of visual bugs.
         6 - Spawn a Wire Advanced Entity Marker (Adv Ent Marker) and link it to the Locomotive's trucks/bogies (Right Click the Marker, then Shift+Right Click the two trucks).
             Wire RLC's "Trucks[ARRAY]" to the Adv Ent Marker's "Entities[ARRAY]" output.
@@ -125,7 +135,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             Wire RLC's "CtlTable[TABLE]" input to the Control Reader/Stand's "CtlTable[TABLE]" output.
         8 - Refresh the RLC Chip (You can do this easily by taking out the E2 tool and pressing Reload on it)!
         
-    B: Multiple Unit (MU) Setup:
+    C: Multiple Unit (MU) Setup:
     
         1 - Spawn two Wire Sockets (Wire Plug Tool) and attach them to each end of the locomotive. DO NOT PARENT THEM! The Sockets must be welded.
             Make sure that the "Use Array Inputs/Outputs Instead" tickbox is TICKED.
@@ -139,26 +149,26 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             Wire each plug's "In[ARRAY]" to the other plug's "Out[ARRAY]"
             Save this jumper cable as a separate dupe. Do not include it with the locomotive.
         
-    C: MU Headlights Setup (Requires MU Setup):
+    D: MU Headlights Setup (Requires MU Setup):
     
         1 - Simply allow RLC to insert itself between the lights and whatever controls them in the I/O chain:
             Wire RLC's "Lights_Front" and "Lights_Rear" to whatever controls each individual headlight.
             Wire the Front and Rear Headlights' "On" to RLC's "Lights_Forward" and "Lights_Backward," respectively.
             If using Wire Lights instead of lamps, wire their RGB[VECTOR] to RLC's "Lights_Fwd_RGB" and "Lights_Back_RGB," respectively.
         
-    D: Dual Prime Mover (DPM) Setup:
+    E: Dual Prime Mover (DPM) Setup:
     
         1- Simply repeat Basic Setup Step 4 using a separate set of 3 buttons (you do not need a 2nd MU_Master Button).
             The Wire inputs for the 2nd Prime Mover are "Prime_DPM," "Start_DPM," and "Run_DPM."
     
-    E: Head-End Power (HEP) Setup:
+    F: Head-End Power (HEP) Setup:
     
         1 - Spawn two NON-TOGGLED Wire Buttons somewhere accessible.
             Wire "HEP_Up" to one of the Wire Buttons.
             Wire "HEP_Dn" to the other Wire Button.
         2 - Wire the Control Reader/Stand's "HEP_Notch" input to RLC's "HEP_Notch" output.
         
-    F: Slug Compatibility (Requires MU Setup):
+    G: Slug Compatibility (Requires MU Setup):
     
         1 - Spawn two Wire Sockets and attach them to each end of the Locomotive. Again, weld them instead of parenting them.
             Again, be sure to have "Use Array Inputs/Outputs Instead" ticked.
@@ -167,7 +177,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             Wire the Sockets' "In[ARRAY]" inputs to RLC's corresponding outputs ("FrontCurrentOut[ARRAY]" and "RearCurrentOut[ARRAY]").
             The Current Sockets can be connected via a separate standard MU Jumper Cable.
         
-    G: Remote Control Compatibility:
+    H: Remote Control Compatibility:
     
         1 - Spawn a TOGGLED Wire Button somewhere accessible.
             Wire the Control Reader/Stand's "RemoteControl" input to this Button (Henceforth referred to as the "Remote Control Switch").
@@ -175,12 +185,15 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             Wire RLC's "RemoteMode" input to the Control Reader/Stand's "RemoteMode" output.
             You can now control the locomotive using the Wire Remote Controller SWEP, provided the RemoteControl button is on.
         
-    H: Extra Inputs
+    I: Extra Inputs
         There are a few Optional inputs left over that weren't covered above. What do they do?
             "UsingRearSeat" (Control Reader/Stand) flips the Reverser controls. Useful for Dual-Cab and Dual-Controlstand Locomotives.
             "HandBrakeOverride" (RLC) allows external control of the handbrake.
             "EmBrake" (Control Reader/Stand) allows external control of the Emergency Brake. Fender Bender Defender (FBD) has an output for this!
-            "Number[STRING]" (RLC AND Control Reader/Stand) lets RLC know what the running number of the Locomotive is. This allows you to send Chat Commands to individual locomotives!
+            "BrakeCutout" (RLC) allows you to cut out the Trainline/Automatic brakes for switching. This will make the brakes charge faster,
+            but you'll only be able to brake the locomotive!
+            "Number[STRING]" (RLC AND Control Reader/Stand) lets RLC know what the running number of the Locomotive is. This allows you to send Chat Commands to individual
+            locomotives!
             
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ___ ___ ___ _   _    ___   ___ ___  __  __  ___ _____ _____   _____    ___  ___ ___ ___    _ _____ ___ ___  _  _ 
@@ -207,13 +220,15 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         In order to change the Reverser, the Throttle and Dynamic Brakes must be at IDLE and OFF, respectively.
     
     C: The Throttle
-        While RLC PT2's Throttle can have any number of notches (including an infinity of them, in the case of continuous throttles), the instructions will assume the standard configuration of 8 notches.
+        While RLC PT2's Throttle can have any number of notches (including an infinity of them, in the case of continuous throttles), the instructions will assume the standard
+        configuration of 8 notches.
         The Throttle normally has 9 positions: IDLE, and eight motoring positions Run 1 through Run 8.
         Use as little throttle as is necessary to move the train. Do not allow the train to remain at stall (0 MPH) for any length of time while the throttle is open.
         The Throttle can be opened or closed as rapidly as is necessary to control the train, so long as Traction Motor Load is properly regulated.
     
     D: The Dynamic Brakes
-        While RLC PT2's Dynamic Brakes can have any number of notches (including an infinity of them, in the case of continuous dynamics), the instructions will assume the standard configuration of 8 notches.
+        While RLC PT2's Dynamic Brakes can have any number of notches (including an infinity of them, in the case of continuous dynamics), the instructions will assume the
+        standard configuration of 8 notches.
         The Dynamic Brake normally has 10 positions: OFF, SETUP, and braking positions D1 through D8.
         To begin dynamic braking:
             1 - Set the Throttle to IDLE for at least 10 seconds, and ensure that the Reverser is aligned to the train's current direction of travel.
@@ -253,23 +268,26 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         The Locomotive Brakes fall into only two operating modes, Manual Lapping vs. Self Lapping, based on the Train Brake setting chosen.
             Manual Lapping Locomotive Brakes have three notches: Release, Lap, and Apply.
             Self-Lapping Locomotive Brakes have a single continuous region of operation ranging from Full Release to Full Application.
-        Additionally, when in the Fully Released Position, further releasing the locomotive brake will allow you to bail off the brakes on the locomotive, regardless of Train Brake Status.
+        Additionally, when in the Fully Released Position, further releasing the locomotive brake will allow you to bail off the brakes on the locomotive, regardless of Train
+        Brake Status.
             This allows you to release the brakes on the locomotive while keeping the brakes on the rest of the train applied. This should be done when pulling against the brakes.
     
     G: Transition
         One of RLC PT2's larger improvements is the addition of Motor Transition, which allows locomotives to operate over a wider range of speeds.
         Transition rearranges the Traction Motor and Generator circuits to trade Tractive Effort for speed. It is analogous to the gearshift in an automobile.
-        Locomotives have a total of 5 Transition Notches (four Motoring positions, plus one "Off" position). Fully-Automatic locomotives do not utilize the "Off" position.
+        Locomotives can have any number of Motoring positions, plus one "Off" position. Fully-Automatic locomotives do not utilize the "Off" position.
         Transition is usually automatic, requiring no input from the Engineer. Some locomotives (especially early diesels), however, have Manual Transition:
-            The Lowest Motoring position gives you the most Tractive Effort, but limits you to about 15-20 MPH.
+            The Lowest Motoring position gives you the most Tractive Effort, but usually limits you to about 15-20 MPH.
             As you accelerate the train, the Loadmeter will show a gradual drop in Load Current until it becomes so small that the train ceases to accelerate further.
             When this happens, advance the Transition Lever (Shift Up) into the next Notch. The Loadmeter will then change, and the locomotive should begin accelerating again.
             Repeat as necessary until the train reaches the desired speed.
             As the train slows down when ascending a hill, take note of the Loadmeter. It will show a higher and higher current reading as the train slows.
-            When the Loadmeter reading approaches 1000 Amps, Retract the Transition Lever (Shift Down). If the train continues to slow and the Loadmeter continues to rise, repeat as necessary.
-            Carefully monitoring Load Current and managing Transition is important to efficient operation of the locomotive.
+            When the Loadmeter reading approaches the maximum continuous rating, Retract the Transition Lever (Shift Down). If the train continues to slow and the Loadmeter
+            continues to rise, repeat as necessary. Carefully monitoring Load Current and managing Transition is important to efficient operation of the locomotive.
         Some locomotives have Automatic Transition for themselves, but feature a Selector Lever for controlling Transition on any trailing units connected via MU.
             The Selector Lever does not directly impact Transition in the host locomotive. It should instead be thought of as a Transition Lever for trailing units.
+        More modern locomotives are equipped with Generator Transition, where the traction motors are connected in parallel all the time and the Generator changes itself to
+        provide more current or more voltage for speed.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   _____   ___    ___ _  _   _ _____    ___ ___  __  __ __  __   _   _  _ ___  ___ 
@@ -304,9 +322,12 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     .dynanotch /// <integer> /// ".dynanotch -1" /// Changes dynamic braking power using the notched scale, if one exists. -1 is Off, 0 is "Set Up."
     .abset /// <integer> /// ".abset 90" /// Sets the Automatic (Trainline) Brake Application to this value. 0 is full release, 90 is full application. If no parameter is given, the Emergency Brake trips!
     .lbset /// <integer> /// ".lbset 20" /// Sets the Independent (Locomotive) Brake Application to this value. 0 is full release, 90 is full application.
+    .switching /// <boolean> /// ".switching 1" /// Enables/Disables switching mode, which cuts out the train brakes for easier switching.
     
     .count /// <integer> /// ".count 1" /// Prints the number of cars in your consist to the chat. The parameter is the number of locomotives in the consist. No parameter assumes 1 locomotive.
-    .weight /// <integer> /// ".weight 2" /// Prints the weight of your consist (in Standard Car Equivalent or SCE) to the chat. Follows the same rules as .count.
+    .weight /// N/A /// N/A /// Prints the weight of your consist (in scale tons as well as Standard Car Equivalent) to the chat.
+    .weightreset /// N/A /// N/A /// Resets the locomotive's weight in proportion to its ballasted weight (from the config). Use in case you accidentally re-weigh something.
+    .hpt /// N/A /// N/A /// Calculates the amount of horsepower per trailing ton and prints to the chat.
     .remotemode /// <boolean> /// ".remotemode 1" /// Alternate way to toggle Remote Control Mode. 1 turns it on, 0 turns it off.
     .transitions /// N/A /// N/A /// Prints transition information, including shifting thresholds and transition type, to the chat.
     .controls /// N/A /// N/A /// Prints the current control config to the chat.

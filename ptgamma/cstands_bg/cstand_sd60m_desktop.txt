@@ -263,8 +263,8 @@ if(clk("clk")){
                 IncreaseDynamics = DecreaseThrottle
                 DecreaseDynamics = IncreaseThrottle
                 
-                IncreaseThrottle = 0
-                DecreaseThrottle = 0
+                #IncreaseThrottle = 0
+                #DecreaseThrottle = 0
             }
         }
     }

@@ -13,7 +13,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.40 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.48 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -272,10 +272,11 @@ if(clk("clk")){
             }
             if(DynaNotch>-1){SetDynamics = dac(10,100,NumThrottleNotches,DynaNotch)}
         }elseif(Dynamics){
-            if(IncreaseDynamics & (SetDynamics<100)){
+            if(IncreaseDynamics & (SetDynamics<100) & !DNQ){
                 SetDynamics++
                 if(SetDynamics>100){SetDynamics=100}
             }elseif(DecreaseDynamics & (SetDynamics>10)){
+                DNQ = 1
                 SetDynamics--
                 if(SetDynamics<10){SetDynamics=10}
             }

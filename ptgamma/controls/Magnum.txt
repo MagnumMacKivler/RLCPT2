@@ -17,8 +17,8 @@ Controls["DecreaseThrottle",string] = "A"
 Controls["IncreaseDynamics",string] = "D +Shift"
 Controls["DecreaseDynamics",string] = "A +Shift"
 
-Controls["TransitionUp",string] = "rcontrol +Shift"  #<------------New!
-Controls["TransitionDown",string] = "ralt +Shift"    #<------------New!
+Controls["SelectorUp",string] = "rcontrol +Shift"  #<------------New!
+Controls["SelectorDown",string] = "ralt +Shift"    #<------------New!
 
 Controls["IncreaseTrainBrake",string] = "W +Shift"
 Controls["DecreaseTrainBrake",string] = "S +Shift"

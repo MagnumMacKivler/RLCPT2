@@ -1,5 +1,5 @@
 
-# RLC Platinum 2.0 Gamma (Version 2.0.40)
+# RLC Platinum 2.0 Gamma (Version 2.0.48)
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
@@ -23,9 +23,3 @@ If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "U
 ## In-Game Setup and Usage:
 
 READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
-
-## Changelog:
-
-6/4/2018 - Updated to 2.0.36, Added LOCOS V1.2
-
-6/2/2018 - Initial Upload, version 2.0.35

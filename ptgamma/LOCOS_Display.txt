@@ -3,23 +3,29 @@
 @outputs 
 @persist MPH Throttle Load Dynamics DynamicBrakingPower Reverser Emergency BrakeWarn WheelSlip ForceSand EqualRes MainRes BrakePipe Cyl
 @persist MU_F MU_R Voltage AirBrakeMode CarCount TrainWeight
-@persist [HeaderText]:string Page1 Page2 T1:table T2:table SpeedoType [Green Orange Yellow Red Gray]:vector AC 
-@persist RLCPTW:wirelink NumNotches NotchedThrottle NotchedDynamics [SC LC TC RC BC]:vector2 MaxSpeed Version:string
+@persist [HeaderText]:string Page1 Page2 T1:table T2:table SpeedoType [Blue Green Orange Yellow Red Gray]:vector AC 
+@persist RLCPTW:wirelink NumNotches NotchedThrottle NotchedDynamics [SC LC TC RC BC]:vector2 MaxSpeed MaxLoad MaxContLoad WeightScale Version:string
 @persist On BootN CycleQ SkipBoot MonDefault1 MonDefault2 PersistPages
 @trigger Power Cycle1 Cycle2
 if(first()|dupefinished()){
-    Version = "1.2"
+    #To-Do:
+    #TE-Based Loadmeter for AC Traction
+    #Wirelink Input for Loadmeter Variables
+    
+    Version = "1.3"
     
     HeaderText = "APPALACHIA NORTHERN - No."
     
-    AC = 1 #1 for AC Traction, 0 for DC Traction
+    AC = 0 #1 for AC Traction, 0 for DC Traction
     
-    SpeedoType = 1 #0 for Freight (0-90), 1 for Passenger (0-120)
+    SpeedoType = 0 #0 for Freight (0-90), 1 for Passenger (0-120)
     NotchedThrottle = 1
     NotchedDynamics = 0
     NumNotches = 8
     
-    MaxSpeed = 65
+    MaxSpeed = 70 #Max Speed of Locomotive in MPH
+    MaxLoad = 1650 #Full Range of Loadmeter
+    MaxContLoad = 1170 #Maximum Continuous Load - Defines start of Short Time Zone
     
     SkipBoot = 0 #Skip the totally awesome boot sequence (Mostly for testing)
     
@@ -33,11 +39,14 @@ if(first()|dupefinished()){
     #Page 2 - Misc Train Info
     #Page 3 - Off
     
-    Green = vec(63,191,63)
-    Orange = vec(255,95,0)
-    Yellow = vec(255,191,0)
-    Red = vec(255,0,0)
-    Gray = vec(191)
+    WeightScale = 0.5
+    
+    Blue = vec(0,191,255) #Color of Short Time Load
+    Green = vec(63,191,63) #Color of Throttle, Load and Speed
+    Orange = vec(255,95,0) #Color of Brake Warn
+    Yellow = vec(255,191,0) #Color of Dynamic Brake stuff
+    Red = vec(255,0,0) #Color for Overspeed, Dynamic Brake Overcurrent, Main Res, Brake Cylinder, and PCS Open
+    Gray = vec(191) #Color of Gauges and Boxes
     
     Page1 = MonDefault1
     Page2 = MonDefault2
@@ -261,15 +270,18 @@ if(first()|dupefinished()){
                 This:egpCircleOutline(39+I,LC,vec2(79.5,106))
                 
                 local Index = 40
-                for(N=0,15){
-                    local VAng = 45 + N*18
+                local Index2 = 110
+                
+                local LoadTicks = MaxLoad/100
+                for(N=0,LoadTicks){
+                    local VAng = 45 + N*270/LoadTicks
                     This:egpLine(Index+I, LC + vec2(-72*sin(VAng),96*cos(VAng)), LC + vec2(-88.5*sin(VAng),118*cos(VAng)))
                     Index++
                     if((N%3)==0){
-                        This:egpText(Index+I,(N*100):toString(), LC + vec2(-58.5*sin(VAng),78*cos(VAng)))
-                        This:egpAlign(Index+I,1,1)
-                        This:egpFont(Index+I,"Arial")
-                        Index++   
+                        This:egpText(Index2+I,(N*100):toString(), LC + vec2(-58.5*sin(VAng),78*cos(VAng)))
+                        This:egpAlign(Index2+I,1,1)
+                        This:egpFont(Index2+I,"Arial")
+                        Index2++   
                     }
                 }
                 
@@ -617,7 +629,7 @@ if(first()|dupefinished()){
                 This:egpAlign(11+I,0,1)
                 This:egpFont(11+I,"Lucida Console",TxtSize)
                 
-                This:egpText(12+I,"0" + " SCE",RC + vec2(0,5*48))
+                This:egpText(12+I,"0" + " Tons",RC + vec2(0,5*48))
                 This:egpAlign(12+I,2,1)
                 This:egpFont(12+I,"Lucida Console",TxtSize)
                 #This:egpColor(6+I,Yellow)
@@ -672,10 +684,10 @@ if(first()|dupefinished()){
                 }elseif(AC){
                     This:egpColor(35+I,Green)
                 }else{
-                    This:egpColor(35+I,(abs(Load)>=1200) ? Orange : Green)
+                    This:egpColor(35+I,(abs(Load)>=MaxContLoad) ? Blue : Green)
                 }
                 #This:egpPoly(36+I,polycover(LC,Load*270/1500))
-                This:egpSize(35+I,(abs(Load)<1) ? -40 : -abs(Load)*270/1500 - 45)
+                This:egpSize(35+I,(abs(Load)<1) ? -40 : -abs(Load)*270/MaxLoad - 45)
                 This:egpSetText(64+I,round(abs(Load)):toString())
                 
                 #Throttle/Dynamics
@@ -791,7 +803,7 @@ if(first()|dupefinished()){
                 
                 This:egpSetText(10+I,CarCount:toString())
                 
-                This:egpSetText(12+I,(round(TrainWeight/25000,1)):toString() + " SCE")
+                This:egpSetText(12+I,round(toUnit("lb",TrainWeight*WeightScale)/2000,1):toString() + " Tons")
                 
                 break
             default,

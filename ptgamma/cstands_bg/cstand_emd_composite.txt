@@ -1,11 +1,12 @@
 @name ptgamma/cstands_bg/cstand_emd_composite
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat
-@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode
+@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode KeySelUp KeySelDn
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode InitialReduction Lock_26L Bleeding
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
 @persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
-@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
+@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake
+@persist IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown KeySelUp KeySelDn
 @persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector
@@ -15,7 +16,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.40 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.48 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -28,7 +29,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Standard"
+    #include "ptgamma/controls/standard"
     
     AirBrakeMode = 3
     #0 - Simple Self-Lapping (Easy)
@@ -44,7 +45,7 @@ if(first()){
     
     HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
     
-    NotchedDynamics = 1 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
+    NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
@@ -199,7 +200,6 @@ if(first()){
         }
     }
     
-    
     runOnChat(1)
     timer("clk",100)
 }
@@ -246,16 +246,19 @@ if(MU_Master){
             IncreaseLocoBrake = Driver:keyPressed(Controls["IncreaseLocoBrake",string]) & (Routing["IncreaseLocoBrake",number] ? Shifting : !Shifting)
             DecreaseLocoBrake = Driver:keyPressed(Controls["DecreaseLocoBrake",string]) & (Routing["DecreaseLocoBrake",number] ? Shifting : !Shifting)
             
-            IncreaseDynamics = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
-            DecreaseDynamics = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
+            KeyDynUp = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
+            KeyDynDn = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
+            
+            IncreaseDynamics = 0
+            DecreaseDynamics = 0
             
             EmergencyBrake = Driver:keyPressed(Controls["EmergencyBrake",string]) & (Routing["EmergencyBrake",number] ? Shifting : !Shifting)
             
             HandBrake = Driver:keyPressed(Controls["HandBrake",string]) & (Routing["HandBrake",number] ? Shifting : !Shifting)
             Sander = Driver:keyPressed(Controls["Sander",string]) & (Routing["Sander",number] ? Shifting : !Shifting)
             
-            SelectorUp = Driver:keyPressed(Controls["SelectorUp",string]) & (Routing["SelectorUp",number] ? Shifting : !Shifting)
-            SelectorDown = Driver:keyPressed(Controls["SelectorDown",string]) & (Routing["SelectorDown",number] ? Shifting : !Shifting)
+            KeySelUp = SelectorUp = Driver:keyPressed(Controls["SelectorUp",string]) & (Routing["SelectorUp",number] ? Shifting : !Shifting)
+            KeySelDn = SelectorDown = Driver:keyPressed(Controls["SelectorDown",string]) & (Routing["SelectorDown",number] ? Shifting : !Shifting)
             
         }
     }
@@ -273,29 +276,29 @@ if(clk("clk")){
     #Lever-Based Controlling - This part is different for every control stand!
     if(LeverBased){
         #Initial Control Resets
-        IncreaseDynamics = 0
-        DecreaseDynamics = 0
         
         #Selector/Throttle/Dynamics Interlock
         if(!NQ & !SelectorQ & !DNQ){
             if((SetSelector==0) & !Dynamics){
                 IncreaseDynamics = SelectorDown
+                SelectorDown = 0
             }elseif((SetSelector==0) & (SetDynamics==10)){
                 DecreaseDynamics = SelectorUp
                 IncreaseDynamics = IncreaseThrottle
-                IncreaseThrottle = 0
-                DecreaseThrottle = 0
+                #IncreaseThrottle = 0
+                #DecreaseThrottle = 0
             }elseif((SetSelector==0) & (SetDynamics>10)){
                 IncreaseDynamics = IncreaseThrottle
                 DecreaseDynamics = DecreaseThrottle
                 SelectorUp = 0
                 SelectorDown = 0
-                IncreaseThrottle = 0
-                DecreaseThrottle = 0
+                #IncreaseThrottle = 0
+                #DecreaseThrottle = 0
             }
         }
-        
-        
+    }else{
+        IncreaseDynamics = KeyDynUp
+        DecreaseDynamics = KeyDynDn
     }
     
     #Throttle
@@ -347,10 +350,11 @@ if(clk("clk")){
             }
             if(DynaNotch>-1){SetDynamics = dac(10,100,NumThrottleNotches,DynaNotch)}
         }elseif(Dynamics){
-            if(IncreaseDynamics & (SetDynamics<100)){
+            if(IncreaseDynamics & (SetDynamics<100) & !DNQ){
                 SetDynamics++
                 if(SetDynamics>100){SetDynamics=100}
             }elseif(DecreaseDynamics & (SetDynamics>10)){
+                DNQ = 1
                 SetDynamics--
                 if(SetDynamics<10){SetDynamics=10}
             }
@@ -772,7 +776,7 @@ if(clk("clk")){
     #Horn 2 Unused
     #CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)
     #Selector Lever
-    CS:setBodygroup(9,SelectorUp - SelectorDown + 1)
+    CS:setBodygroup(9,KeySelUp - KeySelDn + 1)
     
     timer("clk",50)
 }elseif(clk("EndHiss")){

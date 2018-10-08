@@ -3,7 +3,7 @@
 @outputs 
 @persist 
 @trigger 
-
+CFG_Version = "2.0.48"
 #This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
 #NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
 
@@ -12,12 +12,14 @@
 LocomotiveType = "EMD SD40"
     
 Horsepower = 3000 #Horsepower Rating; meaningless if there is no prime mover.
-Weight = 368000 #Locomotive Weight ON DRIVERS in lb; meaningless if there are no traction motors.
-Adhesion = 0.25 #Factor of Adhesion:
-#Older Road Locomotives are about 25%
-#Switchers and Road Locomotives with High-Adhesion trucks are about 30-32%
-#Modern AC Traction locomotives are about 45-50%
+Weight = 368000 #Total Locomotive Weight in lb.
+Adhesion = 0.25 #Factor of Adhesion.
+Axles = 6 #Total Number of Axles.
 Motors = 6 #Number of Traction Motors. Anything else is just absurd, really. Meaningless for Cabcars/Snails.
+MaxGenCurrent = 6000 #How much current the generator/alternator can put out (not the RATED value).
+MaxLoad = 1500 #Peak amount of Load current used for starting (How high does the loadmeter go?).
+MaxContLoad = 1050 #Maximum amount of Load current the traction motors can take before entering the Short Time zone. Does not impact AC traction motors.
+BaseSpeed = 65 #The top speed that's considered "normal" for this locomotive.
 TopSpeed = 65 #Top Speed, in Miles per Hour, that the locomotive is capable of reaching due to the gearing. If you don't know, put 65.
 
 #Pick a Prime Mover Config File! You can find them in "ptgamma/engines/" !
@@ -31,11 +33,11 @@ UnitType = 0
 #3 - Cab Car/Control Cab (No Traction Motors or Prime Mover)
 
 #Transition
-#                       Off 1st 2nd 3rd 4th
-TransitionGroups = array(3,  3,  2,  1,  1) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
-TransitionShunts = array(1,  1,  1,  1,  0.5) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
-NominalVoltage = 3000
-MaxRatedCurrent = 3000
+#                       1st 2nd 3rd 4th
+TransitionGroups = array(2,  1,  1      ) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
+TransitionShunts = array(1,  1,  0.5    ) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
+GeneratorTransition = 0 #If a locomotive has Generator Transition, set this to 1.
+LoadRampSpeed = 2 #How fast the engine loads when increasing power. 10 is sluggish, 20 is quick.
 
 #Dynamic Braking Capabilities:
 
@@ -43,6 +45,7 @@ DynamicsMode = 1
 #0 - No Dynamic Brakes
 #1 - Proportional Cooling Dynamic Brakes
 #2 - Fixed Cooling Dynamic Brakes
+MaxDynLoad = 700 #Maximum Dynamic Braking load current.
 FixedDynaThrottle = 50 #Throttle percentage engine goes to for Fixed Cooling mode
 BlendedBraking = 0 #Modern Passenger Thing, turns on dynamic brakes when air brake application is made.
 
@@ -60,5 +63,5 @@ HEPTYPE = 0 #0 for 4-8 HEP (Traditional), 1 for 2-4 HEP (For Modern, High-Horsep
 
 #Misc:
 
-ExtraBrakeCylinders = 0 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
+ClaspBrakes = 0 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
 HeadlightRGB = vec(255,255,200) #What color do you want your MU Headlights to be, if used.

@@ -17,8 +17,8 @@ Controls["DecreaseThrottle",string] = "A"
 Controls["IncreaseDynamics",string] = "period"
 Controls["DecreaseDynamics",string] = "comma"
     
-Controls["TransitionUp",string] = "W +Shift"
-Controls["TransitionDown",string] = "S +Shift"
+Controls["SelectorUp",string] = "W +Shift"
+Controls["SelectorDown",string] = "S +Shift"
     
 Controls["IncreaseTrainBrake",string] = "apostrophe"
 Controls["DecreaseTrainBrake",string] = "semicolon"

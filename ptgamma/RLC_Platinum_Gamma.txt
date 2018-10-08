@@ -1,22 +1,24 @@
 @name ptgamma/RLC Platinum Gamma
-@inputs Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master CtlTable:table Active Pod:entity Trucks:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode Number:string
+@inputs Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master CtlTable:table Active Pod:entity Trucks:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode BrakeCutout Number:string
 @outputs RLCPT:entity Primed1 Primed2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load Voltage TransitionNotch
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent Currents:array
+@outputs AvCurrent Currents:array WheelSlipThreshold TM_Temp
 #Engine Config
-@persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches Motors
-@persist TransitionMode GeneratorTransition TransitionVoltage TransitionControlType TransitionQ
+@persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches 
+@persist TransitionMode TransitionVoltage TransitionControlType TransitionQ
 #Engine Sounds
-@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
+@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
 #Engine Data
-@persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
-@persist NQ TQ1 TQ2 ABQ1 ABQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force
+@persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleCondition1 LowIdleCondition2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
+@persist NQ TQ1 TQ2 ABQ1 ABQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force Load_Setpoint
 #New Traction Stuff
-@persist TransitionGroups:array TransitionShunts:array NominalVoltage MaxRatedCurrent TransitionNotches TransitionThresholds:array GenThreshold
+@persist TransitionGroups:array TransitionShunts:array GeneratorTransition NominalVoltage MaxGenCurrent TransitionNotches TransitionThresholds:array GenThreshold
+@persist TM_Temp TM_Warning TM_Health TM_Damage TM_ZapQ TM_Maxtime TM_Mintime
 #Locomotive Config
-@persist Horsepower Weight Adhesion AirBrakeMode DynamicsMode FixedDynaThrottle BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle TopSpeed ExtraBrakeCylinders TractionMode
+@persist Horsepower Weight Adhesion Axles Motors MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxDynLoad FixedDynaThrottle BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
+@persist BaseSpeed TopSpeed ClaspBrakes TractionMode LoadRampSpeed WeightOnAxle
 #Locomotive Sounds
-@persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone]:string
+@persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone MotorDamaging MotorDeath]:string
 @persist [WheelSlipOn WheelSlipOff SanderOn SanderOff Button_HEP]:string
 #Brake Sounds
 @persist [AirBrakeDump CompressorOn CompressorOff BrakeSqueal]:string
@@ -27,25 +29,31 @@
 #Controls
 @persist SetReverser SetThrottle SetDynamics SetSelector IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake HandBrake SandQ
 #Misc
-@persist [E O W H1 H2]:entity DriverQ RailType RollQ LastProps:array MU_Connected MU_F MU_R WheelSlip WheelSlipRand Sanding APR ForceSand WheelSlipThreshold Reverser_DPM DPM_Delay
-@persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend
+@persist [E O W H1 H2]:entity DriverQ RailType RollQ LastProps:array MU_Connected MU_F MU_R WheelSlip WheelSlipLocal WheelSlipRand Sanding APR ForceSand WheelSlipThreshold Reverser_DPM DPM_Delay
+@persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend SwitchingMode CFG_Version:string
 
 @trigger Prime Prime_DPM Start Start_DPM Run Run_DPM MU_Master
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 41
+#To-Do for 49
 
 #Dual Prime Mover - Double Current
-#Load Smoothing
-#Variable Load Ratings
-#MU Forwarding without regard for engine state
-#Base Speed Config Var
-#Improve ETC somehow
-#Generalize Low Idle sounds
+#AC Traction Reverser Dynamics Thing
+#Auto TM Protection Option
+#Auto Starter Inputs
+
+#Finished:
+#Axle-Dependent LB
+#HPT Command
+#Weight in Tons
+#Short Time Consequences
+#Sander Auto-Off when TM fucked
+#Switching Mode
+#Config Compatibility Checking
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.40"
+    local Version = "Gamma 2.0.48"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -84,6 +92,8 @@ if(first()|dupefinished()){
     WheelSlipOff = "gsgtrainsounds/wheels/wheelslip_end.wav"
     
     TractionDrone = "gsgtrainsounds/wheels/emd_dr77_traction.wav"
+    MotorDamaging = "ambient/energy/electric_loop.wav"
+    MotorDeath = "npc/ministrider/flechette_explode3.wav"
     
     #INITIALIZATION
     
@@ -102,7 +112,7 @@ if(first()|dupefinished()){
     #11 - LoI Counter 2
     #12 - WheelSlip
     #13 - Sander
-    #14 - Clickety Clack (Not Implemented Yet!)
+    #14 - Traction Motor Death Throes
     
     
     #MU Info Register
@@ -119,10 +129,28 @@ if(first()|dupefinished()){
     #11 - "Heartbeat"
     #12 - Sand
     #13 - TransitionNotch
+    #14 - Wheel Slip
     
     
     #Config Init
-    if(->CtlTable){
+    
+    local LastCompatibleConfig = "2.0.48"
+    
+    local CFGVA = CFG_Version:explode(".")
+    local CFGV_Major = CFGVA[2,string]
+    local CFGV_Minor = CFGVA[3,string]
+    
+    local RLCVA = LastCompatibleConfig:explode(".")
+    local RLCV_Major = RLCVA[2,string]
+    local RLCV_Minor = RLCVA[3,string]
+    
+    if((RLCV_Major != CFGV_Major) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())){
+        printColor(vec(0,191,255),"[RLCPT] Note: Locomotive Config out of date! Please use config for Version ",vec(255),LastCompatibleConfig+"!")
+        soundPlay(0,0,"buttons/blip2.wav")
+        soundPlay(1,0,"vo/engineer_moveup01.mp3")
+        setName("RLC Platinum " + Version + "\nPlease Update Loco Config!")
+        exit()
+    }elseif(->CtlTable){
         AirBrakeMode = CtlTable["AirBrakeMode",number]
         InitialReduction = CtlTable["InitialReduction",number] 
         NotchedThrottle = CtlTable["NotchedThrottle",number]
@@ -133,6 +161,7 @@ if(first()|dupefinished()){
     }else{
         printColor(vec(255,191,0),"[RLCPT] Error: Cannot find CtlTable! Please reload E2 when CtlTable is wired.")
         soundPlay(0,0,"buttons/button3.wav")
+        setName("RLC Platinum " + Version + "\nPlease see Operator's Manual for Setup Instructions!")
         exit()
     }
     
@@ -180,7 +209,7 @@ if(first()|dupefinished()){
     
     DPM_Delay = 300
     
-    TE_Starting = Weight*Adhesion
+    NominalVoltage = 3000
     
     TransitionNotch = 0
     TransitionQ = 0
@@ -188,6 +217,10 @@ if(first()|dupefinished()){
     HEPCLAG = 0
     HEPTHROTTLEBASE = 0
     
+    local InitGrp = TransitionGroups[1,number]
+    local InitSnt = TransitionShunts[1,number]
+    TransitionGroups:unshiftNumber(InitGrp)
+    TransitionShunts:unshiftNumber(InitSnt)
     
     #   -4X^2 + 4NomX - 746*HP = 0
     #   -0.25X^2 + MaxX - 746*HP = 0
@@ -196,7 +229,7 @@ if(first()|dupefinished()){
     
     TransitionNotches = TransitionGroups:count() - 1
     
-    for(N=1,TransitionNotches){
+    for(N=1,TransitionNotches-1){
         TransitionThresholds[N+1,number] = TransitionVoltage*TopSpeed/(NominalVoltage*TransitionShunts[N+1,number]*TransitionGroups[N+1,number])
     }
 
@@ -221,7 +254,7 @@ if(first()|dupefinished()){
     NQ = 0
     
     #Brake Init
-    BrakeMul = 775
+    BrakeMul = 775*2
     MainRes = 0
     EqualRes = 0
     BrakePipe = 0
@@ -283,6 +316,12 @@ if(first()|dupefinished()){
         HEP = 0
         #print("AAAA")
     }
+    WeightOnAxle = Weight/Axles
+    TE_Starting = WeightOnAxle*Adhesion
+    
+    TM_Maxtime = 30
+    TM_Mintime = 1
+    TM_Health = 100
     
     #1.016 sec
     
@@ -341,7 +380,7 @@ if(first()|dupefinished()){
                     local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+"b.wav"
                     H1:soundPlay(0,0,Snd)
                     if((To>(From+1)) & (EngineBehavior[From+2,number]==0)){
-                        timer("TQU1",UpDelays[From,number])
+                        timer("TQU1",UpDelays[From+1,number])
                     }else{
                         timer("TQU1",sdr(Snd))
                         ABQ1 = 0
@@ -406,7 +445,7 @@ if(first()|dupefinished()){
                     H2:soundPlay(1,0,Snd)
                     soundPitch(1,98)
                     if((To>(From+1)) & (EngineBehavior[From+2,number]==0)){
-                        timer("TQU2",UpDelays[From,number])
+                        timer("TQU2",UpDelays[From+1,number])
                     }else{
                         timer("TQU2",sdr(Snd))
                         ABQ2 = 0
@@ -591,20 +630,27 @@ if(first()|dupefinished()){
         return void
     }
     
-    function number carCount(){
-        local Props = E:getConstraints()
-        local Cnt = 0
-        local ImportantProps = array()
-        foreach(K,V:entity = Props){
-            if(V:mass()>1000){
-                ImportantProps[Cnt,entity] = V
-                Cnt++
+    function number carCount(SWM){
+        local Cars = 0
+        if(SWM){
+            Cars = 1
+        }else{
+            local Props = E:getConstraints()
+            local Cnt = 0
+            local ImportantProps = array()
+            foreach(K,V:entity = Props){
+                if(V:mass()>1000){
+                    ImportantProps[Cnt,entity] = V
+                    Cnt++
+                }
             }
+            local ExtraProps = ImportantProps:count()
+            Cars = floor(ExtraProps/3)
+            if(Cars<0){Cars = 0}
+            
         }
-        local ExtraProps = ImportantProps:count()
-        local Cars = floor(ExtraProps/3)
-        if(Cars<0){Cars = 0}
-        MaxTrainBrakeForce = BrakeMul*Cars*0.25
+        MaxTrainBrakeForce = BrakeMul*(Cars-1)*0.475
+        if(MaxTrainBrakeForce<0){MaxTrainBrakeForce = 0}
         return Cars
         
     }
@@ -622,24 +668,62 @@ if(first()|dupefinished()){
             V:propPhysicalMaterial("friction_00")
             V:propDrag(0)
         }
+        return void
     }
     function void abRest(Ents:array){
         foreach(K,V:entity=Ents){
             V:propPhysicalMaterial("phx_tire_normal")
         }
+        return void
     }
     function void abEmergency(Ents:array){
         foreach(K,V:entity=Ents){
             V:propPhysicalMaterial("slipperyslime")
         }
+        return void
     }
+    function void setWeight(Carbody:entity,Trucks:array,Pounds){
+        local KG = fromUnit("lb",Pounds/2)
+        local CarbodyWeight = clamp(round(KG/2),10,50000)
+        
+        Carbody:setMass(CarbodyWeight)
+        KG -= CarbodyWeight
+        
+        local TruckWgt = round(KG/Trucks:count())
+        for(N=1,Trucks:count()){
+            Trucks[N,entity]:setMass(TruckWgt)
+        }
+
+        
+        return void
+    }
+    
+    function number linterp(T,Start:vector2,End:vector2){ #2-Point Linear Interpolation - Modified for PT2 Traction Motor Consequences
+    
+        local X0 = Start:x()
+        local X1 = End:x()
+        local Y0 = Start:y()
+        local Y1 = End:y()
+        
+        if(T>X0){
+            local TN = (T-X0)/(X1-X0)
+            return Y0 + TN*(Y1-Y0)
+        }else{
+            return 0
+        }
+    }
+    
     function void entity:printProper(Message:string){
         if(This==O){
             print(Message)
         }else{
             Pod:printDriver(Message)
         }
+        return void
     }
+    
+    setWeight(W,Trucks,Weight)
+    
     #print(sdr("gsgtrainsounds/alco539t/startup.wav"))
     #print(sdr("gsgtrainsounds/alco539t/shutdown.wav"))
     timer("CarCount",5000)
@@ -714,6 +798,7 @@ if(HasPM){ #Actual Engine Starting
                     break
             }
             H1:soundPlay(0,0,Snd)
+            stoptimer("IdleDown1")
             timer("Cool1",sdr(Snd))
         }
     }elseif(!(Start|ForceStart1) & Starting1 & !On1){
@@ -801,6 +886,7 @@ if(HasPM){ #Actual Engine Starting
                         break
                 }
                 H2:soundPlay(1,0,Snd)
+                stoptimer("IdleDown2")
                 timer("Cool2",sdr(Snd))
                 #print("Shutdown2")
             }
@@ -858,7 +944,7 @@ if(HasPM){ #Actual Engine Starting
     }
 }
 if(clk("CarCount")){
-    CarCount = carCount()
+    CarCount = carCount(SwitchingMode|BrakeCutout)
     TrainWeight = trainWeight()
     timer("CarCount",5000)
     LastProps = E:getConstraints()
@@ -867,38 +953,48 @@ if(clk("CarCount")){
     }
     WheelSlipRand = random()<0.75
     
-}elseif(clk("DPM_Rev")){
+}
+if(clk("DPM_Rev")){
     if(DPM & On2 & Run_DPM){
         Reverser_DPM = Reverser
     }
-}elseif(clk("DPM_Eng")){
+}
+if(clk("DPM_Eng")){
     #print("AAA DPM!")
     if(DPM & On2 & Run_DPM){
         EngineNotch2 = EngineNotch1
         
     }
-}elseif(clk("IdleDown1")){
+}
+if(clk("IdleDown1")){
     LowIdling1 = 1
     LowIdleWaiting1 = 0
     TQ1 = 1
-    local Snd = TransitionPath+"down/1-0.wav"
+    local Snd = TransitionToLow
     H1:soundPlay(0,0,Snd)
     stoptimer("TQU1")
     timer("TQD1",sdr(Snd))
-}elseif(clk("IdleDown2")){
+}
+if(clk("IdleDown2")){
     LowIdling2 = 1
     LowIdleWaiting2 = 0
     TQ2 = 1
-    local Snd = TransitionPath+"down/1-0.wav"
+    local Snd = TransitionToHigh
     H2:soundPlay(1,0,Snd)
     stoptimer("TQU2")
     timer("TQD2",sdr(Snd))
-}elseif(clk("HandBrake")){
+}
+if(clk("HandBrake")){
     if(HandBrake){
         abRest(E:getConstraints())
         Pod:soundPlay(3,1,"buttons/lever4.wav")
         Pod:driver():printProper("[RLCPT] Train Handbrakes Tightened!")
         
+    }
+}
+if(clk("motordamage")){
+    if(Load>MaxContLoad){
+        TM_Damage = 1
     }
 }
 
@@ -1311,22 +1407,20 @@ if(On1|On2){
             }
             local MU_Sand = FrontPlugIn[12,number] | RearPlugIn[12,number]
             
-            if((ForceSand | ((TractionMode>1) & WheelSlip) | MU_Sand) & !Sanding){
+            if((ForceSand | ((TractionMode==2) & WheelSlip) | MU_Sand) & !Sanding){
                 Sanding = 1
                 Pod:soundPlay(13,0,SanderOn)
-            }elseif(Sanding & !ForceSand & ((TractionMode<2) | !WheelSlip) & !MU_Sand){
+            }elseif(Sanding & !ForceSand & ((TractionMode!=2) | !WheelSlip) & !MU_Sand){
                 Sanding = 0
                 Pod:soundPlay(13,2,SanderOff)
             }
             
             #TRACTION MOTOR DRONE ON/OFF    
             if(HasTM){
-                #if(((Power>0) | RollQ) & !DroneQ){
                 if((RollQ) & !DroneQ){
                     DroneQ = 1
                     H1:soundPlay(2,0,TractionDrone)
                     #print("Drone On")
-                #}elseif((Power==0) & !RollQ & DroneQ){
                 }elseif(!RollQ & DroneQ){
                     DroneQ = 0
                     soundStop(2,0.1)
@@ -1350,6 +1444,7 @@ if(On1|On2){
             }
             
             local PowerNormal = 0.2 + (Power/100)*0.8
+            #local PowerNormal = (Power/100)^1.4
             local ShuntFactor = 1
             local HP_Effective = HEP_Notch ? (Horsepower-HEP_Subtract) : Horsepower
             
@@ -1361,7 +1456,7 @@ if(On1|On2){
                     }else{
                         local T_N = 1
                         if(!GeneratorTransition){
-                            for(N=1,TransitionNotches){
+                            for(N=1,TransitionNotches-1){
                                 if(MPH > TransitionThresholds[N+1,number]){
                                     T_N++
                                 }
@@ -1372,7 +1467,7 @@ if(On1|On2){
                 }elseif(TransitionControlType==2){ #Fully Automatic
                     local T_N = 1
                         if(!GeneratorTransition){
-                            for(N=1,TransitionNotches){
+                            for(N=1,TransitionNotches-1){
                                 if(MPH > TransitionThresholds[N+1,number]){
                                     T_N++
                                 }
@@ -1403,7 +1498,7 @@ if(On1|On2){
                 local Voltage = TM_Voltage*SeriesFactor*(GenSeries ? 0.5 : 1)
                 #local Voltage = X
                 local MaxPowerCurve = 746*HP_Effective*sqrt(PowerNormal)/max(Voltage,1)
-                local MaxLoadCurve = (-0.125*Voltage + MaxRatedCurrent)*PowerNormal
+                local MaxLoadCurve = (-0.125*Voltage + MaxGenCurrent)*PowerNormal
                 local MaxFieldCurve = GeneratorTransition ? -4*(Voltage - 2*NominalVoltage)  : -4*(Voltage-NominalVoltage) 
                 
                 
@@ -1411,54 +1506,123 @@ if(On1|On2){
                 GenCurrent = min(MaxLoadCurve,MaxPowerCurve,MaxFieldCurve)*(GenSeries ? 0.5 : 1)
 
 
-                AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxRatedCurrent)
+                AvCurrent = clamp(GenCurrent-CurrentDraw,0,MaxGenCurrent)
                 Currents = array(MaxLoadCurve, MaxPowerCurve, MaxFieldCurve)
                 
             }
             
-            Load = HasTM ? AvCurrent*SeriesFactor/Motors : 0
+            #Load Smoothing
+            
+            Load_Setpoint = HasTM ? clamp(AvCurrent*SeriesFactor/Motors,0,MaxLoad) : 0
+            
+            
+            if(APR==1){
+                if(Load<Load_Setpoint){
+                    Load += LoadRampSpeed*(1 + 2*PowerNormal)
+                    if(Load>Load_Setpoint){
+                        Load = Load_Setpoint
+                    }
+                }elseif(Load>Load_Setpoint){
+                    Load += -20
+                    if(Load<Load_Setpoint){
+                        Load = Load_Setpoint
+                    }
+                }
+            }else{
+                Load = Load_Setpoint
+            }
+            
             
             #Wheel Slip
             
             if(TractionMode>0){
-                if(WheelSlip & (APR>0)){
-                    APR += -0.005
-                }elseif(!WheelSlip & (APR<1)){
-                    APR += 0.005
+                if(WheelSlipLocal & (APR>0)){
+                    APR += (TractionMode==3) ? -0.01 : -0.005
+                }elseif(!WheelSlipLocal & (APR<1)){
+                    APR += (TractionMode==3) ? 0.01 : 0.005
                 }
                 Load = Load*APR
             }
             
-            if(TractionMode<3){
-                local Bonus = Sanding*0.125
-                
-                #WheelSlipThreshold = 1200 + (MPH*3 + 10)*((Adhesion+Bonus)/0.25)*(Weight/350000)*10
-                WheelSlipThreshold = TE_Starting*(1+Bonus)*0.016
-                if((Load>WheelSlipThreshold) & !WheelSlip & 1){
-                    WheelSlip = 1
-                    W:soundPlay(12,0,WheelSlipOn)
-                }elseif(Load<(WheelSlipThreshold*0.75) & WheelSlip){
-                    WheelSlip = 0
-                    W:soundPlay(12,0,WheelSlipOff)
-                    WheelSlipRand = 0
+            local Bonus = Sanding*0.125
+            
+            local AxlesSlipping = 0
+            local OneOfTheAxlesSlippingIsTheOneWithTheLoadMeter = 0
+            WheelSlipThreshold = TE_Starting*(1+Bonus)*0.072
+            if((Load>WheelSlipThreshold) & !WheelSlipLocal & 1){
+                WheelSlipLocal = 1
+                W:soundPlay(12,0,WheelSlipOn)
+                AxlesSlipping = 1 + (Load>(WheelSlipThreshold*1.1)) + (Load>(WheelSlipThreshold*1.2))
+                for(N=1,AxlesSlipping){
+                    OneOfTheAxlesSlippingIsTheOneWithTheLoadMeter = (random()>0.5)
+                    if(OneOfTheAxlesSlippingIsTheOneWithTheLoadMeter==1){
+                        break
+                    }
                 }
-                if(WheelSlip){
-                    Load*=0.5
-                }
+            }elseif(Load<(WheelSlipThreshold*0.75) & WheelSlipLocal){
+                WheelSlipLocal = 0
+                W:soundPlay(12,0,WheelSlipOff)
+                WheelSlipRand = 0
             }
+            local Load_Eff = Load*(TM_Health/100)
+            if(WheelSlipLocal){
+                Load_Eff *= ((2*Motors - AxlesSlipping)/(2*Motors))
+                if(OneOfTheAxlesSlippingIsTheOneWithTheLoadMeter){Load *= 0.5}
+            }
+            
+            WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
+            
             local DPMF = DPM ? ((On1&Run) + (On2&Run_DPM))/2 : 1
             #TE = DPMF*sign(Reverser)*(Load/1500)*(169/12)*TE_Starting*0.6*(65/TopSpeed)*ShuntFactor
-            TE = sign(Reverser)*Load*(65/TopSpeed)*ShuntFactor*Motors*1500/18
+            TE = sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
         }elseif(Dynamics & (Reverser==sign(V)) & HasTM){
             Voltage = 0
             Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
-            TE = WillItBlend ? 0 : -sign(Reverser)*abs(Load)*(Motors)*(65/TopSpeed)*200
-            BrakeWarn = Load<-700
+            TE = WillItBlend ? 0 : -sign(Reverser)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
+            BrakeWarn = Load<-MaxDynLoad
         }else{
             Load = Voltage = TE = 0
             if(WheelSlip){
                 WheelSlip = 0
                 W:soundPlay(12,0,WheelSlipOff)
+            }
+        }
+        
+        #Short Time Consequences
+        if(Load > MaxContLoad){
+            TM_Temp += linterp(Load,vec2(MaxContLoad,1/TM_Maxtime),vec2(MaxLoad,1/TM_Mintime))*50/1000
+            if((TM_Temp>60) & !TM_Warning){
+                TM_Warning = 1
+                Pod:driver():printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Reduce load to below " + MaxContLoad:toString() + " Amps or traction motor damage will occur!")
+                timer("motordamage",15000)
+                #You wanna die, buddy?
+            }elseif(TM_Damage){
+                if(!TM_ZapQ){
+                    TM_ZapQ = 1
+                    W:soundPlay(14,0,MotorDamaging)
+                    #There will be CONSEQUENCES!
+                }
+                TM_Health -= 1.25
+                if(TM_Health <= 0){
+                    soundStop(14)
+                    HasTM = 0
+                    DroneQ = 0
+                    W:soundPlay(2,3,MotorDeath)
+                    Load = 0
+                    SandQ = 0
+                    ForceSand = 0
+                    #*Truck Smashes into car*
+                }
+            }
+        }else{
+            if(TM_Warning){
+                TM_Warning = 0
+                TM_Damage = 0
+                TM_ZapQ = 0
+                stoptimer("motordamage")
+            }
+            if(TM_Temp > 0){
+                TM_Temp += (-2/TM_Maxtime)*50/1000
             }
         }
         
@@ -1490,9 +1654,8 @@ if(On1|On2){
     if(HasPM){
         #Low Idle 1
         if(FuelSaverMode){
-            
-            local LowIdleCondition1 = (EngineNotch1==0) & (EngineSpeed1==0) & (Reverser==0)
-            if(On1){
+            LowIdleCondition1 = (EngineNotch1==0) & (EngineSpeed1==0) & (Reverser==0)
+            if(On1 & !Starting1){
                 if(LowIdleCondition1 & !LowIdling1 & !LowIdleWaiting1){
                     if(FuelSaverDelay>0){
                         LowIdleWaiting1 = 1
@@ -1501,7 +1664,7 @@ if(On1|On2){
                         TQ1 = 1
                         LowIdling1 = 1
                         TQ1 = 1
-                        local Snd = TransitionPath+"down/1-0.wav"
+                        local Snd = TransitionToLow
                         H1:soundPlay(0,0,Snd)
                         stoptimer("TQU1")
                         timer("TQD1",sdr(Snd))
@@ -1509,7 +1672,7 @@ if(On1|On2){
                         LowIdling1 = 1
                         LRQ1 = 1
                         soundVolume(0,0,1)
-                        local Snd = TransitionPath+"down/1-0.wav"
+                        local Snd = TransitionToLow
                         H1:soundPlay(10,0,Snd)
                         soundVolume(10,0)
                         soundVolume(10,1,0.5)
@@ -1521,7 +1684,7 @@ if(On1|On2){
                         LowIdling1 = 0
                         TQ1 = 1
                         LRQ1 = 1
-                        local Snd = TransitionPath+"up/0-1.wav"
+                        local Snd = TransitionToHigh
                         H1:soundPlay(0,0,Snd)
                         stoptimer("TQD1")
                         timer("TQU1",sdr(Snd))
@@ -1529,7 +1692,7 @@ if(On1|On2){
                         LowIdling1 = 0
                         LRQ1 = 1
                         soundVolume(0,0,1)
-                        local Snd = TransitionPath+"up/0-1.wav"
+                        local Snd = TransitionToHigh
                         H1:soundPlay(10,0,Snd)
                         soundVolume(10,0)
                         soundVolume(10,1,0.5)
@@ -1546,8 +1709,9 @@ if(On1|On2){
             
             #Low Idle 2
             
-            if(DPM & On2){
-                local LowIdleCondition2 = (Throttle==0) & (EngineSpeed2==0) & (Reverser_DPM==0)
+            LowIdleCondition2 = (EngineNotch2==0) & (EngineSpeed2==0) & (Reverser==0)
+            if(DPM & On2 & !Starting2){
+                LowIdleCondition2 = (Throttle==0) & (EngineSpeed2==0) & (Reverser_DPM==0)
                 
                 if(LowIdleCondition2 & !LowIdling2 & !LowIdleWaiting2){
                     if(FuelSaverDelay>0){
@@ -1557,7 +1721,7 @@ if(On1|On2){
                         TQ2 = 1
                         LowIdling2 = 1
                         TQ2 = 1
-                        local Snd = TransitionPath+"down/1-0.wav"
+                        local Snd = TransitionToLow
                         H2:soundPlay(1,0,Snd)
                         soundPitch(1,98)
                         stoptimer("TQU2")
@@ -1566,7 +1730,7 @@ if(On1|On2){
                         LowIdling2 = 1
                         LRQ2 = 1
                         soundVolume(1,0,1)
-                        local Snd = TransitionPath+"down/1-0.wav"
+                        local Snd = TransitionToLow
                         H2:soundPlay(11,0,Snd)
                         soundVolume(11,0)
                         soundVolume(11,1,0.5)
@@ -1578,7 +1742,7 @@ if(On1|On2){
                         LowIdling2 = 0
                         TQ2 = 1
                         LRQ2 = 1
-                        local Snd = TransitionPath+"up/0-1.wav"
+                        local Snd = TransitionToHigh
                         H2:soundPlay(1,0,Snd)
                         soundPitch(1,98)
                         stoptimer("TQD2")
@@ -1587,7 +1751,7 @@ if(On1|On2){
                         LowIdling2 = 0
                         LRQ2 = 1
                         soundVolume(1,0,1)
-                        local Snd = TransitionPath+"up/0-1.wav"
+                        local Snd = TransitionToHigh
                         H2:soundPlay(11,0,Snd)
                         soundPitch(11,98)
                         soundVolume(11,0)
@@ -1671,7 +1835,7 @@ if(On1|On2){
     }
     
     #Brake Physprops
-    local BE = (Cyl*BrakeMul*(ExtraBrakeCylinders ? 1.75 : 1.5) + MaxTrainBrakeForce*BrakeCyl)*300/90
+    local BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90
     local Overcome = (abs(TE) - BE)>0
     if(MU_Master){
         if((((Braking_Train | Braking_Loco) & (Power==0)) | HandBrakeOverride) & !BHQ & (MPH<1)){
@@ -1709,80 +1873,10 @@ if(On1|On2){
     if(BHQ){TE = 0}
     BE = sign(V)*(MPH>0.5)*BE
     Force = TE - BE
-    W:applyForce(-E:up()*(Force))
+    W:applyForce(-E:up()*(Force/2))
     
     stoptimer("clk")
     timer("clk",50)
-    
-    #MU OUTPUT
-    
-    #MU Info Register
-    #1 - Reverser
-    #2 - Throttle
-    #3 - Dynamic Brake
-    #4 - Main Reservoir
-    #5 - Locomotive Brake
-    #6 - Hump Control
-    #7 - Horsepower
-    #8 - Total Effective Units
-    #9 - Compressing
-    #10 - Headlights
-    
-    
-    if(MU_Master){
-        FrontPlugOut = array(
-            Reverser,
-            Throttle,
-            max(DynamicBrakingPower,ForceDynaPower),
-            MainRes,
-            LocoBrakePressure,
-            1,
-            Horsepower,
-            RearPlugIn[8,number] + 1 + DPM,
-            CompQ1|CompQ2
-        )
-        RearPlugOut = array(
-            -Reverser,
-            Throttle,
-            max(DynamicBrakingPower,ForceDynaPower),
-            MainRes,
-            LocoBrakePressure,
-            1,
-            Horsepower,
-            FrontPlugIn[8,number] + 1 + DPM,
-            CompQ1|CompQ2
-        )
-        
-        FrontPlugOut[11,number] = 2
-        RearPlugOut[11,number] = 2
-        
-        FrontPlugOut[12,number] = ForceSand
-        RearPlugOut[12,number] = ForceSand
-        
-        FrontPlugOut[13,number] = SelectorNotch
-        RearPlugOut[13,number] = SelectorNotch
-    }else{
-        FrontPlugOut = RearPlugIn:clone()
-        RearPlugOut = FrontPlugIn:clone()
-        
-        FrontPlugOut[8,number] = RearPlugIn[8,number] + DPM + 1
-        RearPlugOut[8,number] = FrontPlugIn[8,number] + DPM + 1
-        
-        FrontPlugOut[7,number] = RearPlugIn[7,number] + Horsepower
-        RearPlugOut[7,number] = FrontPlugIn[7,number] + Horsepower
-        
-        FrontPlugOut[11,number] = (RearPlugIn[11,number]==2) ? 2 : 1
-        RearPlugOut[11,number] = (FrontPlugIn[11,number]==2) ? 2 : 1
-    }
-    
-    FrontPlugOut[10,number] = RearPlugIn[10,number] | Lights_Front
-    RearPlugOut[10,number] = FrontPlugIn[10,number] | Lights_Rear
-    
-    Lights_Forward = MU_F ? 0 : FrontPlugOut[10,number]
-    Lights_Backward = MU_R ? 0 : RearPlugOut[10,number]
-    
-    Lights_Fwd_RGB = Lights_Forward*HeadlightRGB
-    Lights_Back_RGB = Lights_Backward*HeadlightRGB
     
     
     #Locomotive Current Line
@@ -1801,6 +1895,87 @@ if(On1|On2){
     
     #End of ON Block
 }
+
+#MU OUTPUT
+    
+    #MU Info Register
+    #1 - Reverser
+    #2 - Throttle
+    #3 - Dynamic Brake
+    #4 - Main Reservoir
+    #5 - Locomotive Brake
+    #6 - Hump Control
+    #7 - Horsepower
+    #8 - Total Effective Units
+    #9 - Compressing
+    #10 - Headlight
+    #11 - "Heartbeat"
+    #12 - Sand
+    #13 - TransitionNotch
+    #14 - Wheel Slip
+    #15 - Loco Weights (LB)
+    
+    
+if((On1|On2) & MU_Master){
+    FrontPlugOut = array(
+        Reverser,
+        Throttle,
+        max(DynamicBrakingPower,ForceDynaPower),
+        MainRes,
+        LocoBrakePressure,
+        1,
+        Horsepower,
+        RearPlugIn[8,number] + 1 + DPM,
+        CompQ1|CompQ2
+    )
+    RearPlugOut = array(
+        -Reverser,
+        Throttle,
+        max(DynamicBrakingPower,ForceDynaPower),
+        MainRes,
+        LocoBrakePressure,
+        1,
+        Horsepower,
+        FrontPlugIn[8,number] + 1 + DPM,
+        CompQ1|CompQ2
+    )
+    
+    FrontPlugOut[11,number] = 2
+    RearPlugOut[11,number] = 2
+    
+    FrontPlugOut[12,number] = ForceSand
+    RearPlugOut[12,number] = ForceSand
+    
+    FrontPlugOut[13,number] = SelectorNotch
+    RearPlugOut[13,number] = SelectorNotch
+}else{
+    FrontPlugOut = RearPlugIn:clone()
+    RearPlugOut = FrontPlugIn:clone()
+    
+    FrontPlugOut[8,number] = RearPlugIn[8,number] + DPM + 1
+    RearPlugOut[8,number] = FrontPlugIn[8,number] + DPM + 1
+    
+    FrontPlugOut[7,number] = RearPlugIn[7,number] + Horsepower
+    RearPlugOut[7,number] = FrontPlugIn[7,number] + Horsepower
+    
+    FrontPlugOut[11,number] = (RearPlugIn[11,number]==2) ? 2 : 1
+    RearPlugOut[11,number] = (FrontPlugIn[11,number]==2) ? 2 : 1
+}
+
+FrontPlugOut[10,number] = RearPlugIn[10,number] | Lights_Front
+RearPlugOut[10,number] = FrontPlugIn[10,number] | Lights_Rear
+
+FrontPlugOut[14,number] = RearPlugIn[14,number] | WheelSlipLocal
+RearPlugOut[14,number] = FrontPlugIn[14,number] | WheelSlipLocal
+
+FrontPlugOut[15,number] = RearPlugIn[15,number] + Weight
+RearPlugOut[15,number] = FrontPlugIn[15,number] + Weight
+
+Lights_Forward = MU_F ? 0 : FrontPlugOut[10,number]
+Lights_Backward = MU_R ? 0 : RearPlugOut[10,number]
+
+Lights_Fwd_RGB = Lights_Forward*HeadlightRGB
+Lights_Back_RGB = Lights_Backward*HeadlightRGB
 
 if(chatClk(O)|chatClk(Pod:driver())){
     local Speaker = lastSpoke()
@@ -1935,6 +2110,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                                 break
                         }
                         H1:soundPlay(0,0,Snd)
+                        stoptimer("IdleDown1")
                         timer("Cool1",sdr(Snd))
                     }else{
                         Speaker:printProper("[RLCPT] Prime Mover 1 is not On!")
@@ -1969,6 +2145,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                                 break
                         }
                         H2:soundPlay(1,0,Snd)
+                        stoptimer("IdleDown2")
                         timer("Cool2",sdr(Snd))
                         #print("Shutdown2")
                     }else{
@@ -2011,29 +2188,47 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 
             case ".weight",
                 if(MU_Master){
-                    local LocoCount = Sentence[2,string]:toNumber()
-                    if(LocoCount==0){
-                        LocoCount = 1
-                    }
-                    local TotalWeight = 0
+                    local TotalKGR = 0
                     local WeightProps = E:getConstraints()
                     foreach(K,V:entity=WeightProps){
-                        TotalWeight += V:mass()
+                        TotalKGR += V:mass()
                     }
-                    TotalWeight -= LocoCount*80000
-                    local SCE = round(TotalWeight/25000,1)
-                    Speaker:printProper("[RLCPT] Your train is pulling "+SCE+" SCE with "+LocoCount+" Locomotive(s).")
+                    local TotalKG = TotalKGR*2
+                    local TrailingLB = toUnit("lb",TotalKG) - (Weight + FrontPlugIn[15,number] + RearPlugIn[15,number])
+                    local TrailingT = round(TrailingLB/2000,1)
+                    
+                    local SCE = round(fromUnit("lb",TrailingLB)/50000,1)
+                    
+                    Speaker:printProper("[RLCPT] Your train is pulling "+TrailingT:toString()+" Trailing Tons ("+SCE:toString()+" SCE).")
                     hideChat(1)
                 }
                 break
             
+            case ".hpt",
+                if(MU_Master){
+                    local TotalKGR = 0
+                    local WeightProps = E:getConstraints()
+                    foreach(K,V:entity=WeightProps){
+                        TotalKGR += V:mass()
+                    }
+                    local TotalKG = TotalKGR*2
+                    local TrailingLB = toUnit("lb",TotalKG) - (Weight + FrontPlugIn[15,number] + RearPlugIn[15,number])
+                    local TrailingT = TrailingLB/2000
+                    
+                    local TotalHP = Horsepower + FrontPlugIn[7,number] + RearPlugIn[7,number]
+                    local HPT = round(TotalHP/TrailingT,2)
+                    
+                    Speaker:printProper("[RLCPT] Your train is supplying "+HPT:toString()+" Horsepower per Trailing Ton ("+TotalHP:toString()+" HP, "+round(TrailingT,1):toString()+" TT).")
+                    hideChat(1)
+                }
+                break
             case ".transitions",
                 if(MU_Master){
                     if(TransitionMode & TransitionControlType){
                         local PrintString = "[RLCPT] This Locomotive has Automatic Transitions at "
-                        for(N=1,TransitionNotches){
+                        for(N=1,TransitionNotches-1){
                             PrintString += (TransitionThresholds[N+1,number]:toString())
-                            if(N<TransitionNotches){
+                            if(N<TransitionNotches-1){
                                 PrintString += ", "
                             }else{
                                 PrintString += " MPH."
@@ -2043,9 +2238,9 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         Speaker:printProper(PrintString)
                     }elseif(TransitionMode & !TransitionControlType){
                         local PrintString = "[RLCPT] This Locomotive has Manual Transition! Shift at "
-                            for(N=1,TransitionNotches){
+                            for(N=1,TransitionNotches-1){
                                 PrintString += (TransitionThresholds[N+1,number]:toString())
-                                if(N<TransitionNotches){
+                                if(N<TransitionNotches-1){
                                     PrintString += ", "
                                 }else{
                                     PrintString += " MPH."
@@ -2056,6 +2251,22 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         Speaker:printProper("[RLCPT] This Locomotive has no transitions!")
                     }
                 }
+                hideChat(1)
+                break
+            case ".weightreset",
+                setWeight(W,Trucks,Weight)
+                Speaker:printProper("[RLCPT] Locomotive weights reset.")
+                hideChat(1)
+                break
+            case ".switching",
+                
+                if(Sentence[2,string]==""){
+                    SwitchingMode = !SwitchingMode
+                }else{
+                    SwitchingMode = Sentence[2,string]=="1"
+                }
+                Speaker:printProper(SwitchingMode ? "[RLCPT] Trainline brakes cut out (Switching Mode engaged)!" : "[RLCPT] Trainline brakes cut in (Switching Mode disengaged)!")
+            
                 hideChat(1)
                 break
             default,
