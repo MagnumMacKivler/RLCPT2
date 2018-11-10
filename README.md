@@ -10,7 +10,7 @@ RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulat
 3. Navigate INTO the "RLCPT2-master" Folder. You should see three items: a folder named "ptgamma", a folder named "gauges_ptgamma", and readme.md.
 4. Extract the two folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
 The file path should then look like `expression2\ptgamma\...`.
-5. IF YOU SEE THE FOLDER "RLCPT2-master" INSIDE THE EXPRESSION2 FOLDER, __YOU INSTALLED IT WRONG__ AND THE E2S WILL NOT WORK!
+5. If you see the folder "RLCPT2-master" inside the "expression2" folder, __YOU INSTALLED IT WRONG__ and the E2s will not work!
 
 You will also need GrovestreetGman's Sound packs for RLC PT2 to work correctly. There are three:
 
