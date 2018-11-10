@@ -1,7 +1,7 @@
 @name GSG Gauge EMD Loadmeter
 @inputs Load
 @outputs 
-@persist E:entity
+@persist E:entity P
 @trigger none
 @model models/gsgtrainprops/parts/cab/gauge_01.mdl
 if(first()|duped()){
@@ -11,8 +11,13 @@ if(first()|duped()){
     
     function void needleValue(HoloIndex, Value){
         
-        local Frac = -clamp(Value/1500,-1,1)
+        P += (Value-P)*0.5
+        if(abs(Value-P)<1){P = Value}
+        
+        local Frac = -clamp(P/1500,-1,1)
         local Angle = Frac*150 - 0
+        
+        
         
         holoAng(HoloIndex,E:angles():rotateAroundAxis(E:forward(),Angle))
     }

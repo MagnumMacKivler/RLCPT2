@@ -1,0 +1,92 @@
+@name RS3 Starter Panel
+@inputs Start UnlockEC ThirdPerson NextWeapon PrevWeapon Pod:entity
+@outputs Start1 Shutdown1 Isolation1 EC_Clamp IsLookingAt EC_Position Driver:entity
+@persist Driver:entity Radius EC_Position [EC_Switch Starter_On Starter_Off]:string W:entity SQ
+@trigger NextWeapon PrevWeapon Start
+
+if(first()|dupefinished()){
+    #Wire UnlockEC to one of three outputs:
+    #To IsLookingAt (On this E2); This allows the engineer to change the EC switch when they point at the E2.
+    #To a Pod Controller Key; This allows the engineer to change the EC switch when they hold that key.
+    #To a Wire Button; This allows the engineer to change the EC switch when they hold that button.
+    
+    Radius = 8 #Radius for the Looking-At detection
+    
+    EC_Switch = "monkssounds/buttons/heavy buttons/heavybutton10.wav"
+    Starter_On = "monkssounds/buttons/heavy buttons/heavybutton20_push.wav"
+    Starter_Off = "monkssounds/buttons/heavy buttons/heavybutton20_release.wav"
+    
+    
+    EC_Position = -1
+    
+    E = entity()
+    if(E:isWeldedTo():isValidPhysics()){
+        E:parentTo(E:isWeldedTo())
+        E:constraintBreak()
+    }
+    W = entity():parent()
+    #W:setAlpha(0)
+    if(E:parent():isValidPhysics()){
+        E:setAlpha(0)
+    }
+
+    Color1 = vec(255,0,0)
+
+    holoCreate(1,W:toWorld(vec(-31.25,102.125,75)), vec(0.75), W:toWorld(ang(90,0,-90)), Color1, "plane")
+    holoParent(1,E)
+    holoMaterial(1,"models/proppertextures/alco_rs3_starter")
+    
+    holoCreate(2,W:toWorld(vec(-31.25,102,73.125)), vec(1), W:toWorld(ang(0,0,0)), Color1, "models/flak/part/misc/startswitch.mdl")
+    holoParent(2,E)
+    
+    local Angle = select(EC_Position+2,90,55,13,-12,-37,-59)
+    holoCreate(3,W:toWorld(vec(-31.25,102,77.25)), vec(1), W:toWorld(ang(Angle,0,0)), Color1, "models/flak/part/misc/knobswitch.mdl")
+    holoParent(3,E) 
+    
+    timer("clk",100)
+}
+if(clk("clk")){
+    #Driver
+    Driver = Pod:driver()
+    
+    #Looking At
+    if(Driver){
+        IsLookingAt = Driver:aimPos():distance(entity():pos()) < Radius
+    }else{
+        IsLookingAt = 0
+    }
+    timer("clk",100)
+}
+if(inputClk() & UnlockEC & !ThirdPerson){
+    if(PrevWeapon & (EC_Position<4)){
+        EC_Position++
+        soundStop(0)
+        soundPlay(0,0.5,EC_Switch)
+    }elseif(NextWeapon & (EC_Position>-1)){
+        EC_Position--
+        soundStop(0)
+        soundPlay(0,0.5,EC_Switch)
+    }
+    if(NextWeapon|PrevWeapon){
+        Shutdown1 = (EC_Position==-1)
+        Isolation1 = (EC_Position>0)
+        EC_Clamp = (EC_Position>0) ? select(EC_Position,25,50,75,100) : 0
+        
+        local Angle = select(EC_Position+2,90,55,13,-12,-37,-59)
+        #print(Angle)
+        holoAng(3,W:toWorld(ang(Angle,0,0)))
+    }
+}
+
+Start1 = Start
+if(Start & !SQ){
+    SQ = 1
+    Start1 = 1
+    soundPlay(0,0.5,Starter_On)
+    holoAng(2,W:toWorld(ang(-45,0,0)))
+}elseif(!Start & SQ){
+    SQ = 0
+    Start1 = 0
+    soundPlay(0,0.5,Starter_Off)
+    holoAng(2,W:toWorld(ang(0,0,0)))
+}

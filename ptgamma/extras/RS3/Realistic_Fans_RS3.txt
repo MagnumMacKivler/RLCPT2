@@ -1,0 +1,171 @@
+@name Realistic Fans RS3
+@inputs Loco:wirelink On1 Throttle Reverser DynamicBrakingPower Num:string F:wirelink
+@outputs ColorOVR:vector Temperature F1 Speed1
+@persist FanSpeedLo FanSpeedHi FanAccel Theta1 Theta2 Theta3 ThetaD1 ThetaD2 L:entity
+@persist Temperature Tmax Horsepower AmbientLoss IdleHeat Run8Heat Fans FanHeat F1_OnHi F1_OffHi F1_OnLo F1_OffLo F1 Speed1
+@persist RadiatorClosed RadiatorOpen DynamicsClosed DynamicsOpen FanShutterClosed FanShutterOpen HI Shutters:array
+@persist DynQ Ready
+@trigger 
+if(first()|duped()){
+    Ready = 0
+}
+if(first()|dupefinished()){
+    
+    Fans = 1
+    Horsepower = 1600
+    AmbientLoss = 0
+    
+    F1_OnHi = 60
+    F1_OffHi = 30
+    F1_OnLo = 40
+    F1_OffLo = 20
+    
+    FanSpeedHi = 1300
+    FanSpeedLo = 750
+    FanAccel = 24
+    
+    #Bodygroup IDs for each state:
+    RadiatorClosed = 0
+    RadiatorOpen = 1
+    
+    FanShutterClosed = 0
+    FanShutterOpen = 0
+    
+    DynamicsClosed = 3
+    DynamicsOpen = 4
+    
+    L = Loco:entity()
+    
+    #Radiator Shutter, put holoclips here! (Use Index 1+)
+    HI = 1
+    holoCreate(HI,L:pos(),vec(1),L:angles(),vec(36),"models/flak/part/misc/shutter_alco_rs3.mdl")
+    holoParent(HI,L)
+    
+    
+    
+    #End of Shutters Code
+    Shutters = array()
+    for(N=1,HI){
+        Shutters[N,entity] = holoEntity(N)
+    }
+    
+    
+    IdleHeat = Horsepower/3000
+    Run8Heat = IdleHeat*3.2
+    
+    Tmax = 100
+    Temperature = 0
+    F1 = 0
+    Speed1 = 0
+    
+    
+    
+    #Radiatior Fans
+    Theta1 = randint(1,361)-1
+    holoCreate(0,L:toWorld(vec(0,-233,98)),vec(4.375,4.375,1),L:angles():rotateAroundAxis(L:up(),-Theta1),vec(255),"plane")
+    holoParent(0,L)
+    holoMaterial(0,"models/proppertextures/fan_alco_rs")
+    
+    function void radState(Open){
+        for(N=1,HI){
+            holoBodygroup(N,1,Open ? RadiatorOpen : RadiatorClosed)
+            holoBodygroup(N,2,Open ? FanShutterOpen : FanShutterClosed)
+        }
+        return void
+    }
+    function void dynState(Open){
+        for(N=1,HI){
+            holoBodygroup(N,3,Open ? DynamicsOpen : DynamicsClosed)
+        }
+        return void
+    }
+    radState(0)
+    dynState(0)
+    timer("check",500)
+}
+
+if((~Num & Ready) | clk("check")){ #Number-Specific Bodygroup Code - you can probably empty this block if you don't want it
+    Ready = 1
+    if(->Num){
+        local N = Num:toNumber()
+        if(N<=1724){
+            ColorOVR = vec(80,100,85)
+            L:setBodygroup(8,3)
+            DynamicsClosed = 1
+            DynamicsOpen = 2
+            F:entity():setColor(ColorOVR)
+        }else{
+            ColorOVR = vec(255,95,0)
+            L:setBodygroup(8,4)
+            DynamicsClosed = 3
+            DynamicsOpen = 4
+            F:entity():setColor(ColorOVR)
+        }
+        dynState(0)
+    }
+}
+
+if(clk("clk")){
+    #Temperature Simulation and Fan Switches
+    if(On1){
+        local HeatAdded = IdleHeat + (abs(Reverser) ? 1 : 0.5)*Run8Heat*(Throttle+DynamicBrakingPower)/100
+        local HeatRemoved = 2*(IdleHeat)*(F1)/(Fans) + AmbientLoss
+        
+        Temperature += (HeatAdded - HeatRemoved)/10
+        Temperature = clamp(Temperature,0,Tmax)
+        
+        switch(F1){
+            case 0,
+                if(Temperature>F1_OnLo){
+                    F1 = 1
+                    radState(1)
+                }
+                break
+            case 1,
+                if(Temperature>F1_OnHi){
+                    F1 = 2
+                }elseif(Temperature<F1_OffLo){
+                    F1 = 0
+                    radState(0)
+                }
+                break
+            case 2,
+                if(Temperature<F1_OffHi){
+                    F1 = 1
+                }
+                break
+        }
+        
+    }else{
+        F1 = 0
+    }
+    
+    #Fanimations
+    local FanTargetSpeed = select(F1+1,0,FanSpeedLo,FanSpeedHi)
+    if(Speed1 < FanTargetSpeed){
+        Speed1 += FanAccel
+        if(Speed1 > FanTargetSpeed){Speed1 = FanTargetSpeed}
+    }elseif(Speed1 > FanTargetSpeed){
+        Speed1 += -FanAccel
+        if(Speed1 < FanTargetSpeed){Speed1 = FanTargetSpeed}
+    }
+    
+    if(Speed1>0){
+        Theta1 += Speed1/10
+        if(Theta1>360){Theta1 += -360}
+        holoAng(0,L:angles():rotateAroundAxis(L:up(),-Theta1))
+    }
+
+}
+if(On1){
+    timer("clk",100)
+}
+if(Ready){
+    if((DynamicBrakingPower>0) & !DynQ){
+        DynQ = 1
+        dynState(1)
+    }elseif((DynamicBrakingPower==0) & DynQ){
+        DynQ = 0
+        dynState(0)
+    }
+}

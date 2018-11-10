@@ -1,0 +1,88 @@
+@name Hump Controller
+@inputs Pod:entity Unlock NextWeapon PrevWeapon
+@outputs HumpMultiplier IsLookingAt
+@persist HumpOnOff:string HumpFull:string KeyHumpRestore:string KeyHumpReduce:string Driver:entity Radius
+@persist HumpReduce HumpRestore
+@trigger NextWeapon PrevWeapon
+
+if(first()|duped()){
+	#V1.0 - Holos Coming soon
+	#Wire Unlock to one of three outputs:
+    #To IsLookingAt (On this E2); This allows the engineer to change the hump controller when they point at the E2.
+    #To a Pod Controller Key; This allows the engineer to change the hump controller when they hold that key.
+    #To a Wire Button; This allows the engineer to change the hump controller when they hold that button.
+
+
+    HumpOnOff = "monkssounds/buttons/heavy buttons/heavybutton10.wav"
+    HumpFull = "monkssounds/buttons/heavy buttons/heavybutton4_release.wav"
+    
+    Radius = 16
+    
+    KeyHumpRestore = "up"
+    KeyHumpReduce = "down"
+    
+    HumpMultiplier = 1
+    timer("clk",50)
+}
+if(clk("clk")){
+    #Driver
+    Driver = Pod:driver()
+    
+    #Looking At
+    if(Driver){
+        IsLookingAt = Driver:aimPos():distance(entity():pos()) < Radius
+    }else{
+        IsLookingAt = 0
+    }
+    
+    #Controls
+    HumpRestore = Driver:keyPressed(KeyHumpRestore)
+    HumpReduce = Driver:keyPressed(KeyHumpReduce)
+    
+    
+    #Linear  Hump Control
+    if(HumpReduce & (HumpMultiplier>0)){
+        if(HumpMultiplier==1){
+            Pod:soundPlay(1,0.5,HumpOnOff)
+        }
+        
+        HumpMultiplier += -0.02
+        
+        if(HumpMultiplier<=0){
+            HumpMultiplier = 0
+            Pod:soundPlay(1,0.5,HumpFull)
+        }
+        
+    }elseif(HumpRestore & (HumpMultiplier<1)){
+        HumpMultiplier += 0.02
+        
+        if(HumpMultiplier>=1){
+            HumpMultiplier = 1
+            Pod:soundPlay(1,0.5,HumpOnOff)
+        }
+    }
+    timer("clk",50)
+}
+if(inputClk() & Unlock){
+    #Mousewheel Hump Control
+    if(NextWeapon & (HumpMultiplier>0)){
+        if(HumpMultiplier==1){
+            Pod:soundPlay(1,0.5,HumpOnOff)
+        }
+        
+        HumpMultiplier += -0.02
+        
+        if(HumpMultiplier<=0){
+            HumpMultiplier = 0
+            Pod:soundPlay(1,0.5,HumpFull)
+        }
+        
+    }elseif(PrevWeapon & (HumpMultiplier<1)){
+        HumpMultiplier += 0.02
+        
+        if(HumpMultiplier>=1){
+            HumpMultiplier = 1
+            Pod:soundPlay(1,0.5,HumpOnOff)
+        }
+    }
+}

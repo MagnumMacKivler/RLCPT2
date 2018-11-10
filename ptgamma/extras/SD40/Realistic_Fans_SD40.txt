@@ -1,0 +1,168 @@
+@name Realistic Fans SD40
+@inputs Loco:wirelink On1 Throttle Reverser DynamicBrakingPower
+@outputs Temperature F1 F2 F3
+@persist FanSpeed FanAccel Theta1 Theta2 Theta3 ThetaD1 ThetaD2 L:entity
+@persist Temperature FuelSaver Tmax Horsepower AmbientLoss IdleHeat Run8Heat Fans FanHeat F1_On F1_Off F2_On F2_Off F3_On F3_Off F1 F2 F3 Speed1 Speed2 Speed3 SpeedD
+@trigger 
+
+if(first()|dupefinished()){
+    
+    FuelSaver = 1
+    Fans = 3
+    Horsepower = 3000
+    AmbientLoss = 0
+    
+    F1_On = 40
+    F1_Off = 20
+    
+    F2_On = 60
+    F2_Off = 30
+    
+    F3_On = 80
+    F3_Off = 40
+    
+    FanSpeed = 360
+    FanAccel = 12
+    
+    
+    
+    
+    IdleHeat = Horsepower/3000
+    Run8Heat = IdleHeat*4
+    
+    Tmax = 100
+    Temperature = 0
+    F1 = F2 = F3 = 0
+    Speed1 = Speed2 = Speed3 = 0
+    
+    L = Loco:entity()
+    
+    #Radiatior Fans
+    Theta1 = randint(1,361)-1
+    holoCreate(1,L:toWorld(vec(157,0,136)),vec(4,4,1),L:angles():rotateAroundAxis(L:up(),-Theta1),vec(255),"plane")
+    holoParent(1,L)
+    holoMaterial(1,"models/proppertextures/fan_generic")
+    
+    Theta2 = randint(1,361)-1
+    holoCreate(2,L:toWorld(vec(214,0,136)),vec(4,4,1),L:angles():rotateAroundAxis(L:up(),-Theta2),vec(255),"plane")
+    holoParent(2,L)
+    holoMaterial(2,"models/proppertextures/fan_generic")
+    
+    Theta3 = randint(1,361)-1
+    holoCreate(3,L:toWorld(vec(271,0,136)),vec(4,4,1),L:angles():rotateAroundAxis(L:up(),-Theta3),vec(255),"plane")
+    holoParent(3,L)
+    holoMaterial(3,"models/proppertextures/fan_generic")
+    
+    #Dynamic Brake Fans
+    
+    ThetaD1 = randint(1,361)-1
+    holoCreate(4,L:toWorld(vec(15,0,136)),vec(4,4,1),L:angles():rotateAroundAxis(L:up(),-ThetaD1),vec(255),"plane")
+    holoParent(4,L)
+    holoMaterial(4,"models/proppertextures/fan_generic")
+    
+    ThetaD2 = randint(1,361)-1
+    holoCreate(5,L:toWorld(vec(72,0,136)),vec(4,4,1),L:angles():rotateAroundAxis(L:up(),-ThetaD2),vec(255),"plane")
+    holoParent(5,L)
+    holoMaterial(5,"models/proppertextures/fan_generic")
+    
+}
+
+
+
+if(clk("clk")){
+    #Temperature Simulation and Fan Switches
+    if(On1){
+        local HeatAdded = IdleHeat + (abs(Reverser) ? 1 : 0.5)*Run8Heat*(Throttle+DynamicBrakingPower)/100
+        local HeatRemoved = 5*(IdleHeat)*(F1 + F2 + F3)/(Fans) + AmbientLoss
+        
+        Temperature += (HeatAdded - HeatRemoved)/10
+        Temperature = clamp(Temperature,0,Tmax)
+        
+        if((Temperature>F1_On) & !F1){
+            F1 = 1
+        }elseif((Temperature<F1_Off) & F1){
+            F1 = 0
+        }
+        
+        if((Temperature>F2_On) & !F2){
+            F2 = 1
+        }elseif((Temperature<F2_Off) & F2){
+            F2 = 0
+        }
+        
+        if((Temperature>F3_On) & !F3){
+            F3 = 1
+        }elseif((Temperature<F3_Off) & F3){
+            F3 = 0
+        }
+    }else{
+        F1 = 0
+        F2 = 0
+        F3 = 0
+    }
+    
+    #Fanimations
+    if(F1 & (Speed1<FanSpeed)){
+        Speed1 += FanAccel
+        if(Speed1>FanSpeed){Speed1=FanSpeed}
+    }elseif(!F1 & (Speed1>0)){
+        Speed1 += -FanAccel
+        if(Speed1<0){Speed1=0}
+    }
+    
+    if(Speed1>0){
+        Theta1 += Speed1/10
+        if(Theta1>360){Theta1 += -360}
+        holoAng(1,L:angles():rotateAroundAxis(L:up(),-Theta1))
+    }
+    
+    if(F2 & (Speed2<FanSpeed)){
+        Speed2 += FanAccel
+        if(Speed2>FanSpeed){Speed2=FanSpeed}
+    }elseif(!F2 & (Speed2>0)){
+        Speed2 += -FanAccel
+        if(Speed2<0){Speed2=0}
+    }
+    
+    if(Speed2>0){
+        Theta2 += Speed2/10
+        if(Theta2>360){Theta2 += -360}
+        holoAng(2,L:angles():rotateAroundAxis(L:up(),-Theta2))
+    }
+    
+    if(F3 & (Speed3<FanSpeed)){
+        Speed3 += FanAccel
+        if(Speed3>FanSpeed){Speed3=FanSpeed}
+    }elseif(!F3 & (Speed3>0)){
+        Speed3 += -FanAccel
+        if(Speed3<0){Speed3=0}
+    }
+    
+    if(Speed3>0){
+        Theta3 += Speed3/10
+        if(Theta3>360){Theta3 += -360}
+        holoAng(3,L:angles():rotateAroundAxis(L:up(),-Theta3))
+    }
+    
+    if((DynamicBrakingPower>0) & (SpeedD<FanSpeed)){
+        SpeedD += FanAccel
+        if(SpeedD>FanSpeed){SpeedD=FanSpeed}
+    }elseif((DynamicBrakingPower==0) & (SpeedD>0)){
+        SpeedD += -FanAccel
+        if(SpeedD<0){SpeedD=0}
+    }
+    
+    if(SpeedD>0){
+        ThetaD1 += SpeedD/10
+        ThetaD2 += SpeedD/10
+        if(ThetaD1>360){ThetaD1 += -360}
+        if(ThetaD2>360){ThetaD2 += -360}
+        holoAng(4,L:angles():rotateAroundAxis(L:up(),-ThetaD1))
+        holoAng(5,L:angles():rotateAroundAxis(L:up(),-ThetaD2))
+    }
+
+}
+if(On1){
+    timer("clk",100)
+}
+

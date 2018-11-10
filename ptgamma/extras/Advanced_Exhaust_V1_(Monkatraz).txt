@@ -1,0 +1,138 @@
+@name Advanced Exhaust V1 (Monkatraz)
+@inputs RLCPTW:wirelink
+@outputs ParticleOn Particle:string
+@persist RLCPTEng:string On Clag GenCurrent EngineSpeed EngineNotch
+@persist MaximumGenCurrent DPM ForcedInductionType SuperTurboChargerNotch
+@persist ICL WCL IDI WDI LoadPosOnly GenCurrentDelta LoadStress LoadEffect SpeedEffect CL DI
+@persist StartCleanliness PStages:array ParticleNum LocalParticle:string
+@persist SmoothTable:table
+@trigger none
+
+if(first() | dupefinished()){
+    
+    # Made by Monkatraz
+    
+    # Cleaniness ranges from 1 - 7
+    # 7 is a very clean engine, so clean it not visibly exhausting at idle (6 is most engines)
+    # 1 is a 'oh god please fix your engine it is dying' and your engine is basically constantly smoking
+    # You should probably have a minimum of like, 4 - 4.5 in cleanliness because below that your engine is gonna die
+    
+    local RLCPTEngine = 1 # Which engine to take the values from? (Engine 1 or Engine 2)
+    
+    MaximumGenCurrent = 3000 # Find this in your PT chip
+    DPM = 0 # Is it dual prime mover?
+    
+    ForcedInductionType = 2 # 1 supercharged, 2 turbocharged, 3 disengaging superturbocharger
+    SuperTurboChargerNotch = 4 # At what notch does the supercharger disengage? (usually 4)
+    
+    StartCleanliness = 4 # Cleanliness of the starting clag
+    
+    IdleCleanliness = 6 # This is how clean the engine is when its not changing RPM or not being stressed by shifting load
+    WorkingCleanliness = 4 # This is how clean the engine is when its being under shifting load or RPM
+    
+    # Particles can also be 'null' which won't play anything
+    
+    PStages = array("clag_4stroke_0","clag_4stroke_1","clag_4stroke_2","clag_4stroke_3","clag_4stroke_4","clag_4stroke_5","clag_4stroke_6")
+    
+    # end config
+    
+    #RLCPTW = RLCPT:wirelink()
+    RLCPTEng = RLCPTEngine:toString()
+    
+    LocalParticle = "null"
+    
+    #cleanliness
+    
+    ICL = IdleCleanliness
+    WCL = WorkingCleanliness
+    CL = ICL
+    
+    # dirtyness
+    
+    IDI = 8 - ICL
+    WDI = 8 - WCL
+    
+    StartCleanliness = round(StartCleanliness)
+    
+    function number smooth(Var,SmoothAmount,ID:string,DefaultVal) { #smoothes out a number using delta dampening
+        
+        if(!SmoothTable:exists(ID)) {
+            SmoothTable[ID,number] = DefaultVal
+        }
+    
+        local Smooth = SmoothTable[ID,number]
+        
+        Smooth += (Var-Smooth) / SmoothAmount
+    
+        SmoothTable[ID,number] = Smooth
+    
+        return Smooth
+    
+    }
+    
+}
+
+interval(200)
+
+On = RLCPTW["On" + RLCPTEng,number]
+EngineSpeed = RLCPTW["EngineSpeed" + RLCPTEng,number]
+EngineNotch = RLCPTW["EngineNotch" + RLCPTEng,number]
+GenCurrent = DPM ? RLCPTW["GenCurrent",number]/2 : RLCPTW["GenCurrent",number]
+Clag = RLCPTW["Clag" + RLCPTEng,number]
+
+if(On){
+    
+    local RevvingUp = Clag * WDI/2
+    local RevvingDown = (!RevvingUp & EngineNotch < EngineSpeed) * IDI
+    
+    
+    if(ForcedInductionType == 1 | (ForcedInductionType == 3 & EngineSpeed <= SuperTurboChargerNotch)){ # are we supercharged?
+    
+        GenCurrentDelta = $GenCurrent
+        
+        LoadStress = smooth(clamp(GenCurrentDelta/(40*(MaximumGenCurrent/2000)),0,10) * WDI,4,"loadstress",1)
+        LoadEffect = smooth((max(GenCurrent,0)/MaximumGenCurrent) * IDI,12,"loadeffect",0)
+    
+    }else{
+    
+        LoadStress = 0
+        LoadEffect = 0
+        
+    }
+    
+    SpeedEffect = EngineNotch > 0 ? smooth(1 + max(((EngineNotch - EngineSpeed)/8)*WDI,0),12,"speedeffect",0) : 0
+    
+    CL = smooth(clamp((ICL - LoadStress) - (RevvingUp - RevvingDown) - LoadEffect - SpeedEffect,1,7),2,"cleanliness",7)
+    DI = 8 - CL
+    
+    ParticleNum = round(DI)
+    
+    LocalParticle = PStages[ParticleNum,string]
+    
+}elseif(!On & Clag){ # starting clag workaround
+
+    LocalParticle = PStages[8-StartCleanliness,string]
+
+}else{
+
+    LocalParticle = "null"
+    
+}
+
+# particle playing
+
+if(LocalParticle != "null"){
+    
+    ParticleOn = 1
+    
+    Particle = LocalParticle
+    
+}else{
+
+    ParticleOn = 0
+    
+}
+    
+    
+    
+    

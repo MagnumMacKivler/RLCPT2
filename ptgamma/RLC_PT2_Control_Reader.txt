@@ -1,19 +1,19 @@
 @name ptgamma/RLC PT2 Control Reader
-@inputs MU_Master Pod:entity Number:string EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat 
-@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode
+@inputs MU_Master Pod:entity Number:string EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
+@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SetHumpMul
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode InitialReduction Lock_26L Bleeding
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
 @persist NQ Notch DNQ DynaNotch Dynamics TransitionQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
 @persist HandBrake EmergencyBrake Sander
-@persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding
+@persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding SetHumpMul
 @trigger 
 if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.51 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.52 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -22,11 +22,10 @@ if(first()){
     #The "Active" and "RemoteControl" inputs are only necessary if the locomotive is equipped with Remote Control capability; "Active" goes to the Pod Controller, "RemoteControl" to a separate toggled button.
     #The "UsingRearSeat" input  is only necessary if the locomotive features Dual Cabs or Dual Control Stands.
     
-    
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Magnum"
+    #include "ptgamma/controls/standard"
     
     AirBrakeMode = 3
     #0 - Simple Self-Lapping (Easy)
@@ -155,6 +154,7 @@ if(first()){
     LocoBrakeNotch = 0
     
     CONSTANT = 1
+    SetHumpMul = 1
     runOnChat(1)
     timer("clk",100)
 }
@@ -248,6 +248,10 @@ if(clk("clk")){
             Notch = adc(0,100,NumThrottleNotches,SetThrottle)
         }
     }
+    
+    #Hump Control
+    
+    SetHumpMul = ->HumpMultiplier ? HumpMultiplier : 1
     
     #Dynamic Brakes
     if((SetThrottle==0) & HasDynamics & (abs(SetReverser)==1)){
@@ -743,6 +747,7 @@ CtlTable["SetEqualRes",number] = SetEqualRes
 CtlTable["SetLocoBrakeNotch",number] = SetLocoBrakeNotch
 CtlTable["SetLocoBrakePressure",number] = SetLocoBrakePressure
 CtlTable["SetBleeding",number] = SetBleeding
+CtlTable["SetHumpMultiplier",number] = SetHumpMul
 
 
 CtlTable["EmergencyBrake",number] = EmergencyBrake
@@ -883,6 +888,15 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                     }else{
                         local Set = clamp(What:toNumber(),0,90)
                         switch(AirBrakeMode){
+                            case 4, #6SL
+                                if(Set==0){
+                                    SetEqualRes = 90
+                                    SetBrakeNotch = 1
+                                }else{
+                                    SetEqualRes = 90 - Set
+                                    SetBrakeNotch = 3
+                                }
+                                break
                             case 3, #24RL
                                 if(Set==0){
                                     SetEqualRes = 90
@@ -923,7 +937,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
             case ".lbset",
                 local Set = clamp(Sentence[2,string]:toNumber(),0,90)
-                local ML = (AirBrakeMode%2)
+                local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)
                 SetLocoBrakePressure = Set
                 if(ML){SetLocoBrakeNotch=1}
                 Speaker:printProper("[RLCPT] Setting " + (SetLocoBrakePressure) + "lb application on locomotive(s).")

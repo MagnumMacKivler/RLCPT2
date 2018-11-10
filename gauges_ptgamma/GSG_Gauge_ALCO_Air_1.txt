@@ -22,13 +22,13 @@ if(first()|duped()){
     holoSkin(0,2)
     holoParent(0,E)
     
-    holoCreate(1,E:pos()+(0.0625)*E:forward(),Scale*vec(3/64,3/64,1/64),E:angles():rotateAroundAxis(E:right(),90),vec(36),"cylinder")
+    holoCreate(1,E:pos()+(Scale*0.0625)*E:forward(),Scale*vec(3/64,3/64,1/64),E:angles():rotateAroundAxis(E:right(),90),vec(36),"cylinder")
     holoParent(1,E)
     
     holoCreate(2,E:pos(),Scale*vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/needle_brake_red.mdl")
     holoParent(2,E)
     
-    holoCreate(3,E:pos()+0.0625*E:forward(),Scale*vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/needle_brake_white.mdl")
+    holoCreate(3,E:pos()+Scale*0.0625*E:forward(),Scale*vec(1),E:angles(),vec(255),"models/gsgtrainprops/parts/cab/needle_brake_white.mdl")
     holoParent(3,E)
     
     needleValue(2,0)
