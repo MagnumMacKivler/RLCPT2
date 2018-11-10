@@ -1,5 +1,5 @@
 @name ptgamma/cstands_bg/cstand_rs_early_kc92
-@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat
+@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier EC_Clamp
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SelectorUp SelectorDown IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode InitialReduction Lock_26L Bleeding
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
@@ -8,14 +8,14 @@
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
 @persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding
-@persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector
+@persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
 @persist CS:entity LeverBased
 @trigger 
 if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.51 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.52 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -28,9 +28,9 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/standard_leverbased"
+    #include "ptgamma/controls/standard"
     
-    AirBrakeMode = 3
+    AirBrakeMode = 4
     #0 - Simple Self-Lapping (Easy)
     #1 - Simple Manual Lapping (Medium)
     #2 - 26L Self-Lapping (Medium-Hard)
@@ -45,12 +45,17 @@ if(first()){
     
     HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
     
-    NotchedDynamics = 1 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
+    NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
     HornType = 1 #0 for Lever, 1 for Cord
+    
+    CordExtendLength = 4 #How far from anchor point is the horn valve at the top?
+    DongleHeight = 0.125 #Fraction of total cord length to place Dongle at
+    PullLength = 1 #How many units to pull the cord towards you?
+    DownRatio = 0.5 #Pull the dongle (PullLength x DownRatio) units down as well
     
     #Sounds (Don't touch unless you know what you're doing!)
     
@@ -173,9 +178,9 @@ if(first()){
             local Hpos1 = CS:attachmentPos("horncord1")
             local Hang1 = CS:attachmentAng("horncord1")
             rangerFilter(CS)
-            local Hpos2 = rangerOffset(128,Hpos1 + 8*Hang1:forward(), vec(0,0,1)):pos() 
+            local Hpos2 = rangerOffset(128,Hpos1 + CordExtendLength*Hang1:forward(), Hang1:up()):pos() 
             CordAnchor1 = CS:toLocal(Hpos2)
-            local Hpos3 = linpos(Hpos1,Hpos2,0.25) + 4*Hang1:forward()
+            local Hpos3 = linpos(Hpos1,Hpos2,DongleHeight) + (CordExtendLength/4)*Hang1:forward()
             #local Haxis1 = (Hpos2-Hpos1)
             local Length1 = Hpos1:distance(Hpos3)
             local Ang1 = -heading(Hpos1,ang(),Hpos3)
@@ -327,6 +332,10 @@ if(clk("clk")){
             Notch = adc(0,100,NumThrottleNotches,SetThrottle)
         }
     }
+    
+    #Hump Control
+    
+    SetHumpMul = ->HumpMultiplier ? HumpMultiplier : 1
     
     #Dynamic Brakes
     if((SetThrottle==0) & HasDynamics & (abs(SetReverser)==1)){
@@ -840,7 +849,8 @@ if(clk("clk")){
         #CordDir1 = CS:toLocal(Hang1:forward())
         #rangerFilter(CS)
         local Hpos2 = CS:toWorld(CordAnchor1)
-        local Hpos3 = linpos(Hpos1,Hpos2,0.25) + Hang1:forward()*(4 + 1*Horn1) + Horn1*vec(0,0,-2)
+        local PFactor = Quill1 ? 0.5*Horn1 : Horn1
+        local Hpos3 = linpos(Hpos1,Hpos2,DongleHeight) + Hang1:forward()*(CordExtendLength/4 + PullLength*PFactor) - Hang1:up()*PullLength*PFactor*DownRatio
         #local Haxis1 = (Hpos2-Hpos1)
         local Length1 = Hpos1:distance(Hpos3)
         local Ang1 = -heading(Hpos1,ang(),Hpos3)
@@ -874,7 +884,7 @@ if(clk("clk")){
 
 
 CtlTable["SetReverser",number] = SetReverser
-CtlTable["SetThrottle",number] = SetThrottle
+CtlTable["SetThrottle",number] = clamp(SetThrottle,0,EC_Clamp)
 CtlTable["SetDynamics",number] = SetDynamics
 CtlTable["SetSelector",number] = SetSelector
 CtlTable["SetBrakeNotch",number] = SetBrakeNotch
@@ -882,7 +892,7 @@ CtlTable["SetEqualRes",number] = SetEqualRes
 CtlTable["SetLocoBrakeNotch",number] = SetLocoBrakeNotch
 CtlTable["SetLocoBrakePressure",number] = SetLocoBrakePressure
 CtlTable["SetBleeding",number] = SetBleeding
-
+CtlTable["SetHumpMultiplier",number] = SetHumpMul
 
 CtlTable["EmergencyBrake",number] = EmergencyBrake
 CtlTable["HandBrake",number] = HandBrake
@@ -1022,6 +1032,15 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                     }else{
                         local Set = clamp(What:toNumber(),0,90)
                         switch(AirBrakeMode){
+                            case 4, #6SL
+                                if(Set==0){
+                                    SetEqualRes = 90
+                                    SetBrakeNotch = 1
+                                }else{
+                                    SetEqualRes = 90 - Set
+                                    SetBrakeNotch = 3
+                                }
+                                break
                             case 3, #24RL
                                 if(Set==0){
                                     SetEqualRes = 90
@@ -1062,7 +1081,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
             case ".lbset",
                 local Set = clamp(Sentence[2,string]:toNumber(),0,90)
-                local ML = (AirBrakeMode%2)
+                local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)
                 SetLocoBrakePressure = Set
                 if(ML){SetLocoBrakeNotch=1}
                 Speaker:printProper("[RLCPT] Setting " + (SetLocoBrakePressure) + "lb application on locomotive(s).")

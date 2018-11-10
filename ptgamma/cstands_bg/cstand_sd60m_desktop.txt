@@ -1,5 +1,5 @@
 @name ptgamma/cstands_bg/cstand_sd60m_desktop
-@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 ForceSand EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat
+@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 ForceSand EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode InitialReduction Lock_26L Bleeding
 @persist [Lever_ThrottleUp Lever_ThrottleDown Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft ButtonMomOn ButtonMomOff ButtonTogOn ButtonTogOff HornAirOn HornAirOff]:string
@@ -14,7 +14,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.51 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.52 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -44,7 +44,7 @@ if(first()){
     
     HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
     
-    NotchedDynamics = 1 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
+    NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
@@ -306,6 +306,10 @@ if(clk("clk")){
             Notch = adc(0,100,NumThrottleNotches,SetThrottle)
         }
     }
+    
+    #Hump Control
+    
+    SetHumpMul = ->HumpMultiplier ? HumpMultiplier : 1
     
     #Dynamic Brakes
     if((SetThrottle==0) & HasDynamics & (abs(SetReverser)==1)){
@@ -869,7 +873,7 @@ CtlTable["SetEqualRes",number] = SetEqualRes
 CtlTable["SetLocoBrakeNotch",number] = SetLocoBrakeNotch
 CtlTable["SetLocoBrakePressure",number] = SetLocoBrakePressure
 CtlTable["SetBleeding",number] = SetBleeding
-
+CtlTable["SetHumpMultiplier",number] = SetHumpMul
 
 CtlTable["EmergencyBrake",number] = EmergencyBrake
 CtlTable["HandBrake",number] = HandBrake
@@ -1009,6 +1013,15 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                     }else{
                         local Set = clamp(What:toNumber(),0,90)
                         switch(AirBrakeMode){
+                            case 4, #6SL
+                                if(Set==0){
+                                    SetEqualRes = 90
+                                    SetBrakeNotch = 1
+                                }else{
+                                    SetEqualRes = 90 - Set
+                                    SetBrakeNotch = 3
+                                }
+                                break
                             case 3, #24RL
                                 if(Set==0){
                                     SetEqualRes = 90
@@ -1049,7 +1062,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
             case ".lbset",
                 local Set = clamp(Sentence[2,string]:toNumber(),0,90)
-                local ML = (AirBrakeMode%2)
+                local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)
                 SetLocoBrakePressure = Set
                 if(ML){SetLocoBrakeNotch=1}
                 Speaker:printProper("[RLCPT] Setting " + (SetLocoBrakePressure) + "lb application on locomotive(s).")

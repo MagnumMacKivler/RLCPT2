@@ -17,6 +17,9 @@
 
 
 if(first()|dupefinished()){
+
+	#For use with Legacy control stands - you MUST use a control reader in conjunction with this!
+
     DisableHorn = 0
     AirBrakeType = 3 #3 for 24RL, 2 for 26L, 1 for Simple Manual Lapping, 0 for Simple Self Lapping
     Color = vec(255)
