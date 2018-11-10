@@ -1,5 +1,5 @@
 
-# RLC Platinum 2.0 Gamma (Version 2.0.51)
+# RLC Platinum 2.0 Gamma (Version 2.0.52)
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
@@ -7,8 +7,10 @@ RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulat
 
 1. Click the "Clone or Download" button on the righthand side of the screen and select "Download Zip."
 2. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically.
-3. Navigate into the "RLCPT2-master" Folder. You should see three items: a folder named "ptgamma", a folder named "gauges_ptgamma", and readme.md.
-4. Extract the two folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`
+3. Navigate INTO the "RLCPT2-master" Folder. You should see three items: a folder named "ptgamma", a folder named "gauges_ptgamma", and readme.md.
+4. Extract the two folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
+The file path should then look like `expression2\ptgamma\...`.
+5. IF YOU SEE THE FOLDER "RLCPT2-master" INSIDE THE EXPRESSION2 FOLDER, __YOU INSTALLED IT WRONG__ AND THE E2S WILL NOT WORK!
 
 You will also need GrovestreetGman's Sound packs for RLC PT2 to work correctly. There are three:
 
