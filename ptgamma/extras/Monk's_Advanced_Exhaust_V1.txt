@@ -1,5 +1,5 @@
-@name Advanced Exhaust V1 (Monkatraz)
-@inputs RLCPTW:wirelink
+@name Monk's Advanced Exhaust V1
+@inputs RLCPT:entity
 @outputs ParticleOn Particle:string
 @persist RLCPTEng:string On Clag GenCurrent EngineSpeed EngineNotch
 @persist MaximumGenCurrent DPM ForcedInductionType SuperTurboChargerNotch
@@ -27,8 +27,8 @@ if(first() | dupefinished()){
     
     StartCleanliness = 4 # Cleanliness of the starting clag
     
-    IdleCleanliness = 6 # This is how clean the engine is when its not changing RPM or not being stressed by shifting load
-    WorkingCleanliness = 4 # This is how clean the engine is when its being under shifting load or RPM
+    IdleCleanliness = 7 # This is how clean the engine is when its not changing RPM or not being stressed by shifting load
+    WorkingCleanliness = 5 # This is how clean the engine is when its being under shifting load or RPM
     
     # Particles can also be 'null' which won't play anything
     
@@ -73,6 +73,8 @@ if(first() | dupefinished()){
 }
 
 interval(200)
+
+RLCPTW = RLCPT:wirelink()
 
 On = RLCPTW["On" + RLCPTEng,number]
 EngineSpeed = RLCPTW["EngineSpeed" + RLCPTEng,number]
