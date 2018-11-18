@@ -16,7 +16,7 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.52 OR OTHER COMPATIBLE VERSIONS
+    #FOR USE WITH RLC PT 2.0.53 OR OTHER COMPATIBLE VERSIONS
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.

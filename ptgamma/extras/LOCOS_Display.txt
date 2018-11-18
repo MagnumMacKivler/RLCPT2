@@ -13,7 +13,7 @@ if(first()|dupefinished()){
     
     Version = "1.4"
     
-    HeaderText = "NAMERAIL - No."
+    HeaderText = "APPALACHIA NORTHERN - No."
     
     AC = 1 #1 for AC Traction, 0 for DC Traction
     MaxTE = 150000 #Maximum Tractive Effort (Only used for AC)
@@ -662,7 +662,7 @@ if(first()|dupefinished()){
                 MPH = RLCPTW["MPH",number]
                 Throttle = RLCPTW["Throttle",number]
                 Load = RLCPTW["Load1",number]
-                TE = RLCPTW["TE",number]
+                TE = RLCPTW["TE_LBF",number]
                 Dynamics = RLCPTW["Dynamics",number]
                 DynamicBrakingPower = RLCPTW["DynamicBrakingPower",number]
                 Reverser = RLCPTW["Reverser",number]

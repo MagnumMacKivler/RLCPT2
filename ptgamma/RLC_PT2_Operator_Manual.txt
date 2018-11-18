@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.52
+                                                                    For RLC Pt 2.0.52-53
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -44,7 +44,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         G- Slug Compatibility
         H- Remote Control Compatibility
         I- Buttonless Starting
-        J- Extra Inputs
+        J- Dual Control Stand Setup
+        K- Extra Inputs
     III- Locomotive Operation
         A- Startup & Shutdown
         B- Reverser
@@ -202,8 +203,15 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             -The Primer Switch
         However you will still need all the other buttons for Isolation, Engine Run, Generator Field, etc.
         If you have the "Latched Primer" or "Automatic Start" on your locomotive, you MUST wire RLC's "Prime1" (And "Prime2") back to RLC's "PrimerSet1" and "PrimerSet2" outputs.
+    
+    J: Dual Control Stand Setup
+    
+        The Dual Control Stand Mux (Multiplexer) E2 is a convenient way of sourcing two separate control setups for dual-control stand or dual-cab locomotives.
+        Simply set up two completely independent control stands with separate Engine Run, Generator Field, and Brake Cut-In switches.
+        The Mux E2 has two sets of inputs and one set of outputs. Wire all the RLC PT2 inputs you'd normally connect to the control stand to the Mux instead. Don't forget to wire UsingRearSeat!
+        Then, wire The Mux's inputs to the corresponding items on the Front and Rear control stands, and you're done!
         
-    J: Extra Inputs
+    K: Extra Inputs
     
         There are a few Optional inputs left over that weren't covered above. What do they do?
             "UsingRearSeat" (Control Reader/Stand) flips the Reverser controls. Useful for Dual-Cab and Dual-Controlstand Locomotives.

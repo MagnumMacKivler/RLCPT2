@@ -1,13 +1,13 @@
-@name ptgamma/engines/ALCO_V12_244D
+@name ptgamma/engines/ALCO_V12_244D_V2
 #ENGINE CONFIG
 #For use in early Alco road locomotives (RS2-RS3, RS10, RSC24, RSD4-RSD5, and FA/FB).
 EngineType = "Alco 244D (V12)" #What is the name of the Prime Mover?
 
-Startup_Hi = "gsgtrainsounds/alco244/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
-Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Hi = "gsgtrainsounds/alco244dv12/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put theq engine in Low Idle.
 Startup_Mode = 1 #0 for Low, 1 for High
 
-Shutdown_Hi = "gsgtrainsounds/alco244/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Hi = "gsgtrainsounds/alco244dv12/shutdown.wav" #Shutdown Sound from High Idle.
 Shutdown_Lo = "" #Shutdown Sound from Low Idle.
 Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
 
@@ -22,18 +22,18 @@ Idle_Low = "" #Sound for Low Idle, if used.
 NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
 
 Notches = array(                                  #Sounds used for each Notch
-    "gsgtrainsounds/alco244/idle_notch1.wav",
-    "gsgtrainsounds/alco244/idle_notch1.wav",
-    "gsgtrainsounds/alco244/notch2.wav",
-    "gsgtrainsounds/alco244/notch3.wav",
-    "gsgtrainsounds/alco244/notch4.wav",
-    "gsgtrainsounds/alco244/notch5.wav",
-    "gsgtrainsounds/alco244/notch6.wav",
-    "gsgtrainsounds/alco244/notch7.wav",
-    "gsgtrainsounds/alco244/notch8.wav"
+    "gsgtrainsounds/alco244dv12/idle.wav",
+    "gsgtrainsounds/alco244dv12/notch1.wav",
+    "gsgtrainsounds/alco244dv12/notch2.wav",
+    "gsgtrainsounds/alco244dv12/notch3.wav",
+    "gsgtrainsounds/alco244dv12/notch4.wav",
+    "gsgtrainsounds/alco244dv12/notch5.wav",
+    "gsgtrainsounds/alco244dv12/notch6.wav",
+    "gsgtrainsounds/alco244dv12/notch7.wav",
+    "gsgtrainsounds/alco244dv12/notch8.wav"
 )
 
-TransitionPath = "gsgtrainsounds/alco244/transitions/"
+TransitionPath = "gsgtrainsounds/alco244dv12/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
 EngineBehavior = array(3,  0,  0,  0,  0,  0,  0,  0)
 #0 - A/B Notching
@@ -41,12 +41,12 @@ EngineBehavior = array(3,  0,  0,  0,  0,  0,  0,  0)
 #2 - Instant Change
 #3 - No Change
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
-UpDelays = array(0,   950,400,400,500,550,600,500)
+UpDelays = array(0,   950,400,400,500,550,600,500) 
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
 DownDelays = array(650,800,750,850,600,800,750)
 
-StartupClagDelay = 8.5 #Time required to hold starter for engine to turn on successfully
-StartupClagDuration = 3 #Duration for starter smoke
+StartupClagDelay = 2.5 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 1.5 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 

@@ -2,14 +2,14 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array
+@outputs AvCurrent GenCurrent Currents:array RevDirection1 ABlendQ1
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches 
 #Engine Sounds
 @persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleCondition1 LowIdleCondition2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
-@persist NQ TQ1 TQ2 ABQ1 ABQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force Load_Setpoint Load
+@persist RevDirection1 RevDirection2 TimeStamp1 TimeStamp2 Dur1 Dur2 NQ TQ1 TQ2 ABQ1 ABQ2 ABlendQ1 ABlendQ2 AnyBlendQ1 AnyBlendQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force Load_Setpoint Load
 #New Traction Stuff
 @persist TransitionGroups:array TransitionShunts:array GeneratorTransition NominalVoltage MaxGenCurrent TransitionNotches TransitionThresholds:array GenThreshold
 @persist TM_Temp TM_Warning TM_Health TM_Damage TM_ZapQ TM_Maxtime TM_Mintime
@@ -37,16 +37,18 @@
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 53
+#To-Do for 54
 #Graduated Release + Brake Control Redo
 #Primer Durations
 #Actual Blended Braking God Please Kill Me
+#Re-Add Single-Speed DB cooling and DB limiting
 
 #Finished:
 
-#Shutdown Button
+#Engine Sound Blending [x]
+#Shutdown Button [x]
 #Hump Control HHHHHHHH [x]
-#Add new horn cord code into the other stands (already in KC92)
+#Add new horn cord code into the other stands (already in KC92) [x]
 #Fix AB/LB Set on control stands [x]
 #Fix Gen Field not MU-ing properly [x]
 #No. 6 Air Brakes [x]
@@ -68,7 +70,7 @@
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.52"
+    local Version = "Gamma 2.0.53"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -80,7 +82,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_sd40"
+    #include "ptgamma/locos/fmr/alco_c420"
     
     #That's pretty much all the config!
     
@@ -405,11 +407,29 @@ if(first()|dupefinished()){
     
     function void transitionUp1(From,To){
         local BType = EngineBehavior[From+1,number]
+        local TimeLeftMS = 0
+        ABlendQ1 = 0
+        if((RevDirection1==-1) & !AnyBlendQ1){ #Blend Down to Up
+            AnyBlendQ1 = 1
+            local ElapsedMS = round((curtime() - TimeStamp1)*100)*10
+            TimeLeftMS = Dur1 - ElapsedMS
+            soundVolume(0,0,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+            ABQ1 = 1
+        }
         switch(BType){
             case 0,
                 if(ABQ1){
                     local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+"b.wav"
-                    H1:soundPlay(0,0,Snd)
+                    Dur1 = sdr(Snd)
+                    TimeStamp1 = curtime()
+                    if(TimeLeftMS>0){
+                        H1:soundPlay(10,0,Snd)
+                        soundVolume(10,0)
+                        soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                    }else{
+                        soundStop(10)
+                        H1:soundPlay(0,0,Snd)
+                    }
                     if((To>(From+1)) & (EngineBehavior[From+2,number]==0)){
                         timer("TQU1",UpDelays[From+1,number])
                     }else{
@@ -422,18 +442,34 @@ if(first()|dupefinished()){
                         soundPitch(8,CompressorPitch,sdr(Snd)/1000)
                         #print(CompressorPitch)
                     }
+                    RevDirection1 = 1
+                    #print("BBB")
                 }else{
                     ABQ1 = 1
                     local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+"a.wav"
+                    Dur1 = sdr(Snd)
+                    TimeStamp1 = curtime()
                     H1:soundPlay(0,0,Snd)
                     timer("TQU1",sdr(Snd))
+                    #print("AAA" + sdr(Snd))
+                    RevDirection1 = 0
+                    ABlendQ1 = 1
                 }
                 Clag1 = 1
                 LRQ1 = 1
                 break
             case 1,
                 local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+".wav"
-                H1:soundPlay(0,0,Snd)
+                Dur1 = sdr(Snd)
+                TimeStamp1 = curtime()
+                if(TimeLeftMS>0){
+                    H1:soundPlay(10,0,Snd)
+                    soundVolume(10,0)
+                    soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                }else{
+                    soundStop(10)
+                    H1:soundPlay(0,0,Snd)
+                }
                 timer("TQU1",sdr(Snd))
                 EngineSpeed1++
                 LRQ1 = 1
@@ -442,6 +478,7 @@ if(first()|dupefinished()){
                     soundPitch(8,CompressorPitch,sdr(Snd)/1000)
                 }
                 Clag1 = 1
+                RevDirection1 = 1
                 break
             case 2,
                 TQ1 = 0
@@ -454,6 +491,7 @@ if(first()|dupefinished()){
                     local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
                     soundPitch(8,CompressorPitch,1)
                 }
+                RevDirection1 = 0
                 break
             case 3,
                 EngineSpeed1++
@@ -463,18 +501,37 @@ if(first()|dupefinished()){
                     H1:soundPlay(0,0,Notches[EngineSpeed1+1,string])
                     soundPitch(0,100 + !MU_Master*2*MU_Connected,1)
                 }
+                RevDirection1 = 0
                 break
         }
+        stoptimer("TQD1")
         return void
     }
     function void transitionUp2(From,To){
         local BType = EngineBehavior[From+1,number]
+        local TimeLeftMS = 0
+        ABlendQ2 = 0
+        if((RevDirection2==-1) & !AnyBlendQ2){ #Blend Down to Up
+            AnyBlendQ2 = 1
+            local ElapsedMS = round((curtime() - TimeStamp2)*100)*10
+            TimeLeftMS = Dur2 - ElapsedMS
+            soundVolume(1,0,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+            ABQ2 = 1
+        }
         switch(BType){
             case 0,
                 if(ABQ2){
                     local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+"b.wav"
-                    H2:soundPlay(1,0,Snd)
-                    soundPitch(1,98)
+                    Dur2 = sdr(Snd)
+                    TimeStamp2 = curtime()
+                    if(TimeLeftMS>0){
+                        H2:soundPlay(11,0,Snd)
+                        soundVolume(11,0)
+                        soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                    }else{
+                        soundStop(11)
+                        H2:soundPlay(1,0,Snd)
+                    }
                     if((To>(From+1)) & (EngineBehavior[From+2,number]==0)){
                         timer("TQU2",UpDelays[From+1,number])
                     }else{
@@ -483,43 +540,58 @@ if(first()|dupefinished()){
                     }
                     EngineSpeed2++
                     if(CompQ2 & !CompressorType){
-                        local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                        local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                         soundPitch(9,CompressorPitch,sdr(Snd)/1000)
+                        #print(CompressorPitch)
                     }
+                    RevDirection2 = 1
                 }else{
                     ABQ2 = 1
                     local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+"a.wav"
-                    H1:soundPlay(1,0,Snd)
-                    soundPitch(1,98)
+                    Dur2 = sdr(Snd)
+                    TimeStamp2 = curtime()
+                    H2:soundPlay(1,0,Snd)
                     timer("TQU2",sdr(Snd))
+                    RevDirection2 = 0
+                    ABlendQ2 = 1
                 }
-                LRQ2 = 1
                 Clag2 = 1
+                LRQ2 = 1
                 break
             case 1,
                 local Snd = TransitionPath+"up/"+From:toString()+"-"+(From+1):toString()+".wav"
-                H2:soundPlay(1,0,Snd)
-                soundPitch(1,98)
+                Dur2 = sdr(Snd)
+                TimeStamp2 = curtime()
+                if(TimeLeftMS>0){
+                    H2:soundPlay(11,0,Snd)
+                    soundVolume(11,0)
+                    soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                }else{
+                    soundStop(11)
+                    H2:soundPlay(1,0,Snd)
+                }
                 timer("TQU2",sdr(Snd))
                 EngineSpeed2++
                 LRQ2 = 1
                 if(CompQ2 & !CompressorType){
-                    local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                     soundPitch(9,CompressorPitch,sdr(Snd)/1000)
                 }
                 Clag2 = 1
+                RevDirection2 = 1
                 break
             case 2,
                 TQ2 = 0
                 if(!LRQ2){
                     H2:soundPlay(1,0,Notches[From+2,string])
-                    soundPitch(1,98,1)
+                    soundPitch(1,98)
                 }
                 EngineSpeed2++
                 if(CompQ2 & !CompressorType){
-                    local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                     soundPitch(9,CompressorPitch,1)
                 }
+                RevDirection2 = 0
                 break
             case 3,
                 EngineSpeed2++
@@ -529,18 +601,41 @@ if(first()|dupefinished()){
                     H2:soundPlay(1,0,Notches[EngineSpeed2+1,string])
                     soundPitch(1,98,1)
                 }
+                RevDirection2 = 0
                 break
         }
+        stoptimer("TQD2")
         return void
     }
     function void transitionDown1(From,To){
         Clag1 = 0
         local BType = EngineBehavior[From,number]
+        local TimeLeftMS = 0
+        ABlendQ1 = 0
+        if((RevDirection1==1) & !AnyBlendQ1){ #Blend Up to Down
+            AnyBlendQ1 = 1
+            local ElapsedMS = round((curtime() - TimeStamp1)*100)*10
+            TimeLeftMS = Dur1 - ElapsedMS
+            soundVolume(0,0,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+            ABQ1 = 1
+            #print(BType,ABQ1,TimeLeftMS)
+        }
         switch(BType){
             case 0,
                 if(ABQ1){
                     local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+"b.wav"
-                    H1:soundPlay(0,0,Snd)
+                    Dur1 = sdr(Snd)
+                    TimeStamp1 = curtime()
+                    if(TimeLeftMS>0){
+                        H1:soundPlay(10,0,Snd)
+                        soundVolume(10,0)
+                        soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                        #print("YEAH")
+                    }else{
+                        soundStop(10)
+                        H1:soundPlay(0,0,Snd)
+                        #print("NOPE")
+                    }
                     if((To<(From-1)) & (EngineBehavior[From-1,number]==0)){
                         timer("TQD1",DownDelays[8-From+1,number])
                     }else{
@@ -552,17 +647,31 @@ if(first()|dupefinished()){
                         local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
                         soundPitch(8,CompressorPitch,sdr(Snd)/1000)
                     }
+                    RevDirection1 = -1
                 }else{
                     ABQ1 = 1
                     local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+"a.wav"
+                    Dur1 = sdr(Snd)
+                    TimeStamp1 = curtime()
                     H1:soundPlay(0,0,Snd)
                     timer("TQD1",sdr(Snd))
+                    RevDirection1 = 0
+                    ABlendQ1 = -1
                 }
                 LRQ1 = 1
                 break
             case 1,
                 local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+".wav"
-                H1:soundPlay(0,0,Snd)
+                Dur1 = sdr(Snd)
+                TimeStamp1 = curtime()
+                if(TimeLeftMS>0){
+                    H1:soundPlay(10,0,Snd)
+                    soundVolume(10,0)
+                    soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                }else{
+                    soundStop(10)
+                    H1:soundPlay(0,0,Snd)
+                }
                 timer("TQD1",sdr(Snd))
                 EngineSpeed1--
                 LRQ1 = 1
@@ -570,6 +679,7 @@ if(first()|dupefinished()){
                     local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
                     soundPitch(8,CompressorPitch,sdr(Snd)/1000)
                 }
+                RevDirection1 = -1
                 break
             case 2,
                 TQ1 = 0
@@ -582,6 +692,7 @@ if(first()|dupefinished()){
                     local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
                     soundPitch(8,CompressorPitch,1)
                 }
+                RevDirection1 = 0
                 break
             case 3,
                 EngineSpeed1--
@@ -591,19 +702,42 @@ if(first()|dupefinished()){
                     H1:soundPlay(0,0,Notches[EngineSpeed1+1,string])
                     soundPitch(0,100 + !MU_Master*2*MU_Connected,1)
                 }
+                RevDirection1 = 0
                 break
         }
+        #print("Yadunfuktupnow!")
+        stoptimer("TQU1")
         return void
     }
     function void transitionDown2(From,To){
         Clag2 = 0
         local BType = EngineBehavior[From,number]
+        local TimeLeftMS = 0
+        ABlendQ2 = 0
+        if((RevDirection2==1) & !AnyBlendQ2){ #Blend Up to Down
+            AnyBlendQ2 = 1
+            local ElapsedMS = round((curtime() - TimeStamp2)*100)*10
+            TimeLeftMS = Dur2 - ElapsedMS
+            soundVolume(1,0,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+            ABQ2 = 1
+            #print(BType,ABQ1,TimeLeftMS)
+        }
         switch(BType){
             case 0,
                 if(ABQ2){
                     local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+"b.wav"
-                    H2:soundPlay(1,0,Snd)
-                    soundPitch(1,98)
+                    Dur2 = sdr(Snd)
+                    TimeStamp2 = curtime()
+                    if(TimeLeftMS>0){
+                        H2:soundPlay(11,0,Snd)
+                        soundVolume(11,0)
+                        soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                        #print("YEAH")
+                    }else{
+                        soundStop(11)
+                        H2:soundPlay(1,0,Snd)
+                        #print("NOPE")
+                    }
                     if((To<(From-1)) & (EngineBehavior[From-1,number]==0)){
                         timer("TQD2",DownDelays[8-From+1,number])
                     }else{
@@ -612,29 +746,42 @@ if(first()|dupefinished()){
                     }
                     EngineSpeed2--
                     if(CompQ2 & !CompressorType){
-                        local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                        local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                         soundPitch(9,CompressorPitch,sdr(Snd)/1000)
                     }
+                    RevDirection2 = -1
                 }else{
                     ABQ2 = 1
                     local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+"a.wav"
+                    Dur2 = sdr(Snd)
+                    TimeStamp2 = curtime()
                     H2:soundPlay(1,0,Snd)
-                    soundPitch(1,98)
                     timer("TQD2",sdr(Snd))
+                    RevDirection2 = 0
+                    ABlendQ2 = -1
                 }
                 LRQ2 = 1
                 break
             case 1,
                 local Snd = TransitionPath+"down/"+From:toString()+"-"+(From-1):toString()+".wav"
-                H2:soundPlay(1,0,Snd)
-                soundPitch(1,98)
+                Dur2 = sdr(Snd)
+                TimeStamp2 = curtime()
+                if(TimeLeftMS>0){
+                    H2:soundPlay(11,0,Snd)
+                    soundVolume(11,0)
+                    soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                }else{
+                    soundStop(11)
+                    H2:soundPlay(1,0,Snd)
+                }
                 timer("TQD2",sdr(Snd))
                 EngineSpeed2--
                 LRQ2 = 1
                 if(CompQ2 & !CompressorType){
-                    local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                     soundPitch(9,CompressorPitch,sdr(Snd)/1000)
                 }
+                RevDirection2 = -1
                 break
             case 2,
                 TQ2 = 0
@@ -644,9 +791,10 @@ if(first()|dupefinished()){
                 }
                 EngineSpeed2--
                 if(CompQ2 & !CompressorType){
-                    local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                     soundPitch(9,CompressorPitch,1)
                 }
+                RevDirection2 = 0
                 break
             case 3,
                 EngineSpeed2--
@@ -656,8 +804,11 @@ if(first()|dupefinished()){
                     H2:soundPlay(1,0,Notches[EngineSpeed2+1,string])
                     soundPitch(1,98,1)
                 }
+                RevDirection2 = 0
                 break
         }
+        #print("Wat")
+        stoptimer("TQU2")
         return void
     }
     
@@ -735,6 +886,28 @@ if(first()|dupefinished()){
         }
 
         
+        return void
+    }
+    
+    function void interrupt(PM){
+        if(PM==1){
+            stoptimer("startprime1")
+            stoptimer("endprime1")
+            stoptimer("startstart1")
+            stoptimer("endstart1")
+            ForceStart1 = 0
+            ForcePrime1 = 0
+            PrimerSet1 = 0
+            #print("Interrupt!")
+        }elseif(PM==2){
+            stoptimer("startprime2")
+            stoptimer("endprime2")
+            stoptimer("startstart2")
+            stoptimer("endstart2")
+            ForceStart2 = 0
+            ForcePrime2 = 0
+            PrimerSet2 = 0
+        }
         return void
     }
     
@@ -821,8 +994,8 @@ if(HasPM){ #Actual Engine Starting
     }
     
     #Start/Shutdown 1
-    if(Start1|ForceStart1){
-        if(~Start1 & (StarterMode==2) & !Shutdown1 & !Isolation1 & !On1 & !Starting1){
+    if((Start1|ForceStart1) & !Shutdown1){
+        if(~Start1 & (StarterMode==2) & !Isolation1 & !On1 & !Starting1){
             timer("startprime1",100)
         }elseif(!On1 & !Starting1 & Primed1 & ((~Start1 & (StarterMode<2))|ForceStart1) & !Isolation1 & ((StarterMode>0) ? Priming1 : 1)){
             Starting1 = 1
@@ -836,12 +1009,13 @@ if(HasPM){ #Actual Engine Starting
         }elseif(On1 & ~Start1 & !Isolation1){
             #Deleted
         }
-    }elseif(!(Start1|ForceStart1) & Starting1 & !Clag1 & !On1 & (StarterMode<2)){
+    }elseif((!(Start1|ForceStart1) | Shutdown1) & Starting1 & !Clag1 & !On1 & (StarterMode<2)){
         Starting1 = 0
         soundPitch(0,0,3)
         soundStop(0,3)
         stoptimer("StartCheck1")
         stoptimer("FinishStart1")
+        #interrupt(1)
     }elseif((Shutdown1 | !Primed1) & On1){
         On1 = 0
         if(PrimerSet1){PrimerSet1 = 0}
@@ -870,7 +1044,11 @@ if(HasPM){ #Actual Engine Starting
         }
         H1:soundPlay(0,0,Snd)
         stoptimer("IdleDown1")
+        #interrupt(1)
         timer("Cool1",sdr(Snd))
+    }
+    if((ForcePrime1|ForceStart1) & Shutdown1){
+        interrupt(1)
     }
     if(clk("StartCheck1") & (Start1|ForceStart1)){
         Clag1 = 1
@@ -936,8 +1114,8 @@ if(HasPM){ #Actual Engine Starting
         }
         
         #Start/Shutdown 2
-        if((Start2|ForceStart2)){
-            if(~Start2 & (StarterMode==2) & !Shutdown2 & !Isolation2 & !On2){
+        if((Start2|ForceStart2) & !Shutdown2){
+            if(~Start2 & (StarterMode==2) & !Isolation2 & !On2){
                 timer("startprime2",100)
             }elseif(!On2 & !Starting2 & Primed2 & ((~Start2 & (StarterMode<2))|ForceStart2) & !Isolation2 & ((StarterMode>0) ? Priming2 : 1)){
                 Starting2 = 1
@@ -951,13 +1129,13 @@ if(HasPM){ #Actual Engine Starting
             }elseif(On2 & ~Start2 & !Isolation2){
                 #Deleted
             }
-        }elseif(!(Start2|ForceStart2) & Starting2 & !Clag2 & !On2 & (StarterMode<2)){
+        }elseif((!(Start2|ForceStart2) | Shutdown2) & Starting2 & !Clag2 & !On2 & (StarterMode<2)){
             Starting2 = 0
             soundPitch(1,0,3)
             soundStop(1,3)
             stoptimer("StartCheck2")
             stoptimer("FinishStart2")
-            #print("AAA")
+            #interrupt(2)
         }elseif((Shutdown2 | !Primed2) & On2){
             On2 = 0
             if(PrimerSet2){PrimerSet2 = 0}
@@ -986,8 +1164,12 @@ if(HasPM){ #Actual Engine Starting
             }
             H2:soundPlay(1,0,Snd)
             stoptimer("IdleDown2")
+            #interrupt(2)
             timer("Cool2",sdr(Snd))
             #print("Shutdown2")
+        }
+        if((ForcePrime2|ForceStart2) & Shutdown2){
+            interrupt(2)
         }
         if(clk("StartCheck2") & (Start2|ForceStart2)){
             Clag2 = 1
@@ -1071,6 +1253,7 @@ if(clk("IdleDown1")){
     TQ1 = 1
     local Snd = TransitionToLow
     H1:soundPlay(0,0,Snd)
+    #print("IdleDown1")
     stoptimer("TQU1")
     timer("TQD1",sdr(Snd))
 }
@@ -1127,10 +1310,10 @@ if(On1|On2){
             CompQ2 = 1
             H2:soundPlay(9,0,CompressorOn)
             if(!CompressorType){
-                local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                 soundPitch(9,CompressorPitch)
             }else{
-                soundPitch(9,102)
+                soundPitch(9,98)
             }
         }
         
@@ -1149,10 +1332,10 @@ if(On1|On2){
             CompQ2 = 0
             H2:soundPlay(9,0,CompressorOff)
             if(!CompressorType){
-                local CompressorPitch = 102 + EngineSpeed2*CPitch/NumEngineNotches
+                local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
                 soundPitch(9,CompressorPitch)
             }else{
-                soundPitch(9,102)
+                soundPitch(9,98)
             }
         }
     }
@@ -1797,12 +1980,14 @@ if(On1|On2){
         }
         
         #DPM Delay
-        if(changed(Reverser)){
-            timer("DPM_Rev",DPM_Delay)
-        }
-        if(changed(EngineNotch1)){
-            timer("DPM_Eng",DPM_Delay)
-            #print("AAA DPM")
+        if(DPM & On2 & Isolation2){
+            if(changed(Reverser)){
+                timer("DPM_Rev",DPM_Delay)
+            }
+            if(changed(EngineNotch1)){
+                timer("DPM_Eng",DPM_Delay)
+                #print("AAA DPM")
+            }
         }
         
         #Traction Motor Drone
@@ -1836,6 +2021,7 @@ if(On1|On2){
                         TQ1 = 1
                         local Snd = TransitionToLow
                         H1:soundPlay(0,0,Snd)
+                        #print("Pootis1")
                         stoptimer("TQU1")
                         timer("TQD1",sdr(Snd))
                     }else{
@@ -1846,6 +2032,7 @@ if(On1|On2){
                         H1:soundPlay(10,0,Snd)
                         soundVolume(10,0)
                         soundVolume(10,1,0.5)
+                        #print("Pootis2")
                         stoptimer("TQU1")
                         timer("TQD1",sdr(Snd))
                     }
@@ -1939,43 +2126,62 @@ if(On1|On2){
         }
         
         if(clk("TQU1")|clk("TQD1")){
-            if(EngineSpeed1==EngineNotch1){
-                H1:soundPlay(0,0,LowIdling1 ? Idle_Low : Notches[EngineSpeed1+1,string])
+            #print("TQ1",EngineNotch1,EngineSpeed1)
+            #print("CCC")
+            if((EngineSpeed1==EngineNotch1) & (ABlendQ1==0)){
+                local Snd = LowIdling1 ? Idle_Low : Notches[EngineSpeed1+1,string]
+                #print(Snd)
+                H1:soundPlay(0,0,Snd)
                 soundPitch(0,100 + !MU_Master*2*MU_Connected)
                 LRQ1 = 0
                 Clag1 = 0
+                RevDirection1 = 0
+                AnyBlendQ1 = 0
             }
             TQ1 = 0
             #print("TQU1")
             LowIdleWaiting1 = 0
         }
         if(!LowIdling1 & !LowIdleWaiting1){
-            if((EngineNotch1 > EngineSpeed1) & !TQ1){
-                TQ1 = 1
-                transitionUp1(EngineSpeed1,EngineNotch1)
-            }elseif((EngineNotch1 < EngineSpeed1) & !TQ1){
-                TQ1 = 1
-                transitionDown1(EngineSpeed1,EngineNotch1)
+            if((EngineNotch1+ABlendQ1) > EngineSpeed1){
+                if(!TQ1 | (RevDirection1==-1)){
+                    TQ1 = 1
+                    transitionUp1(EngineSpeed1,EngineNotch1+ABlendQ1)
+                }
+            }elseif((EngineNotch1+ABlendQ1) < EngineSpeed1){
+                if(!TQ1 | (RevDirection1==1)){
+                    TQ1 = 1
+                    transitionDown1(EngineSpeed1,EngineNotch1+ABlendQ1)
+                }
             }
         }
         if(clk("TQU2")|clk("TQD2")){
-            if(EngineSpeed2==EngineNotch2){
-                H2:soundPlay(1,0,LowIdling2 ? Idle_Low : Notches[EngineSpeed2+1,string])
+            #print("TQ1",EngineNotch1,EngineSpeed1)
+            if((EngineSpeed2==EngineNotch2) & (ABlendQ2==0)){
+                local Snd = LowIdling2 ? Idle_Low : Notches[EngineSpeed2+1,string]
+                #print(Snd)
+                H2:soundPlay(1,0,Snd)
                 soundPitch(1,98)
                 LRQ2 = 0
                 Clag2 = 0
+                RevDirection2 = 0
+                AnyBlendQ2 = 0
             }
             TQ2 = 0
             #print("TQU1")
             LowIdleWaiting2 = 0
         }
         if(!LowIdling2 & !LowIdleWaiting2){
-            if((EngineNotch2 > EngineSpeed2) & !TQ2){
-                TQ2 = 1
-                transitionUp2(EngineSpeed2,EngineNotch2)
-            }elseif((EngineNotch2 < EngineSpeed2) & !TQ2){
-                TQ2 = 1
-                transitionDown2(EngineSpeed2,EngineNotch2)
+            if((EngineNotch2+ABlendQ2) > EngineSpeed2){
+                if(!TQ2 | (RevDirection2==-1)){
+                    TQ2 = 1
+                    transitionUp2(EngineSpeed2,EngineNotch2+ABlendQ2)
+                }
+            }elseif((EngineNotch2+ABlendQ2) < EngineSpeed2){
+                if(!TQ2 | (RevDirection2==1)){
+                    TQ2 = 1
+                    transitionDown2(EngineSpeed2,EngineNotch2+ABlendQ2)
+                }
             }
         }
     }
@@ -2272,6 +2478,8 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         Speaker:printProper("[RLCPT] Prime Mover is already On!")
                     }elseif(Isolation1){
                         Speaker:printProper("[RLCPT] Isolation Switch is in Run!")
+                    }elseif(Shutdown1){
+                        Speaker:printProper("[RLCPT] Engine is being forced to Shut Down!")
                     }else{
                         timer("startprime1",500)
                         Speaker:printProper("[RLCPT] Starting Prime Mover 1...")
@@ -2292,6 +2500,8 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     Speaker:printProper("[RLCPT] Prime Mover is already On!")
                 }elseif(Isolation2){
                     Speaker:printProper("[RLCPT] Isolation Switch is in Run!")
+                }elseif(Shutdown2){
+                    Speaker:printProper("[RLCPT] Engine is being forced to Shut Down!")
                 }else{
                     timer("startprime2",500)
                     Speaker:printProper("[RLCPT] Starting Prime Mover 2...")
@@ -2329,6 +2539,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         }
                         H1:soundPlay(0,0,Snd)
                         stoptimer("IdleDown1")
+                        interrupt(1)
                         timer("Cool1",sdr(Snd))
                     }else{
                         Speaker:printProper("[RLCPT] Prime Mover 1 is not On!")
@@ -2371,6 +2582,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         }
                         H2:soundPlay(1,0,Snd)
                         stoptimer("IdleDown2")
+                        interrupt(2)
                         timer("Cool2",sdr(Snd))
                         #print("Shutdown2")
                     }else{
@@ -2507,4 +2719,4 @@ if(chatClk(O)|chatClk(Pod:driver())){
     }
     
 }
-
+#if(clkName()!="clk"){print(clkName())}

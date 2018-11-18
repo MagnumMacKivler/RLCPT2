@@ -1,0 +1,219 @@
+@name ptgamma/extras/Legacy Control Stand
+#Formerly "RLC Platinum Control Stand GAMMA"
+@inputs MU_Master RLCPT:entity Override:entity Horn BellToggle LightToggle MiscToggle
+@outputs Bell Light Misc CONSTANT Reverser EqualRes TB_Notch LB_Notch
+@persist CS:entity DisableHorn Type RLCPTW:wirelink AirBrakeType DynamicsType DS:array
+@trigger 
+#Beta v2.8
+#If you're using a normal prop instead of letting the E2 do all the work, comment out one of these lines:
+#@model models/magtrainslocos/controlstands/stand_f7.mdl
+#@model models/magtrainslocos/controlstands/stand_e8.mdl
+#@model models/magtrainslocos/controlstands/stand_rs.mdl
+#@model models/magtrainslocos/controlstands/stand_rs_late.mdl
+#@model models/magtrainslocos/controlstands/stand_mlw.mdl
+#@model models/magtrainslocos/controlstands/stand_dash1.mdl
+#@model models/magtrainslocos/controlstands/stand_dash2.mdl
+#@model models/magtrainslocos/controlstands/stand_fa.mdl
+#@model models/magtrainslocos/controlstands/stand_gp7.mdl
+
+
+if(first()|dupefinished()){
+    DisableHorn = 0
+    AirBrakeType = 3 #3 for 24RL, 2 for 26L, 1 for Simple Manual Lapping, 0 for Simple Self Lapping
+    Color = vec(255)
+    
+    if(Override){
+        CS = Override
+    }else{
+        CS = entity()
+        CS:setColor(Color)
+    }
+    
+    
+    local Model = CS:model()
+    if(Model:find("stand")){
+        Type = 1
+    }else{
+        Type = 0
+    }
+    
+    DS = array(
+    "models/magtrainslocos/controlstands/stand_dash1.mdl",
+    "models/magtrainslocos/controlstands/stand_s2.mdl"
+    )
+    DynamicsType = 0
+    foreach(K,V:string=DS){
+        if(Model==V){DynamicsType=1}
+    }
+    
+    if(Type | ->Override){
+        CS:setBodygroup(1,0)#Reverser
+        CS:setBodygroup(2,1)#Throttle
+        CS:setBodygroup(3,1)#Dynamics
+        CS:setBodygroup(4,1)#TrainBrake
+        CS:setBodygroup(5,1)#LocoBrake
+        CS:setBodygroup(6,DisableHorn ? 0 : 1)
+    }else{
+        print("Please select an override entity and refresh the E2!")
+    }
+    setName("Reverser: N\nThrottle: 0/8\nDynamics: Disengaged\nTrain/Loco Brake: 0 psi/0 psi\nSpeed: 0 mph")
+    
+    
+    Light = 0
+    Bell = 0
+    Misc = 0
+    CONSTANT = 1
+    
+    RLCPTW = RLCPT:wirelink()
+    timer("doublecheck",500)
+}
+if(~RLCPT){
+    RLCPTW = RLCPT:wirelink()
+}
+if(~Override){
+    local Model = CS:model()
+    if(Model:find("stand")){
+        Type = 1
+    }else{
+        Type = 0
+    }
+    
+    if(Type | ->Override){
+        CS:setBodygroup(1,0)#Reverser
+        CS:setBodygroup(2,1)#Throttle
+        CS:setBodygroup(3,1)#Dynamics
+        CS:setBodygroup(4,1)#TrainBrake
+        CS:setBodygroup(5,1)#LocoBrake
+        CS:setBodygroup(6,DisableHorn ? 0 : 1)
+    }else{
+        print("Please select an override entity and refresh the E2!")
+    }
+}
+if(MU_Master & (Type)){
+    timer("clk",100)
+    Reverser = RLCPTW["Reverser",number]
+    local Notch = RLCPTW["Notch",number]
+    local DynaNotch = RLCPTW["DynaNotch",number]
+    local Dynamics = DynaNotch>(-1)
+    local LocoBrakePressure = RLCPTW["LocoBrakePressure",number]
+    EqualRes = RLCPTW["EqualRes",number]
+    local BrakeLine = RLCPTW["BrakeLine",number]
+    local MPH = round(RLCPTW["MPH",number])
+    local Emergency = RLCPTW["Emergency",number]
+TB_Notch = RLCPTW["BrakeNotch",number]
+LB_Notch = RLCPTW["LocoBrakeNotch",number]
+    local InitialReduction = RLCPTW["InitialReduction",number]
+    
+    #Reverser
+    CS:setBodygroup(1,Reverser+2)
+    
+    
+    #Throttle
+    if(DynamicsType){
+        CS:setBodygroup(2,Dynamics ? DynaNotch+1 : Notch+1)
+    }else{
+        CS:setBodygroup(2,Dynamics ? 1 : Notch+1)
+    }
+    #Dynamic Brake Lever
+    if(DynamicsType){
+        CS:setBodygroup(3,Dynamics+2)
+    }else{
+        CS:setBodygroup(3,Dynamics ? DynaNotch+2 : 1)
+    }
+    #Train Brake & Loco Brake
+    switch(AirBrakeType){
+        case 0, #Simple Self Lapping
+            CS:setBodygroup(4,(Emergency & (EqualRes==0)) ? 6 : 1+(EqualRes<22.5)+(EqualRes<45)+(EqualRes<67.5)+(EqualRes==0))
+            CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
+            break
+        case 1, #Simple Manual Lapping
+            local TB_BrakePos = 0
+            switch(TB_Notch){
+                case 0,
+                    TB_BrakePos = 1
+                    break
+                case 1,
+                    TB_BrakePos = 3
+                    break
+                case 2,
+                    TB_BrakePos = 5
+                    break
+                case 6,
+                    TB_BrakePos = 6
+                    break
+                default,
+                    break
+            }
+            
+            CS:setBodygroup(4,TB_BrakePos)
+            CS:setBodygroup(5,1 + (LB_Notch*2))
+            break
+        case 2, #26L
+        local TB_BrakePos = 0
+            switch(TB_Notch){
+                case 0, #Release
+                    TB_BrakePos = 1
+                    break
+                case 1, #Service Region
+                    local Step = (90 - InitialReduction)/3
+                    TB_BrakePos = 2 + (EqualRes<(InitialReduction + Step)) + (EqualRes<(InitialReduction + 2*Step))
+                    break
+                case 2, #Suppression
+                    TB_BrakePos = 5
+                    break
+                case 6, #Emergency
+                    TB_BrakePos = 6
+                    break
+                default,
+                    break
+            }
+            CS:setBodygroup(4,TB_BrakePos)
+            CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
+            break
+        case 3, #24RL
+            CS:setBodygroup(4,(TB_Notch==6) ? 6 : TB_Notch+1)
+            CS:setBodygroup(5,1 + (LB_Notch*2))
+            break
+        
+    }
+    
+    
+    
+    CS:setBodygroup(6,DisableHorn ? 0 : Horn+1)
+    
+
+    if(!Override){
+        local Line1 = "Reverser: " + select(Reverser+2,"R","N","F") + "\n"
+        local Line2 = "Throttle: " + toString(Notch) + "/8\n"
+        local Line3 = "Dynamics: " + (Dynamics ? "Engaged\n" : "Disengaged\n")
+        local Line4 = "ER/BP: " + toString(EqualRes) + " psi/" + toString(BrakeLine) + " psi\n"
+        local Line5 = "Locomotive Brake: " + toString(LocoBrakePressure) + " psi\n"
+        local Line6 = "Speed: " + toString(MPH) + " mph"
+        
+        
+        setName(Line1+Line2+Line3+Line4+Line5+Line6)
+    }
+    
+}else{
+    
+    CS:setBodygroup(1,0)#Reverser
+    CS:setBodygroup(2,1)#Throttle
+    CS:setBodygroup(3,1)#Dynamics
+    CS:setBodygroup(4,1)#TrainBrake
+    CS:setBodygroup(5,1)#LocoBrake
+    CS:setBodygroup(6,DisableHorn ? 0 : 1)
+    
+    setName("Reverser: N\nThrottle: 0/8\nDynamics: Disengaged\nER/BP: 0 psi/0 psi\nLocomotive Brake: 0psi\nSpeed: 0 mph")
+}
+
+if(LightToggle & ~LightToggle){
+    Light = !Light
+    CS:soundPlay(0,1,"buttons/lightswitch2.wav")
+}
+if(BellToggle & ~BellToggle){
+    Bell = !Bell
+    CS:soundPlay(0,1,Bell ? "gsgtrainsounds/misc/air_on.wav" : "gsgtrainsounds/misc/air_off.wav")
+}
+if(MiscToggle & ~MiscToggle){
+    Misc = !Misc
+}
