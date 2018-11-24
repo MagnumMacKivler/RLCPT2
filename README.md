@@ -1,7 +1,7 @@
 
 ### **WARNING**: *RLC Platinum 2.0 Gamma is in development.*
 
-RLC Platinum 2.0 is a *work in progress.* It is not final in any regard, and *is not stable*. There is, and will continue to be, bugs and issues that will cause problems for any locomotive you make. Updates for PT2 will be frequent and significant to it's functioning, and will likely enforce you to rewrite locomotive configs and potentially rewire dupes. Using PT2 will not guarantee you any technical support from its developers and those familiar with it, especially if you use PT2 without asking first. *Use at your own risk.*
+RLC Platinum 2.0 is a *work in progress.* It is not final in any regard, and *is not stable*. There is, and will continue to be, bugs and issues that will cause problems for any locomotive you make. Updates for PT2 will be frequent and significant to its functioning, and will likely enforce you to rewrite locomotive configs and potentially rewire dupes. Using PT2 will not guarantee you any technical support from its developers and those familiar with it, especially if you use PT2 without asking first. *Use at your own risk.*
 
 # RLC Platinum 2.0 Gamma (Version 2.0.53)
 
