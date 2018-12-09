@@ -1,13 +1,14 @@
-@name ptgamma/engines/EMD_V16_645T_Low
+@name ptgamma/engines/EMD_V16_567C
 #ENGINE CONFIG
-#For use in EMD 40-series Locomotives (GP40, SD40). The low idle keeps the engine cool in hot climates.
-EngineType = "EMD 645T (V16)" #What is the name of the Prime Mover?
+ENG_Version = "2.0.56"
+#For use in EMD Road Locomotives (FT, F9, GP7, GP18, SD9).
+EngineType = "EMD 567C (V16)" #What is the name of the Prime Mover?
 
-Startup_Hi = "gsgtrainsounds/emd645t/startup_low.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Hi = "gsgtrainsounds/emd567/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
 Startup_Mode = 1 #0 for Low, 1 for High
 
-Shutdown_Hi = "gsgtrainsounds/emd645t/shutdown_low.wav" #Shutdown Sound from High Idle.
+Shutdown_Hi = "gsgtrainsounds/emd567/shutdown.wav" #Shutdown Sound from High Idle.
 Shutdown_Lo = "" #Shutdown Sound from Low Idle.
 Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
 
@@ -22,30 +23,30 @@ Idle_Low = "" #Sound for Low Idle, if used.
 NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
 
 Notches = array(
-    "gsgtrainsounds/emd645t/idle_low.wav", #Idle
-    "gsgtrainsounds/emd645t/idle_notch1.wav", #Notch 1
-    "gsgtrainsounds/emd645t/notch2.wav", #Notch 2
-    "gsgtrainsounds/emd645t/notch3.wav", #Notch 3
-    "gsgtrainsounds/emd645t/notch4.wav", #And so On
-    "gsgtrainsounds/emd645t/notch5.wav",
-    "gsgtrainsounds/emd645t/notch6.wav",
-    "gsgtrainsounds/emd645t/notch7.wav",
-    "gsgtrainsounds/emd645t/notch8.wav"
+    "gsgtrainsounds/emd567/idle.wav", #Idle
+    "gsgtrainsounds/emd567/notch1.wav", #Notch 1
+    "gsgtrainsounds/emd567/notch2.wav", #Notch 2
+    "gsgtrainsounds/emd567/notch3.wav", #Notch 3
+    "gsgtrainsounds/emd567/notch4.wav", #And so On
+    "gsgtrainsounds/emd567/notch5.wav",
+    "gsgtrainsounds/emd567/notch6.wav",
+    "gsgtrainsounds/emd567/notch7.wav",
+    "gsgtrainsounds/emd567/notch8.wav"
 )
 
-TransitionPath = "gsgtrainsounds/emd645t/transitions/"
+TransitionPath = "gsgtrainsounds/emd567/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
-EngineBehavior = array(1,  1,  0,  0,  0,  0,  0,  0)
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #0 - A/B Notching
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
-UpDelays = array(0,   2000,3620,2000,3050,2800,3700,2000)
+UpDelays = array(0,   430, 1200,1400,1400,1420,2150,2000)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
-DownDelays = array(1000,1470,1380,1650,1360,2500,2000)
+DownDelays = array(350, 460, 750, 340, 700, 1400, 800)
 
-StartupClagDelay = 9 #Time required to hold starter for engine to turn on successfully
+StartupClagDelay = 1 #Time required to hold starter for engine to turn on successfully
 StartupClagDuration = 1 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
 
 PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+
+PrimerDuration = randint(10,15)

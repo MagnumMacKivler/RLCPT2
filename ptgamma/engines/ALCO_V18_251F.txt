@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_V18_251F
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in Late MLW/Bombardier locomotives (M640, HR618).
 EngineType = "Alco 251F (V18)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/alco251fv16/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251fv16/prime_end.wav"
+
+PrimerDuration = randint(10,15)

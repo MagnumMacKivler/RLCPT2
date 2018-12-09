@@ -1,6 +1,6 @@
 @name ptgamma/controls/Magnum
-
-#Magnum's preferred control scheme.
+CTL_Version = "2.0.56"
+#Magnum's preferred control scheme for PT1.
 
 #CONTROL CONFIG
     

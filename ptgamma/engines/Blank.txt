@@ -1,5 +1,6 @@
 @name ptgamma/engines/Blank
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in things that don't have an engine.
 EngineType = "No Engine" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
 
 PrimeOn = ""
 PrimeOff = ""
+
+PrimerDuration = 1

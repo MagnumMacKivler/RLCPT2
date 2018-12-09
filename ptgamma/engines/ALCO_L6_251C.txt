@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_L6_251C
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in late Alco switcher locomotives (S5-S6, T6, S13, and RS24).
 EngineType = "Alco 251C (L6)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

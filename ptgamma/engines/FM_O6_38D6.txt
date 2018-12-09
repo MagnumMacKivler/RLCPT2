@@ -1,7 +1,8 @@
 @name ptgamma/engines/FM_O6_38D6
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in Fairbanks-Morse Switchers (H-10-44, H-12-44).
-EngineType = "FM 38D6 (6-Cyl Opposed Piston)" #What is the name of the Prime Mover?
+EngineType = "FM 38D-6 (6-Cyl Opposed Piston)" #What is the name of the Prime Mover?
 
 Startup_Hi = "gsgtrainsounds/fm38d-6/startup_cold.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/fm38d-6/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/fm38d-6/prime_end.wav"
+
+PrimerDuration = 5

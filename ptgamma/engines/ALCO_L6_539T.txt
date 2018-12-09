@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_L6_539T
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in early Alco locomotives (HH1000, S2, S4, S7, S12, RS1, RSC13, and DL103-DL110). Also acceptable as a 538T.
 EngineType = "Alco 539T (L6)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

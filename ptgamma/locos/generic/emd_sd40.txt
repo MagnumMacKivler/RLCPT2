@@ -3,7 +3,7 @@
 @outputs 
 @persist 
 @trigger 
-CFG_Version = "2.0.50"
+CFG_Version = "2.0.55"
 #This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
 #NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
 
@@ -24,7 +24,7 @@ BaseSpeed = 65 #The top speed that's considered "normal" for this locomotive.
 TopSpeed = 65 #Top Speed, in Miles per Hour, that the locomotive is capable of reaching due to the gearing. If you don't know, put 65.
 
 #Pick a Prime Mover Config File! You can find them in "ptgamma/engines/" !
-#include "ptgamma/engines/EMD_V16_645T_Standard"
+#include "ptgamma/engines/EMD_V16_645E3_FuelSaver"
 #What Engine should you pick for your locomotive? Google it.
 
 UnitType = 0
@@ -71,5 +71,6 @@ OverloadProtection = 0 #If 1, the locomotive will reduce power if thermal limits
 ClaspBrakes = 0 #Set to 1 if you have trucks fitted with Double Clasp or Triple Clasp brake cylinders.
 HeadlightRGB = vec(255,255,200) #What color do you want your MU Headlights to be, if used.
 Compressor_CFM = 220 #Flow rate of the air compressor when operating at rated speed, in Standard Cubic Feet per Minute
+MainResVolume = 35 #Main air reservoir volume in cubic feet.
 
 #End of Config

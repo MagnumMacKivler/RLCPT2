@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.52-53
+                                                                    For RLC Pt 2.0.56
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -51,9 +51,11 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         B- Reverser
         C- Throttle
         D- Dynamic Brakes
-        E- Train Brakes
-        F- Locomotive Brakes
-        G- Transition
+        E- The Air System
+        F- Train Brakes
+        G- Locomotive Brakes
+        H- Transition & Selector
+        I- Changing Operating Ends
     IV- Chat Commands
     
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,33 +66,48 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                             
-    Improved Sound System
-    Improved Physics
-    Player-Scale Speed Calculations
-    Primer/Starter/Isolation Engine Start System
-    Notched & Continuous Throttle and Dynamic Brakes
-    Custom Notch Counts
-    Automatic Tractive Effort Calculation based on Weight and Factor of Adhesion
-    Realistic Simulations of Westinghouse 24RL and 26L No. 6 Air Brakes
-    Bleedable Independent Brakes
-    Configurable Air Compressors
-    Realistic Wheel Slip
-    Electronic Traction Control
-    Clasp Brakes Option
-    Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
-    Integrated Cabcar/Slug/Snail Modes
-    Remote Control Support
-    Fully Configurable Controls
-    Multiple HEP Behavior Modes
-    Per-Unit Chat Commands
-    MU Headlights
-    Top-Speed-Based Custom Gearing
-    Scale Weight System for Cars and Locomotives
-    Abusable Traction Motors with Parameterized Ratings
-    Variable Dynamic Brake Ratings
-    Stand-Specific Special Control Rule Support
-    Automatic Config Version Validation
-    Include-based configs for Control, Locomotive, and Engine settings
+    Configurations:
+        Include-based configs for Control, Locomotive, and Engine settings
+        Custom Notch Counts
+        Notched & Continuous Throttle and Dynamic Brakes
+        Configurable Air Compressors
+        Clasp Brakes Option
+        Integrated Cabcar/Slug/Snail Modes
+        Top-Speed-Based Custom Gearing
+        Variable Dynamic Brake Ratings
+        
+    Physics:
+        Scale Weight System for Cars and Locomotives
+        Automatic Tractive Effort Calculation based on Weight and Factor of Adhesion
+        Realistic Wheel Slip
+        Electronic Traction Control
+        Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
+        Abusable Traction Motors with Parameterized Ratings
+        
+    Air System:
+        Complete air system overhaul featuring Auxilliary Reservoir pressure simulation
+        Realistic Simulations of Westinghouse 24RL, 26L, and No. 6 Air Brakes
+        Realistic Air Compressors
+        Direct/Graduated Brake Release
+        Bleedable Independent Brakes
+        
+    Extras:
+        Remote Control Support
+        MU Headlights
+        
+    Polish:
+        Improved Sound System
+        Primer/Starter/Isolation Engine Start System
+        Seperate Engine Run, Generator Field, and Brake Cut-In inputs
+        Multiple HEP Behavior Modes
+        Stand-Specific Special Control Rule Support
+        Invalid Chat Command Embarrassment protection
+        
+    Backend: 
+        Player-Scale Speed Calculations
+        Per-Unit Chat Commands
+        Automatic Config Version Validation for Locomotives, Engines, Controls, and Control Stands
+        General Optimization
     
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ___ ___ _   ___ _  _ ___ _____ _   _    _      _ _____ ___ ___  _  _   ___ _  _ ___ _____ ___ _   _  ___ _____ ___ ___  _  _ ___ 
@@ -221,6 +238,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             but you'll only be able to brake the locomotive!
             "Number[STRING]" (RLC AND Control Reader/Stand) lets RLC know what the running number of the Locomotive is. This allows you to send Chat Commands to individual
             locomotives!
+            "IsolateBrakes" allows you to close off the air brakes to the rest of the train, eliminating the need for recharging the brakes... at the cost of only being able to use the independent
+            brakes. It's good for switching!
             
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ___ ___ ___ _   _    ___   ___ ___  __  __  ___ _____ _____   _____    ___  ___ ___ ___    _ _____ ___ ___  _  _ 
@@ -268,8 +287,100 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             3 - Making sure not to exceed the maximum braking amperage, Advance or Release the Dynamic Brakes as necessary to slow the train.
             4 - When you are finished, return the Dynamic Brakes to the OFF Notch and wait 10 seconds before resuming normal Throttle operation.
         Remember, Dynamic Brakes lose effectiveness as the train's speed decreases, and as such, cannot stop a train by themselves.
+    
+    E: The Air System
+        RLC PT2 has a sophisticated air brake system that, while offering a higher degree of realism, can be very confusing to users who are unfamiliar with how it works.
+        The Air system has four air pressures that the engineer needs to be mindful of:
+            *The Main Reservoir (MR) pressure (MainRes)
+            *The Equalizing Reservoir (ER) pressure (EqualRes)
+            *The Brake Pipe aka Brake Line pressure (BP) (BrakePipe)
+            *The Brake Cylinder (BC) pressure (BrakeCyl/Cyl)
+            There is also the Feed Valve pressure setting, which is changed by chat command. This determines the pressure that the brake pipe will normally be charged to.
+        If using the standard air gauge setup ("Air 1" and "Air 2" gauges), you can see each of these four pressures on the gauges as such:
+            *MainRes is the RED needle on the "Air 1" gauge.
+            *EqualRes is the WHITE needle on the "Air 1" gauge.
+            *BrakePipe is the WHITE needle on the "Air 2" gauge.
+            *Cyl is the RED needle on the "Air 2" gauge.
+			
+			Note the difference between BrakeCyl and Cyl... Cyl is the pressure in the locomotive's brake cylinder (which the locomotive can actually measure), BrakeCyl is the pressure in
+			the CARS' brake cylinders (which the locomotive CANNOT measure). Cyl also indicates the independent brake application and thus, Cyl goes on the gauge instead of BrakeCyl.
+			
+        How the air system works:
         
-    E: Train (Automatic) Air Brakes
+            Starting Up:
+                When you first start the engine on a locomotive, there will be no air anywhere in the system. The locomotive's air compressor automatically kicks in and adds air into the MR.
+                This will continue until the MR pressure reaches 140 PSI, at which point the air compressor shuts off. If the MR pressure drops below 130 PSI, the air compressor will kick in again
+                until the pressure hits 140 PSI again. This is called "pumping up the air," and if you have a shaft-driven air compressor, you can speed up the process by revving the engine (Note:
+                Electrically-driven air compressors run at full speed at all times).
+                When you couple to a train, there will be no air in the cars either... And no air means no brakes! In order to charge the brake system, you have to release the brakes.
+                
+            The Equalizing Reservoir:
+                All control of the air system is done by varying the pressure in the Brake Pipe. However, this can take an awfully long time so the engineer would have to pay close attention to the
+                BP needle and not on the tracks in front of him! To solve this problem, the Equalizing Reservoir was introduced.
+                
+                The Equalizing Reservoir is a small volume of air that can have its pressure changed quickly. The engineer, when moving the brake lever, sets a target pressure by filling or venting
+                the ER and the locomotive will try to make the BP match its pressure gradually over time.
+                
+                Put simply, the Equalizing Reservoir is the "Target," and the Brake Pipe is the "Actual."
+                
+            Releasing the Brakes:
+                Each railcar has four important components: the Brake Pipe, an air reservoir called the Auxilliary or Car Reservoir, a Brake Cylinder, and a Triple Valve.
+                When the brakes are being released, the locomotive tries to put a higher pressure into the Brake Pipe. A full release will raise the pressure in the BP to Feed Valve Pressure,
+                which can be changed by the engineer but for this example we will assume is equal to 90 PSI.
+                
+                When the Triple Valve detects that the pressure in the BP is HIGHER than the pressure in the Car Reservoir, it will go into Release mode. The Triple Valve will direct BP air to
+                charge the Car Reservoir, and VENT THE BRAKE CYLINDER TO ATMOSHPERE. That means that even a small increase in brake pressure COMPLETELY RELEASES THE BRAKES. This is called
+                "Direct Release."
+                An exception to this is if you have the Retainer Valves and Graduated Release Cap set to "Graduated Release." In this case, partial releases are possible, but work more slowly than
+                direct releases, and thus should mostly be used for shorter trains such as passenger trains or light freights.
+                
+                Charging the train's Car Reservoirs can take a very long time, depending on train length. For an average length train, you can expect to sit still for a few minutes in order to
+                completely release the brakes. It is recommended that you apply the locomotive brakes during an initial charge in order to hold the train still.
+                
+            Applying the Brakes:
+                When the brakes are in a released state, the Brake Pipe is charged to Feed Valve pressure (90 PSI). Each car's Car Reservoir is also charged to 90 PSI.
+                When the locomotive wants to make a brake application, it REDUCES the pressure in the BP by letting some air out at the front end. This is also called a "Set" or a "Reduction."
+                When the Triple Valve detects that the pressure in the BP is LOWER than the pressure in the Car Reservoir, it will go into Apply mode. The Triple Valve shut off flow from the BP into
+                the Car Reservoir and will vent air from the Car Reservoir into the Brake Cylinder, thus applying the brakes. This process stops once the Car Reservoir pressure is equal to the BP
+                pressure again.
+                
+                The larger the DIFFERENCE between the initial pressure in the Car Reservoir and the new BP pressure, the stronger of a brake application you will get. Thus, a "90-pound reduction"
+                is a lot stronger than a "20-pound reduction." You can make additional reductions (for example, making a 20lb set and then another 20lb set will bring the total to 40lb set).
+                Larger brake reductions will slow the train down faster, but take more time to recover from.
+                
+                An Emergency brake application is effectively a very fast full brake application--It will take a long time to recharge the air, so only use it in emergencies! This is also called
+                "dumping the air," "big-holing the train," etc.
+                
+            Running out of Air:
+                A danger exists when you make multiple sets and releases without allowing the air system to recharge. Suppose you make a full service (90 PSI) brake reduction, fully applying the
+                brakes. Then, suppose you release the brakes and immediately start moving again. Then, suppose you want to do another application, say, a 20lb set.
+                The BP takes a while to charge up, so suppose it only makes it to 40 PSI when you try to apply the brakes. So now the Brake Pipe pressue is 70 psi (90-20) but the Car Reservoir is
+                still at 40. You don't get any braking!
+                Suppose you then do a full service application again. The BP pressure is 0 PSI. Now you do get an application, but it's only the same as a 40lb set because the Car Reservoir
+                only had 40 PSI of air in it. And now you're running uncontrollably down the grade.
+                
+                This is what railroad workers colloquially call "pissing away your air." but fear not, there is salvation!
+                The Emergency Brake uses, in addition to the normal Car Reservoir, a separate Emergency Reservoir which is charged up once but not used until an Emergency Brake is needed. So even if
+                you've pissed away your air like a dog at a fire hydrant convention, you will still be able to do an emergency stop.
+                
+            Overcharging the Brake Pipe:
+                Certain brake systems (only No. 6 by default) have a Release notch that permits faster air flow from the Main Reservoir to the Brake Pipe. That notch works by bypassing the
+                self-regulating Feed Valve and directly connecting the Main Reservoir to the Brake Pipe. This allows faster recharging of the BP and better usage of the available air pressure, but
+                you can run into problems if you don't move the lever back into Running before the BP pressure reaches the Feed Valve pressure.
+                
+                If the BP pressure exceeds the Feed Valve pressure, the Brake Pipe is overcharged. The BP (and Car Reservoirs) can be as high as 140 PSI when overcharged! That means that as soon as
+                you set the brake lever into Running, the Brake Pipe will lower to the Feed Valve pressure again (90 PSI). Since the Car Reservoir is still at 140 PSI, you get a 50lb APPLICATION
+                instead of a release (140-90)!
+                
+                If you were to move the lever back into Release, the brakes would release, but you'd still be overcharged because the Brake Pipe pressure is greater than Feed Valve pressure.
+                In order to un-overcharge your brakes, you have to make a large enough brake application that the brakes apply further (>50lb reduction), and then do a normal release, which takes
+                even more time.
+                
+                The moral of the story is, you can use Release, but move it to Running before it hits Feed Valve pressure!
+                As a certain scientist at the Black Mesa Research Facility once said... "Don't let it overcharge!"
+    
+    
+    F: Train (Automatic) Air Brakes
         The Train Brakes apply a braking force for every single car in the train, making it the primary way of stopping a train.
         RLC PT2 Supports five individual Airbrake types:
             Westinghouse 26L, the modern standard,
@@ -283,7 +394,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             Suppression (Notch),
             and Emergency (Notch).
         24RL Air Brakes are Manually-Lapping and have the following Notches:
-            Release (Quick Release),
+            Release (Fast Release),
             Running (Normal Release),
             First Service (Initial Reduction),
             Lap (Hold Current Pressure),
@@ -302,17 +413,18 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             The Generic Manual-Lapping Air Brakes use only three notches (Release, Lap, and Service), which behave as described in the 24RL section.
             The Generic Self-Lapping Air Brakes use only the continuous Service Region, ranging from Full Release to Full Application.
             
-    F: Locomotive (Independent) Air Brakes
+    G: Locomotive (Independent) Air Brakes
         The Locomotive Brakes, as the name would suggest, act only on the locomotives in the train. This allows them to be much faster, at the cost of much of their stopping power.
+		Locomotive brakes range from 0 PSI (full release) to 72 PSI (full application) regardless of Feed Valve pressure.
         When running very short trains or moving the locomotives alone, the Locomotive Brakes should be used.
-        The Locomotive Brakes fall into only two operating modes, Manual Lapping vs. Self Lapping, based on the Train Brake setting chosen.
+        The Locomotive Brakes fall into only two operating modes, Manual Lapping vs. Self Lapping, which can be selected independently of the Train Brake settings.
             Manual Lapping Locomotive Brakes have three notches: Release, Lap, and Apply.
             Self-Lapping Locomotive Brakes have a single continuous region of operation ranging from Full Release to Full Application.
         Additionally, when in the Fully Released Position, further releasing the locomotive brake will allow you to bail off the brakes on the locomotive, regardless of Train
         Brake Status.
             This allows you to release the brakes on the locomotive while keeping the brakes on the rest of the train applied. This should be done when pulling against the brakes.
     
-    G: Transition
+    H: Transition & Selectior
         One of RLC PT2's larger improvements is the addition of Transition, which allows locomotives to operate over a wider range of speeds.
         Transition rearranges the Traction Motor and Generator circuits to trade Tractive Effort for speed. It is analogous to the gearshift in an automobile.
         Locomotives can have any number of Motoring positions, plus one "Off" position. Fully-Automatic locomotives do not utilize the "Off" position.
@@ -328,6 +440,21 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             The Selector Lever does not directly impact Transition in the host locomotive. It should instead be thought of as a Transition Lever for trailing units.
         More modern locomotives are equipped with Generator Transition, where the traction motors are connected in parallel all the time and the Generator changes itself to
         provide more current or more voltage for speed.
+        
+        So how do you actually operate the selector lever?
+        
+        If your locomotive has FULLY AUTOMATIC transition, it won't have a selector lever and no operation is necessary.
+        If your locomotive has MANUAL transition, the selector becomes the transition lever and thus, controls which transition step the locomotive is in.
+        If your locomoitve has automatic transition WITH a selector, you will have to shift the lever into the #1 position in order to move. The #2, #3, and #4 positions are used to control
+        the transition step on TRAILING locomotives.
+        
+    I: Changing Operating Ends
+        If you're running two units in MU operation, changing the operating ends is pretty simple:
+        1- Come to a complete stop and make a full service brake application.
+        2- Turn off the Generator Field, Engine Run, and Brake Cut-In Switches in the leading unit. Leave the Isolation Switch ON.
+        3- Turn on the Generator Field, Engine Run, and Brake Cut-In Switches in the NEW leading unit.
+        Because all three buttons are required to switch operating ends, you can get away with combining all three of them into a single button. You will lose some minor functionality if
+        you do this (for example, you may not be able to run the engine with the Generator Field off in order to pump up the air faster).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   _____   ___    ___ _  _   _ _____    ___ ___  __  __ __  __   _   _  _ ___  ___ 
@@ -360,9 +487,13 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     .notch /// <integer> /// ".notch 3" /// Changes the throttle power using the notched scale, if one exists.
     .dynamics /// <float> /// ".dynamics 25" /// Changes dynamic braking power as a percentage. Any value less than 10 turns the dynamic brakes off.
     .dynanotch /// <integer> /// ".dynanotch -1" /// Changes dynamic braking power using the notched scale, if one exists. -1 is Off, 0 is "Set Up."
-    .abset /// <integer> /// ".abset 90" /// Sets the Automatic (Trainline) Brake Application to this value. 0 is full release, 90 is full application. If no parameter is given, the Emergency Brake trips!
-    .lbset /// <integer> /// ".lbset 20" /// Sets the Independent (Locomotive) Brake Application to this value. 0 is full release, 90 is full application.
-    .switching /// <boolean> /// ".switching 1" /// Enables/Disables switching mode, which cuts out the train brakes for easier switching.
+    .abset /// <integer> /// ".abset 90" /// Sets the Automatic (Trainline) Brake Application/Reduction to this value. 0 is full release. If no parameter is given, the Emergency Brake trips!
+    .lbset /// <integer> /// ".lbset 20" /// Sets the Independent (Locomotive) Brake Application to this value. 0 is full release, 72 is full application.
+    
+    .switching /// <boolean> /// ".switching 1" /// Enables/Disables switching mode, which isolates the train brake line for easier switching.
+    .feedvalve /// <float> /// ".feedvalve 90" /// Sets the Feed Valve pressure for the air system. Default is 90 PSI.
+    .graduatedrelease /// <boolean> /// ".graduatedrelease 1" /// Enables/Disables Graduated Release, which allows partial releases of the air brakes.
+    .fullreleasecock /// <boolean> /// ".fullreleasecock 0" /// Enables/Disables the ability to overcharge the brake line when using 24RL. 0 is FV (regulated), 1 is MR (overcharge).
     
     .count /// <integer> /// ".count 1" /// Prints the number of cars in your consist to the chat. The parameter is the number of locomotives in the consist. No parameter assumes 1 locomotive.
     .weight /// N/A /// N/A /// Prints the weight of your consist (in scale tons as well as Standard Car Equivalent) to the chat.
@@ -377,4 +508,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.52")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.56")

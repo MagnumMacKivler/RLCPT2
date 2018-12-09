@@ -1,7 +1,8 @@
-@name ptgamma/engines/EMD_V16_645T_Standard
+@name ptgamma/engines/EMD_V16_645E3_FuelSaver
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in EMD 40-series Locomotives (GP40, SD40). The fuel-saver saves a little money in the longrun.
-EngineType = "EMD 645T (V16)" #What is the name of the Prime Mover?
+EngineType = "EMD 645E3 (V16)" #What is the name of the Prime Mover?
 
 Startup_Hi = "gsgtrainsounds/emd645t/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "gsgtrainsounds/emd645t/startup_low.wav" #Startup Sound to put the engine in Low Idle.
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
 
 PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+
+PrimerDuration = randint(10,15)

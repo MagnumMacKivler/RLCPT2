@@ -1,5 +1,6 @@
 @name ptgamma/engines/EMD_V12_645E3
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in EMD 39-series Locomotives (GP39, SD39 and dash 2 versions). The low idle feature was not present on the 12 cylinder motor.
 EngineType = "EMD 645E3 V12" #What is the name of the Prime Mover?
 
@@ -56,3 +57,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
 
 PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+
+PrimerDuration = randint(10,15)

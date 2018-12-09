@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_V12_251C3
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in smaller MLW M-liner locomotives (M420, and HR412).
 EngineType = "Alco 251C3 (V12)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/mlw251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/mlw251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

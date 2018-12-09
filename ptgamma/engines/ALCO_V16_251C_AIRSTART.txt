@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_V16_251C_AIRSTART
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in early Alco century locomotives (C425, and C628).
 EngineType = "Alco 251C (V16)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

@@ -1,5 +1,6 @@
 @name ptgamma/engines/GE_V16_FDL_Late_High
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in GE Dash 8/9 Locomotives (C44-9W, P42DC). The high idle keeps the engine warm in cold climates.
 EngineType = "GE 7FDL16" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
 
 PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+
+PrimerDuration = randint(10,15)

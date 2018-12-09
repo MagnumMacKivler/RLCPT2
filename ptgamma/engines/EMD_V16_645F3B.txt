@@ -1,5 +1,6 @@
 @name ptgamma/engines/EMD_V16_645F3B
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in EMD 50-series Locomotives (GP50, SD50).
 EngineType = "EMD 645F3B (V16)" #What is the name of the Prime Mover?
 
@@ -56,3 +57,5 @@ DynamicsOff = "gsgtrainsounds/misc/emd_late_dyn_end.wav"
 
 PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+
+PrimerDuration = randint(10,15)

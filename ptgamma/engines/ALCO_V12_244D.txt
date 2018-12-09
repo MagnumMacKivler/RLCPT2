@@ -1,5 +1,6 @@
 @name ptgamma/engines/ALCO_V12_244D
 #ENGINE CONFIG
+ENG_Version = "2.0.56"
 #For use in early Alco road locomotives (RS2-RS3, RS10, RSC24, RSD4-RSD5, and FA/FB).
 EngineType = "Alco 244D (V12)" #What is the name of the Prime Mover?
 
@@ -58,3 +59,5 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
 PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

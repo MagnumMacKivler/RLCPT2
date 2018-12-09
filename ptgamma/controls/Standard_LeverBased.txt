@@ -1,6 +1,6 @@
 @name ptgamma/controls/Standard_LeverBased
-
-#Magnum's preferred control scheme.
+CTL_Version = "2.0.56"
+#The standard, default control scheme, but with Lever-based functionality.
 
 #CONTROL CONFIG
     
