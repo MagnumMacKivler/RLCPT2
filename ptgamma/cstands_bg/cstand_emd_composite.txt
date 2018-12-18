@@ -16,8 +16,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.56 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.56"
+    #FOR USE WITH RLC PT 2.0.57 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.57"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -375,7 +375,7 @@ if(clk("clk")){
             }elseif(DecreaseDynamics & (SetDynamics>10)){
                 DNQ = 1
                 SetDynamics--
-                if(SetDynamics<10){SetDynamics=10}
+                if(SetDynamics<10){SetDynamics=10,DNQ=1}
             }
             DynaNotch = adc(10,100,NumThrottleNotches,SetDynamics)
         }
@@ -841,7 +841,7 @@ if(clk("clk")){
     CS:setBodygroup(4,TBB)
     #Loco Brake
     local LBB = 0
-    if((AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)){ #ML
+    if(LocoBrakeMode){ #ML
         LBB = SetBleeding ? 0 : select(SetLocoBrakeNotch+1,1,4,7)
     }else{ #SL
         LBB = SetBleeding ? 0 : adc(0,72,6,SetLocoBrakePressure)+1
@@ -1131,7 +1131,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
             default,
                 if(CMD:index(1)=="."){
-                    print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
+                    #print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
                     hideChat(1)
                 }
                 break

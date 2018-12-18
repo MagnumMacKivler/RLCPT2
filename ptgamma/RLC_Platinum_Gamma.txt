@@ -2,7 +2,7 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array AuxRes
+@outputs AvCurrent GenCurrent Currents:array
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
@@ -14,39 +14,44 @@
 @persist TransitionGroups:array TransitionShunts:array GeneratorTransition NominalVoltage MaxGenCurrent TransitionNotches TransitionThresholds:array GenThreshold
 @persist TM_Temp TM_Warning TM_Health TM_Damage TM_ZapQ TM_Maxtime TM_Mintime
 #Locomotive Config
-@persist Horsepower Weight Adhesion Axles Motors MotorType MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxDynLoad BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
+@persist Horsepower Weight Adhesion Axles Motors MotorType MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxDynLoad DB_Throttle LimitCurrent BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
 @persist BaseSpeed TopSpeed ClaspBrakes TractionMode LoadRampSpeed WeightOnAxle
 @persist TransitionMode TransitionVoltage TransitionControlType TransitionQ
 @persist StarterMode OverloadProtection OLPR OLP_Engaged Compressor_CFM MainResVolume
 #Locomotive Sounds
 @persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone MotorDamaging MotorDeath]:string
-@persist [WheelSlipOn WheelSlipOff SanderOn SanderOff Button_HEP]:string
+@persist [WheelSlipOn WheelSlipOff WheelSlide SanderOn SanderOff Button_HEP]:string
 #Brake Sounds
 @persist [AirBrakeDump CompressorOn CompressorOff BrakeSqueal]:string
 @persist [DynamicsOn DynamicsOff]:string 
 #Brake Data
 @persist BrakeMul MainRes EqualRes BrakePipe BrakeCyl LocoBrakePressure BRQ PropCount MaxTrainBrakeForce BrakeNotch ABQ LBQ CarCount HissQ LHissQ Suppression InitialReduction
-@persist Dynamics DynaNotch DynamicBrakingPower NotchedDynamics DNQ CompQ1 CompQ2 SquealQ BHQ BAQ HandBrakeQ CPitch BleedPressure Bleeding Lock_26L HoldingQ HoldingPressure
-@persist GraduatedRelease FeedPressure AuxRes EmRes AuxMaxPressure
+@persist Dynamics DynaNotch DynamicBrakingPower DB_Level NotchedDynamics DNQ BrakeWarning CompQ1 CompQ2 SquealQ BHQ BAQ HandBrakeQ CPitch BleedPressure Bleeding Lock_26L HoldingQ HoldingPressure
+@persist GraduatedRelease FeedPressure AuxRes EmRes AuxMaxPressure SlideQ
 #Controls
 @persist SetReverser SetThrottle SetDynamics SetSelector IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake HandBrake SandQ
 #Misc
 @persist [E O W H1 H2]:entity DriverQ RailType RollQ LastProps:array MU_Connected MU_F MU_R WheelSlip WheelSlipLocal WheelSlipRand Sanding APR ForceSand WheelSlipThreshold Reverser_DPM DPM_Delay
 @persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend SwitchingMode
 @persist [CFG_Version ENG_Version CS_Version]:string
-@persist AC_PlugNope MU_Master CtlInitQ
+@persist AC_PlugNope MU_Master CtlInitQ [FrontTruck RearTruck]:entity ClicketyQ
 
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 57
+#To-Do for 58
 
 #Actual Blended Braking God Please Kill Me
-#Re-Add Single-Speed DB cooling and DB limiting
-#Wheel Lockup when using Independents + Dynamics
+#Abusable Dynamic Brakes
+#Display Names & Versions for Control Stand E2s
 
 #Finished:
 
+#Jointed Rail [x]
+#Re-Add Single-Speed DB cooling and DB limiting [x]
+#Wheel Lockup when using Independents + Dynamics [x]
+#Fix the Cstand thinking PT commands are invalid and vice versa [x]
+#Fix Control Stands Locomotive Brakes [x]
 #Primer Durations [x]
 #Graduated Release + Brake Control Redo [x]
 #Engine Sound Blending [x]
@@ -74,7 +79,7 @@
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.56"
+    local Version = "Gamma 2.0.57"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -104,13 +109,14 @@ if(first()|dupefinished()){
     AirBrakeDump = "gsgtrainsounds/misc/airbrakes/air_dump.wav"
     
     BrakeSqueal = "gsgtrainsounds/wheels/brake_3_loud.wav"
-    RollSoundWelded = "gsgtrainsounds/misc/train_wheels_welded_loop.wav"
-    RollSoundJointed = "moztrainsounds/steam/generic/track_jointed1.wav"
+    RollSoundWelded = "gsgtrainsounds/misc/wheels_welded.wav"
+    RollSoundJointed = "gsgtrainsounds/misc/wheels_jointed.wav"
     
     RailType = 0 #0 for Continuous Welded Rail, 1 for Jointed (Jointed doesn't do anything yet!)
     
     WheelSlipOn = "gsgtrainsounds/wheels/wheelslip_loop.wav"
     WheelSlipOff = "gsgtrainsounds/wheels/wheelslip_end.wav"
+    WheelSlide = "physics/metal/canister_scrape_smooth_loop1.wav"
     
     TractionDrone = "gsgtrainsounds/wheels/emd_dr77_traction.wav"
     MotorDamaging = "ambient/energy/electric_loop.wav"
@@ -154,6 +160,8 @@ if(first()|dupefinished()){
     #15 - Loco Weights (LB)
     #16 - Total Compressor CFM
     #17 - Hump Multiplier
+    #18 - Total Main Res Volume
+    #19 - Brake Warning
     
     
     #Config Init
@@ -170,7 +178,7 @@ if(first()|dupefinished()){
     }
     
     #Loco
-    local LastCompatibleConfig = "2.0.55"
+    local LastCompatibleConfig = "2.0.57"
     local RLCVA = LastCompatibleConfig:explode(".")
     local RLCV_Major = RLCVA[2,string]
     local RLCV_Minor = RLCVA[3,string]
@@ -194,7 +202,7 @@ if(first()|dupefinished()){
     local ENG_Conflict = (RLCV_Major != ENGV_Major) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Control Stand
-    LastCompatibleConfig = "2.0.56"
+    LastCompatibleConfig = "2.0.57"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -381,6 +389,7 @@ if(first()|dupefinished()){
     DynaNotch = -1
     DNQ = 0
     Dynamics = 0
+    DB_Level = 50
     
     #Misc Init
     
@@ -415,6 +424,23 @@ if(first()|dupefinished()){
     E:setSubMaterial(2,"debug/env_cubemap_model")
     runOnChat(1)
     setName("RLC Platinum " + Version + "\n" + EngineType + "\n" + LocomotiveType)
+    
+    local MaxDot = 0
+    local MinDot = 0
+    foreach(K,V:entity=Trucks){
+        local Dot = (V:pos()-W:pos()):dot(-E:up())
+        #print(Dot)
+        if(Dot>MaxDot){
+            MaxDot = Dot
+            FrontTruck = V
+        }elseif(Dot<MinDot){
+            MinDot = Dot
+            RearTruck = V
+        }
+    }
+    #print("Front:"+FrontTruck:toString())
+    #print("Rear:"+RearTruck:toString())
+    
     
     #DPM Init
     
@@ -1646,8 +1672,36 @@ if(On1|On2){
             if(HEP_Notch){
                 EngineNotch1 = HEPTYPE ? max(HEP_Notch*2,Notch) : HEP_Notch*4
             }elseif(Dynamics){
-                #EngineNotch1 = (DynamicsMode==2) ? round(adc(0,100,NumEngineNotches,FixedDynaThrottle)) : max(DynaNotch,0)
-                EngineNotch1 = (DynamicsMode==1) ? round(adc(0,100,NumEngineNotches,50 + 25*(abs(Load)>(MaxDynLoad*0.66)) + 25*(abs(Load)>(MaxDynLoad*0.83)))) : 0
+                
+                if(DB_Throttle==0){ #PM Adjustment Hysteresis for DB
+                    local DBH = 25
+                    switch(DB_Level){
+                        case 50,
+                            if(-Load>(MaxDynLoad*0.66 + DBH)){
+                                DB_Level = 75
+                            }
+                            break
+                        case 75,
+                            if(-Load>(MaxDynLoad*0.83 + DBH)){
+                                DB_Level = 100
+                            }elseif(-Load<(MaxDynLoad*0.66 - DBH)){
+                                DB_Level = 50
+                            }
+                            break
+                        case 100,
+                            if(-Load<(MaxDynLoad*0.83 - DBH)){
+                                DB_Level = 75
+                            }
+                            break
+                        default,
+                            DB_Level = 50
+                            break
+                    }
+                }else{
+                    DB_Level = DB_Throttle
+                }
+                
+                EngineNotch1 = (DynamicsMode==1) ? round(adc(0,100,NumEngineNotches,DB_Level)) : 0
             }else{
                 EngineNotch1 = round(adc(0,100,NumEngineNotches,Throttle))
             }
@@ -1844,13 +1898,37 @@ if(On1|On2){
             WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
             TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
-        }elseif(Dynamics & HasTM & Excitation){
+            
+        }elseif(Dynamics & HasTM & Excitation){ #Dynamic Brake Calcs
             Voltage = 0
             Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
+            if(LimitCurrent & (Load<-MaxDynLoad)){Load = -MaxDynLoad}
             TE = WillItBlend ? 0 : -sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
-            BrakeWarn = Load<-MaxDynLoad
+            
+            #local TotalEffortOnAxle = toUnit("lb",abs(TE)+(Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1))/32.17)
+            #if(TotalEffortOnAxle > (TE_Starting*100)){
+            if((Load<-200) & (Cyl>(ClaspBrakes ? 20 : 40))){
+                #print(TotalEffortOnAxle+"/"+(TE_Starting*32.17))
+                Load = 0
+                TE = 0
+                WheelSlip = 1
+            }else{
+                WheelSlip = 0
+            }
+            if(WheelSlip & !SlideQ){
+                SlideQ = 1
+                W:soundPlay(12,0,WheelSlide)
+            }elseif(!WheelSlip & SlideQ){
+                SlideQ = 0
+                soundStop(12)
+            }
+            BrakeWarning = Load<-MaxDynLoad
         }else{
             Load = Voltage = TE = 0
+            if(WheelSlip & SlideQ){
+                SlideQ = 0
+                soundStop(12)
+            }
             if(WheelSlip){
                 WheelSlip = 0
                 W:soundPlay(12,0,WheelSlipOff)
@@ -2258,7 +2336,7 @@ if(Tick){
         
     LocoBrakePressure = BrakeCutIn ? CtlTable["SetLocoBrakePressure",number] : max(FrontPlugIn[5,number],RearPlugIn[5,number])
     
-    if(Dynamics | SetBleeding){
+    if(SetBleeding){
         if(Cyl>0){
             Cyl += -4
             if(Cyl<0){Cyl=0}
@@ -2268,7 +2346,7 @@ if(Tick){
         if((LocoBrakePressure>0) & (BleedPressure<72)){
             BleedPressure = 72
         }
-        local SetLBP = clamp(max(LocoBrakePressure,min(BrakeCyl,BleedPressure)),0,72)
+        local SetLBP = clamp(max(LocoBrakePressure,min(Dynamics ? 0 : BrakeCyl,BleedPressure)),0,72)
         if(Cyl<SetLBP){
             Cyl += 2
             if(Cyl>SetLBP){Cyl = SetLBP}
@@ -2303,11 +2381,26 @@ if(Tick){
         soundStop(7)
     }
     if(RollQ){
+        if(!RailType){
+            local LeadTruck = (V>0) ? FrontTruck : RearTruck
+            rangerFilter(W)
+            rangerFilter(LeadTruck)
+            local CCRanger = rangerOffset(128,LeadTruck:pos(),vec(0,0,-1))
+            #print(CCRanger:entity())
+            local OnSwitch = (CCRanger:entity():type())==("prop_dynamic")
+            if(OnSwitch & !ClicketyQ){
+                ClicketyQ = 1
+                W:soundPlay(7,0,RollSoundJointed)
+            }elseif(!OnSwitch & ClicketyQ){
+                ClicketyQ = 0
+                W:soundPlay(7,0,RollSoundWelded)
+            }
+        }
         soundPitch(7,MPH*3.3)
     }
     
     #Brake Physprops
-    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90
+    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90 #If you adjust this, don't forget to correct the DB lockup code!
     Overcome = (abs(TE) - BE)>0
     if(BrakeCutIn){
         if((((Braking_Train | Braking_Loco) & (Power==0)) | HandBrakeOverride) & !BHQ & (MPH<1)){
@@ -2401,6 +2494,7 @@ if(CtlTable["MUXed",number]){
     #16 - Total Compressor CFM
     #17 - Hump Mult
     #18 - Total Main Res Volume
+    #19 - Brake Warning
     
     
 if((On1|On2) & MU_Master){
@@ -2467,6 +2561,11 @@ RearPlugOut[16,number] = FrontPlugIn[16,number] + CFM_Contribution
 
 FrontPlugOut[18,number] = RearPlugIn[18,number] + MainResVolume
 RearPlugOut[18,number] = FrontPlugIn[18,number] + MainResVolume
+
+FrontPlugOut[19,number] = RearPlugIn[19,number] | BrakeWarning
+RearPlugOut[19,number] = FrontPlugIn[19,number] | BrakeWarning
+
+BrakeWarn = BrakeWarning | FrontPlugIn[19,number] | RearPlugIn[19,number]
 
 Lights_Forward = MU_F ? 0 : FrontPlugOut[10,number]
 Lights_Backward = MU_R ? 0 : RearPlugOut[10,number]
@@ -2808,9 +2907,28 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 print("[RLCPT] Graduated Release Cap and Retainer Valves set to " + (GraduatedRelease ? "GRADUATED RELEASE." : "DIRECT RELEASE."))
                 hideChat(1)
                 break
+            case ".railtype",
+                local RT = Sentence[2,string]
+                if(RT=="welded"){
+                    RailType = 0
+                    if(RollQ){
+                        W:soundPlay(7,0,RollSoundWelded)
+                    }
+                    Speaker:printProper("[RLCPT] You are now riding on welded rails.")
+                }elseif(RT=="jointed"){
+                    RailType = 1
+                    if(RollQ){
+                        W:soundPlay(7,0,RollSoundJointed)
+                    }
+                    Speaker:printProper("[RLCPT] You are now riding on jointed rails.")
+                }else{
+                    Speaker:printProper("[RLCPT] You are currently riding on "+(RailType ? "jointed" : "welded")+" rails.")
+                }
+                hideChat(1)
+                break
             default,
                 if(CMD:index(1)=="."){
-                    print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
+                    #print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
                     hideChat(1)
                 }
                 break

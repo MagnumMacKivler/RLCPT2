@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.56
+                                                                    For RLC Pt 2.0.57
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -80,6 +80,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         Scale Weight System for Cars and Locomotives
         Automatic Tractive Effort Calculation based on Weight and Factor of Adhesion
         Realistic Wheel Slip
+        Lockable wheels
         Electronic Traction Control
         Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
         Abusable Traction Motors with Parameterized Ratings
@@ -102,6 +103,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         Multiple HEP Behavior Modes
         Stand-Specific Special Control Rule Support
         Invalid Chat Command Embarrassment protection
+        Jointed Vs. Welded Rail Sounds
+        Clickety Clack when going over switches
         
     Backend: 
         Player-Scale Speed Calculations
@@ -278,18 +281,25 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         The Throttle can be opened or closed as rapidly as is necessary to control the train, so long as Traction Motor Load is properly regulated.
     
     D: The Dynamic Brakes
+        Dynamic Brakes get stronger in proportion to the number of locomotives in your consist, and the number of traction motors on each.
         While RLC PT2's Dynamic Brakes can have any number of notches (including an infinity of them, in the case of continuous dynamics), the instructions will assume the
         standard configuration of 8 notches.
-        The Dynamic Brake normally has 10 positions: OFF, SETUP, and braking positions D1 through D8.
+        The Dynamic Brake normally has 3 positions: OFF, SETUP, and a continuous braking range.
         To begin dynamic braking:
             1 - Set the Throttle to IDLE for at least 10 seconds, and ensure that the Reverser is aligned to the train's current direction of travel.
             2 - Advance the Dynamic Brakes into the SETUP Notch. Observe the slight braking effort developed and note the Loadmeter reading.
             3 - Making sure not to exceed the maximum braking amperage, Advance or Release the Dynamic Brakes as necessary to slow the train.
             4 - When you are finished, return the Dynamic Brakes to the OFF Notch and wait 10 seconds before resuming normal Throttle operation.
         Remember, Dynamic Brakes lose effectiveness as the train's speed decreases, and as such, cannot stop a train by themselves.
+        
+        You can use the Automatic Brakes (Train Brakes) in conjunction with the dynamic brakes. The locomotive's brake cylinders will automatically release when doing this.
+        Be sure not to apply the Independent (Locomotive) Brakes when the dynamic brakes are in use! Doing so may lock up your wheels and cause you to slide!
     
     E: The Air System
         RLC PT2 has a sophisticated air brake system that, while offering a higher degree of realism, can be very confusing to users who are unfamiliar with how it works.
+        
+        For simple instructions on how to use the air brakes, skip to sections F and G.
+        
         The Air system has four air pressures that the engineer needs to be mindful of:
             *The Main Reservoir (MR) pressure (MainRes)
             *The Equalizing Reservoir (ER) pressure (EqualRes)
@@ -381,7 +391,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     
     
     F: Train (Automatic) Air Brakes
-        The Train Brakes apply a braking force for every single car in the train, making it the primary way of stopping a train.
+        The Train Brakes apply a braking force for every single car in the train, making it the primary way of stopping a train. The Train Brakes get stronger the more cars are in your train.
+        Span-bolstered cars have more braking force because they have more props, and conversely, articulated cars (such as well cars) have less braking force because they have fewer props.
         RLC PT2 Supports five individual Airbrake types:
             Westinghouse 26L, the modern standard,
             Westinghouse 24RL, an older, but still quite common system,
@@ -415,6 +426,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             
     G: Locomotive (Independent) Air Brakes
         The Locomotive Brakes, as the name would suggest, act only on the locomotives in the train. This allows them to be much faster, at the cost of much of their stopping power.
+        Locomotive Brakes get stronger the more locomotives are in the train. Clasp Brakes make the Locomotive Brakes stronger, but are more expensive to maintain.
 		Locomotive brakes range from 0 PSI (full release) to 72 PSI (full application) regardless of Feed Valve pressure.
         When running very short trains or moving the locomotives alone, the Locomotive Brakes should be used.
         The Locomotive Brakes fall into only two operating modes, Manual Lapping vs. Self Lapping, which can be selected independently of the Train Brake settings.
@@ -495,6 +507,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     .graduatedrelease /// <boolean> /// ".graduatedrelease 1" /// Enables/Disables Graduated Release, which allows partial releases of the air brakes.
     .fullreleasecock /// <boolean> /// ".fullreleasecock 0" /// Enables/Disables the ability to overcharge the brake line when using 24RL. 0 is FV (regulated), 1 is MR (overcharge).
     
+    .railtype /// <"welded" or "jointed"> /// ".railtype jointed" /// Changes the rail type between Jointed and Welded. Welded rail will play the Jointed rail sound when rolling over switches. 
     .count /// <integer> /// ".count 1" /// Prints the number of cars in your consist to the chat. The parameter is the number of locomotives in the consist. No parameter assumes 1 locomotive.
     .weight /// N/A /// N/A /// Prints the weight of your consist (in scale tons as well as Standard Car Equivalent) to the chat.
     .weightreset /// N/A /// N/A /// Resets the locomotive's weight in proportion to its ballasted weight (from the config). Use in case you accidentally re-weigh something.
@@ -508,4 +521,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.56")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.57")

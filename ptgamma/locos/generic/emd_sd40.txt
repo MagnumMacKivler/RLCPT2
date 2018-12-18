@@ -3,7 +3,7 @@
 @outputs 
 @persist 
 @trigger 
-CFG_Version = "2.0.55"
+CFG_Version = "2.0.57"
 #This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
 #NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
 
@@ -48,6 +48,8 @@ DynamicsMode = 1
 #2 - Dynamic Brakes with Electrically-Driven Traction Motor Blowers
 MaxDynLoad = 700 #Maximum Dynamic Braking load current.
 BlendedBraking = 0 #Modern Passenger Thing, turns on dynamic brakes when air brake application is made.
+DB_Throttle = 0 #Throttle percentage to run the engine at for mechanical blowers. Use 0 for automatic adjustment (mechanical), electrical, or N/A.
+LimitCurrent = 1 #Auto-Limit dynamic braking current to maximum value?
 
 #Bonus Features:
 
