@@ -2,13 +2,13 @@
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode KeySelUp KeySelDn
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
-@persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
+@persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
 @persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake
 @persist IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown KeySelUp KeySelDn
 @persist HandBrake EmergencyBrake Sander
-@persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding FeedPressure FullReleaseCock
+@persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding FeedPressure FullReleaseCock WarningHissQ
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
 @persist CS:entity LeverBased
 @trigger 
@@ -16,8 +16,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.57 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.57"
+    #FOR USE WITH RLC PT 2.0.58 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.58"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -79,6 +79,8 @@ if(first()){
     LocoBrakeFull = "gsgtrainsounds/misc/airbrakes/air_ind_full.wav"
     LocoBrakeReleaseSoft = "gsgtrainsounds/misc/airbrakes/air_ind_release2.wav"
     LocoBrakeReleaseHard = "gsgtrainsounds/misc/airbrakes/air_ind_release1.wav"
+    
+    WarningHiss = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
     
     function vector linpos(V1:vector, V2:vector, P){
         return V1 + P*(V2-V1)
@@ -210,6 +212,7 @@ if(first()){
         }
     }
     CtlTable["CTL_Version",string] = CTL_Version
+    setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nEMD Composite\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents")
     runOnChat(1)
     timer("clk",100)
 }
@@ -889,6 +892,14 @@ if(clk("clk")){
     PenaltyBrake = 0   
 }
 
+local InRelease = ((AirBrakeMode==3)|(AirBrakeMode==4)) & (SetBrakeNotch==0)
+if(InRelease & !WarningHissQ){
+    WarningHissQ = 1
+    CS:soundPlay(3,0,WarningHiss)
+}elseif(!InRelease & WarningHissQ){
+    WarningHissQ = 0
+    soundStop(3,0.125)
+}
 
 CtlTable["SetReverser",number] = SetReverser
 CtlTable["SetThrottle",number] = SetThrottle

@@ -1,21 +1,23 @@
 @name LOCOS Display
-@inputs Power EGP1:wirelink EGP2:wirelink Cycle1 Cycle2 RLCPT:entity Number:string Bell Horn
+@inputs Power EGP1:wirelink EGP2:wirelink EGP1_Conductor:wirelink Cycle1 Cycle2 RLCPT:entity Number:string Bell Horn FrontClassRGB:vector RearClassRGB:vector
 @outputs 
 @persist MPH Throttle Load TE Dynamics DynamicBrakingPower Reverser Emergency BrakeWarn WheelSlip ForceSand EqualRes MainRes BrakePipe Cyl
 @persist MU_F MU_R Voltage AirBrakeMode CarCount TrainWeight
 @persist [HeaderText]:string Page1 Page2 T1:table T2:table SpeedoType [Blue Green Orange Yellow Red Gray]:vector AC 
 @persist RLCPTW:wirelink NumNotches NotchedThrottle NotchedDynamics [SC LC TC RC BC]:vector2 MaxSpeed MaxLoad MaxTE MaxContLoad WeightScale Version:string
-@persist On BootN CycleQ SkipBoot MonDefault1 MonDefault2 PersistPages
+@persist On BootN CycleQ SkipBoot MonDefault1 MonDefault2 PersistPages ConductorScreen ScreenQ EGPA:wirelink
 @trigger Power Cycle1 Cycle2
 if(first()|dupefinished()){
     #To-Do:
     #Wirelink Input for Loadmeter Variables
     
-    Version = "1.4"
+    Version = "1.6"
+    
+    ConductorScreen = 1 #If 1, LOCOS will synchronize a third screen with EGP1 for the conductor to view
     
     HeaderText = "APPALACHIA NORTHERN - No."
     
-    AC = 1 #1 for AC Traction, 0 for DC Traction
+    AC = 0 #1 for AC Traction, 0 for DC Traction
     MaxTE = 150000 #Maximum Tractive Effort (Only used for AC)
     
     SpeedoType = 0 #0 for Freight (0-90), 1 for Passenger (0-120)
@@ -39,6 +41,8 @@ if(first()|dupefinished()){
     #Page 2 - Misc Train Info
     #Page 3 - Off
     
+    setName("LOCOS v."+Version)
+    
     WeightScale = 0.5
     
     Blue = vec(0,191,255) #Color of Short Time Load
@@ -52,7 +56,11 @@ if(first()|dupefinished()){
     Page2 = MonDefault2
     
     EGP1:egpClear()
+    if(ConductorScreen){EGP1_Conductor:egpClear()}
     EGP2:egpClear()
+    
+    EGPA = EGP1
+    ScreenQ = 0
     
     function normal adc(MinVal, MaxVal, Resolution, Input){
         local Output = 0
@@ -268,7 +276,7 @@ if(first()|dupefinished()){
                 This:egpCircleOutline(39+I,LC,vec2(79.5,106))
                 
                 local Index = 40
-                local Index2 = 110
+                local Index2 = 116
                 
                 local LoadTicks = AC ? MaxTE/10000 : MaxLoad/100
                 for(N=0,LoadTicks){
@@ -390,6 +398,24 @@ if(first()|dupefinished()){
                 This:egpText(101+I,"HORN",WC+vec2(3*64,0*32))
                 This:egpAlign(101+I,1,1)
                 This:egpFont(101+I,"Arial")
+                
+                #Front Class - 110,111,112
+                This:egpBoxOutline(110+I,WC+vec2(2*64,-1*32),vec2(62,30))
+                This:egpText(111+I,"FRONT",WC+vec2(2*64,-1*32)+vec2(0,-7))
+                This:egpAlign(111+I,1,1)
+                This:egpFont(111+I,"Arial")
+                This:egpText(112+I,"CLASS",WC+vec2(2*64,-1*32)+vec2(0,7))
+                This:egpAlign(112+I,1,1)
+                This:egpFont(112+I,"Arial")
+                
+                #Rear Class - 113,114,115
+                This:egpBoxOutline(113+I,WC+vec2(2*64,0*32),vec2(62,30))
+                This:egpText(114+I,"REAR",WC+vec2(2*64,0*32)+vec2(0,-7))
+                This:egpAlign(114+I,1,1)
+                This:egpFont(114+I,"Arial")
+                This:egpText(115+I,"CLASS",WC+vec2(2*64,0*32)+vec2(0,7))
+                This:egpAlign(115+I,1,1)
+                This:egpFont(115+I,"Arial")
                 
                 #Overspeed - 102,103,104
                 This:egpBoxOutline(102+I,WC+vec2(1*64,1*32),vec2(62,30))
@@ -751,6 +777,17 @@ if(first()|dupefinished()){
                 #Horn - 100,101
                 This:egpAlpha(100+I,Horn*255)
                 This:egpAlpha(101+I,Horn*255)
+                #Class Lights
+                local CF = FrontClassRGB!=vec()
+                local CR = RearClassRGB!=vec()
+                for(N=110,112){
+                    This:egpAlpha(N+I,CF*255)
+                    This:egpColor(N+I,FrontClassRGB)
+                }
+                for(N=113,115){
+                    This:egpAlpha(N+I,CR*255)
+                    This:egpColor(N+I,RearClassRGB)
+                }
                 #Overspeed - 102,103,104
                 This:egpAlpha(102+I,(MPH>MaxSpeed)*255)
                 This:egpAlpha(103+I,(MPH>MaxSpeed)*255)
@@ -841,6 +878,7 @@ if(Power & !On){
     On = 0
     soundPlay(0,1,"gsgtrainsounds/misc/switch2.wav")
     EGP1:egpClear()
+    EGP1_Conductor:egpClear()
     EGP2:egpClear()
     stopAllTimers()
 }
@@ -850,6 +888,7 @@ if(On){
         Page1++
         if(Page1>3){Page1 = -1}
         EGP1:initPage(Page1,0)
+        if(ConductorScreen){timer("refresh_cond",100)}
         soundPlay(1,0.5,"buttons/blip1.wav")
     }elseif(Cycle2 & !CycleQ){
         CycleQ = 1
@@ -863,8 +902,15 @@ if(On){
 }
 
 if(clk("clk")){
-    EGP1:updatePage(Page1,0)
+    EGPA:updatePage(Page1,0)
     EGP2:updatePage(Page2,1)
+    
+    if(ConductorScreen){
+        ScreenQ = !ScreenQ
+        
+        EGPA = ScreenQ ? EGP1_Conductor : EGP1
+    }
+    
     timer("clk",100)
 }elseif(clk("wakeup")){
     soundPlay(1,10,"ambient/machines/refrigerator.wav")
@@ -1138,5 +1184,14 @@ if(clk("clk")){
 }elseif(clk("finishboot")){
     EGP1:initPage(Page1,0)
     EGP2:initPage(Page2,1)
+    if(ConductorScreen){
+        timer("init_cond",100)
+    }else{
+        timer("clk",100)
+    }
+}elseif(clk("init_cond")){
+    EGP1_Conductor:initPage(Page1,0)
     timer("clk",100)
+}elseif(clk("refresh_cond")){
+    EGP1_Conductor:initPage(Page1,0)
 }

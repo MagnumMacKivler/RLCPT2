@@ -19,7 +19,7 @@
 @persist TransitionMode TransitionVoltage TransitionControlType TransitionQ
 @persist StarterMode OverloadProtection OLPR OLP_Engaged Compressor_CFM MainResVolume
 #Locomotive Sounds
-@persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone MotorDamaging MotorDeath]:string
+@persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone MotorDamaging MotorDeath DynamicsDeath Dynamics_Fubar_On Dynamics_Fubar_Off]:string
 @persist [WheelSlipOn WheelSlipOff WheelSlide SanderOn SanderOff Button_HEP]:string
 #Brake Sounds
 @persist [AirBrakeDump CompressorOn CompressorOff BrakeSqueal]:string
@@ -27,6 +27,7 @@
 #Brake Data
 @persist BrakeMul MainRes EqualRes BrakePipe BrakeCyl LocoBrakePressure BRQ PropCount MaxTrainBrakeForce BrakeNotch ABQ LBQ CarCount HissQ LHissQ Suppression InitialReduction
 @persist Dynamics DynaNotch DynamicBrakingPower DB_Level NotchedDynamics DNQ BrakeWarning CompQ1 CompQ2 SquealQ BHQ BAQ HandBrakeQ CPitch BleedPressure Bleeding Lock_26L HoldingQ HoldingPressure
+@persist DB_Temp DB_Warning DB_Damage DB_Maxtime DB_Mintime
 @persist GraduatedRelease FeedPressure AuxRes EmRes AuxMaxPressure SlideQ
 #Controls
 @persist SetReverser SetThrottle SetDynamics SetSelector IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake HandBrake SandQ
@@ -39,14 +40,14 @@
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 58
+#To-Do for 59
 
 #Actual Blended Braking God Please Kill Me
-#Abusable Dynamic Brakes
-#Display Names & Versions for Control Stand E2s
 
 #Finished:
 
+#Display Names & Versions for Control Stand E2s [x]
+#Abusable Dynamic Brakes [x]
 #Jointed Rail [x]
 #Re-Add Single-Speed DB cooling and DB limiting [x]
 #Wheel Lockup when using Independents + Dynamics [x]
@@ -79,7 +80,7 @@
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.57"
+    local Version = "Gamma 2.0.58"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -121,6 +122,10 @@ if(first()|dupefinished()){
     TractionDrone = "gsgtrainsounds/wheels/emd_dr77_traction.wav"
     MotorDamaging = "ambient/energy/electric_loop.wav"
     MotorDeath = "npc/ministrider/flechette_explode3.wav"
+    
+    DynamicsDeath = "ambient/explosions/explode_3.wav"
+    Dynamics_Fubar_On = "gsgtrainsounds/misc/electrical_arking.wav"
+    Dynamics_Fubar_Off = "ambient/energy/spark1.wav"
     
     #INITIALIZATION
     
@@ -411,6 +416,10 @@ if(first()|dupefinished()){
     TM_Maxtime = 30
     TM_Mintime = 1
     TM_Health = 100
+    
+    DB_Maxtime = 30
+    DB_Mintime = 1
+    DB_Health = 100
     
     #1.016 sec
     
@@ -1378,6 +1387,14 @@ if(clk("motordamage")){
     if(Load>MaxContLoad){
         TM_Damage = 1
     }
+}elseif(clk("dbdamage")){
+    if(-Load > MaxDynLoad){
+        DB_Damage = 1
+        W:soundPlay(14,3,DynamicsDeath)
+        W:soundPlay(5,0,Dynamics_Fubar_On)
+        DynamicsOn = Dynamics_Fubar_On
+        DynamicsOff = Dynamics_Fubar_Off
+    }
 }
 
 
@@ -1671,9 +1688,11 @@ if(On1|On2){
         if(HasPM){
             if(HEP_Notch){
                 EngineNotch1 = HEPTYPE ? max(HEP_Notch*2,Notch) : HEP_Notch*4
-            }elseif(Dynamics){
+            }elseif(Dynamics & (DynamicsMode==1)){
                 
-                if(DB_Throttle==0){ #PM Adjustment Hysteresis for DB
+                if(DB_Damage){
+                    DB_Level = 50
+                }elseif(DB_Throttle==0){ #PM Adjustment Hysteresis for DB
                     local DBH = 25
                     switch(DB_Level){
                         case 50,
@@ -1902,11 +1921,30 @@ if(On1|On2){
         }elseif(Dynamics & HasTM & Excitation){ #Dynamic Brake Calcs
             Voltage = 0
             Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
+            if(DB_Damage){
+                Load = random()*Load/2
+                #print(Load)
+            }
             if(LimitCurrent & (Load<-MaxDynLoad)){Load = -MaxDynLoad}
             TE = WillItBlend ? 0 : -sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
             
-            #local TotalEffortOnAxle = toUnit("lb",abs(TE)+(Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1))/32.17)
-            #if(TotalEffortOnAxle > (TE_Starting*100)){
+            if(-Load > MaxDynLoad){ #DB Consequences
+                DB_Temp += linterp(-Load,vec2(MaxDynLoad,1/DB_Maxtime),vec2(MaxDynLoad+300,1/DB_Mintime))
+                if((DB_Temp>60) & !DB_Warning){
+                    DB_Warning = 1
+                    Pod:driver():printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxDynLoad:toString() + " Amps or dynamic brake damage will occur!")
+                    timer("dbdamage",7500)
+                }
+            }else{
+                if(DB_Warning & !DB_Damage){
+                    DB_Warning = 0
+                    stoptimer("dbdamage")
+                }
+                if(DB_Temp > 0){
+                    DB_Temp += (-2/DB_Maxtime)*50/1000
+                }
+            }
+            
             if((Load<-200) & (Cyl>(ClaspBrakes ? 20 : 40))){
                 #print(TotalEffortOnAxle+"/"+(TE_Starting*32.17))
                 Load = 0
@@ -2565,7 +2603,7 @@ RearPlugOut[18,number] = FrontPlugIn[18,number] + MainResVolume
 FrontPlugOut[19,number] = RearPlugIn[19,number] | BrakeWarning
 RearPlugOut[19,number] = FrontPlugIn[19,number] | BrakeWarning
 
-BrakeWarn = BrakeWarning | FrontPlugIn[19,number] | RearPlugIn[19,number]
+BrakeWarn = BrakeWarning | DB_Damage | FrontPlugIn[19,number] | RearPlugIn[19,number]
 
 Lights_Forward = MU_F ? 0 : FrontPlugOut[10,number]
 Lights_Backward = MU_R ? 0 : RearPlugOut[10,number]

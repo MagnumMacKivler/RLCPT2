@@ -1,0 +1,470 @@
+@name Car Weight Handler 2
+@inputs Enable
+@outputs Tons IsCar SBCar CarBody:entity Scale
+@persist E:entity RunQ O:entity ActiveQ CarBody:entity SpanBolsters:array Trucks:array SpanBolsterMode Visible IsCar SBCar Tons WeightInterval M1Q M2Q
+@persist Runnable Mode CopyTons ModeSwitchQ SBSwitchQ AutoCopy
+@trigger 
+
+#907 kg = 1 Ton
+if(duped()){reset()}
+if(first()|dupefinished()){
+    
+    #Version 2.2
+    
+    #Point Gravity Gun at carbody.
+    #Observe the holo display over each car: Weight (Tons), and A/S for Articulated vs Span Bolster weight setups ("Normal" cars work in both setups).
+    #Type .reset to reload holos if broken.
+    #Press R to toggle between Weight Modes: Increment vs Copy/Paste.
+    #Increment Mode:
+        #Mouse1 Increases Car Weight
+        #Mouse2 Decreases Car Weight
+    #Copy/Paste Mode:
+        #Mouse1 Pastes Weight
+        #Mouse2 Copies Weight
+        
+    #Press Shift+R to toggle between Articulated and Span Bolster weight setups.
+    
+    WeightInterval = 5 #How many tons to add/subtract per click.
+    SpanBolsterMode = 0 #0 for Normal/Articulated, 1 for Normal/Span Bolster cars. You can change this with the ".sb" command.
+    Scale = 0.5 #Weight Scale for RLC PT2 (Should be 0.5, don't touch this!)
+    
+    AutoCopy = 1 #Automatically copy weight when switching to Copy/Paste mode?
+    CopyTons = 70 #Default weight for Copy/Paste to use
+    
+    E = entity()
+    O = owner()
+    holoCreate(0,E:pos(),vec(1),ang(0),vec(255),"cube")
+    holoCreate(1,E:pos()+vec(0,54,0),vec(4),ang(0,90,0),vec(255),"models/sprops/misc/alphanum/alphanum_1.mdl")
+    holoCreate(2,E:pos()+vec(0,18,0),vec(4),ang(0,90,0),vec(255),"models/sprops/misc/alphanum/alphanum_0.mdl")
+    holoCreate(3,E:pos()+vec(0,-18,0),vec(4),ang(0,90,0),vec(255),"models/sprops/misc/alphanum/alphanum_0.mdl")
+    holoCreate(4,E:pos()+vec(0,-54,-12),vec(2),ang(0,90,0),vec(255),"models/sprops/misc/alphanum/alphanum_t.mdl")
+    holoCreate(5,E:pos()+vec(0,-54,12),vec(1),ang(0,90,0),vec(255))
+    
+    holoModel(5,SpanBolsterMode ? "models/sprops/misc/alphanum/alphanum_s.mdl" : "models/sprops/misc/alphanum/alphanum_a.mdl")
+    holoColor(5,SpanBolsterMode ? vec(0,150,255) : vec(255))
+    
+    for(N=1,5){
+        holoMaterial(N,"debug/debugdrawflat")
+        holoParent(N,0)
+    }
+    holoAlpha(0,0)
+    RunQ = 0
+    ActiveQ = 0
+    CarBody = noentity()
+    function void hideHolos(){
+        if(Visible){
+            Visible = 0
+            for(N=1,5){
+                holoAlpha(N,0)
+            }
+        }
+        return void
+    }
+    function void showHolos(){
+        if(!Visible){
+            Visible = 1
+            for(N=1,5){
+                holoAlpha(N,255)
+            }
+        }
+        return void
+    }
+    function number linterp(T,Start:vector2,End:vector2){ #2-Point Linear Interpolation
+    
+        local X0 = Start:x()
+        local X1 = End:x()
+        local Y0 = Start:y()
+        local Y1 = End:y()
+        
+        if((T>=X0)&(T<X1)){
+            local TN = (T-X0)/(X1-X0)
+            return Y0 + TN*(Y1-Y0)
+        }elseif(T<X0){
+            return Y0
+        }else{
+            return Y1
+        }
+    }
+    function void setHolos(Weight){
+        
+        if(Visible){
+            
+            local Color = vec()
+            if(Mode){
+                Color = (Tons==CopyTons) ? vec(150,75,255) : vec(127)
+            }else{
+                Color = vec(linterp(Weight,vec2(20,0),vec2(100,255)),linterp(Weight,vec2(100,255),vec2(200,0)),0)
+            }
+            for(N=1,4){
+                holoColor(N,Color)
+            }
+            
+            local T = round(Weight):toString()
+            local D3 = T:index(-1)
+            local D2 = T:index(-2)
+            local D1 = T:index(-3)
+            if(D1!=""){
+                holoModel(1,"models/sprops/misc/alphanum/alphanum_"+D1+".mdl")
+                holoAlpha(1,255)
+            }else{
+                holoAlpha(1,0)
+            }
+            if(D2!=""){
+                holoModel(2,"models/sprops/misc/alphanum/alphanum_"+D2+".mdl")
+                holoAlpha(2,255)
+            }else{
+                holoAlpha(2,0)
+            }
+            if(D3!=""){
+                holoModel(3,"models/sprops/misc/alphanum/alphanum_"+D3+".mdl")
+                holoAlpha(3,255)
+            }else{
+                holoAlpha(3,0)
+            }
+        }
+
+        
+        
+        return void
+    }
+    function void weigh(){
+        #Find Weight
+        local CarWeight = 0
+        CarWeight += CarBody:mass()
+        foreach(K,V:entity=SpanBolsters){
+            if(V:isValidPhysics()){CarWeight+=V:mass()}
+        }
+        foreach(K,V:entity=Trucks){
+            if(V:isValidPhysics()){CarWeight+=V:mass()}
+        }
+        Tons = round(CarWeight/(907*Scale))
+    }
+    Visible = 1
+    hideHolos()
+    runOnChat(1)
+    Runnable = 1
+    
+}
+if(Runnable){
+    if(((->Enable) ? Enable : 1) & !RunQ){
+        RunQ = 1
+        timer("clk",100)
+    }elseif(((->Enable) ? !Enable : 0) & RunQ){
+        RunQ = 0
+        stoptimer("clk")
+        runOnKeys(O,0)
+        hideHolos()
+    }elseif(clk("clk")){
+        local WEPON = O:weapon():type()
+        if((WEPON=="weapon_physcannon") & !O:inVehicle() & !ActiveQ){
+            ActiveQ = 1
+            runOnKeys(O,1)
+        }elseif(((WEPON!="weapon_physcannon")|O:inVehicle()) & ActiveQ){
+            ActiveQ = 0
+            runOnKeys(O,0)
+            hideHolos()
+        }
+        if(ActiveQ){
+            
+            #Find Car
+            CarBody = O:aimEntity()
+            if(CarBody:isValidPhysics()){
+                local Bolster1 = CarBody:isConstrainedTo("axis",1)
+                local Bolster2 = CarBody:isConstrainedTo("axis",2)
+                IsCar = Bolster1:isValidPhysics() & Bolster2:isValidPhysics()
+                if(IsCar){
+                    if(SpanBolsterMode){
+                        SpanBolsters = array(Bolster1,Bolster2)
+                        Trucks = array()
+                        local Valid = 1
+                        local N = 1
+                        local C = 1
+                        while(Valid){
+                            local Truck = Bolster1:isConstrainedTo("axis",N)
+                            N++
+                            Valid = Truck:isValidPhysics()
+                            if(Valid & (Truck!=CarBody)){
+                                Trucks[C,entity] = Truck
+                                C++
+                            }
+                        }
+                        Valid = 1
+                        N = 1
+                        while(Valid){
+                            local Truck = Bolster2:isConstrainedTo("axis",N)
+                            N++
+                            Valid = Truck:isValidPhysics()
+                            if(Valid & (Truck!=CarBody)){
+                                Trucks[C,entity] = Truck
+                                C++
+                            }
+                        }
+                        SBCar = (Trucks:count()>0)
+                        if(!SBCar){
+                            SpanBolsters = array()
+                            Trucks = array(Bolster1,Bolster2)
+                        }
+                    }else{
+                        SpanBolsters = array()
+                        Trucks = array(Bolster1,Bolster2)
+                        SBCar = 0
+                    }
+                    
+                    weigh()
+                }
+                
+                
+            }elseif(!CarBody:isValidPhysics()){
+                IsCar = 0 
+                CarBody = noentity()
+            }
+            if(IsCar){ #Display
+                showHolos()
+                setHolos(Tons)
+                holoPos(0,CarBody:pos()+vec(0,0,32+CarBody:boxSize():z()))
+                holoAng(0,O:eyeAngles()*ang(0,1,0))
+            }else{
+                hideHolos()
+            }
+            
+        }
+        
+        
+        timer("clk",100)
+    }
+    #Weight Adjust
+    if(keyClk(O)){
+        
+        
+        if(ActiveQ){
+            
+            local Reload = O:keyReload()
+            local Shift = O:keySprint()
+            local SwapWgtMode = Reload & !Shift
+            local SwapSBMode = Reload & Shift
+            #Switch between Increment and C/P modes
+            if(SwapWgtMode & !ModeSwitchQ){
+                ModeSwitchQ = 1
+                O:soundPlay(0,2,"buttons/combine_button1.wav")
+                Mode = !Mode
+                if(Mode){
+                    if(CarBody:isValidPhysics() & AutoCopy){
+                        CopyTons = Tons
+                    }
+                    printColor(vec(150,200,255),"[CWH2] Weight Adjustment Mode set to ",vec(150,75,255),"Copy/Paste @ "+CopyTons+" Tons.")
+                }else{
+                    printColor(vec(150,200,255),"[CWH2] Weight Adjustment Mode set to ",vec(255,255,0),"Increment.")
+                }
+                #print("Weight Mode set to "+(Mode ? "Copy/Paste." : "Increment."))
+            }elseif(!SwapWgtMode & ModeSwitchQ){
+                ModeSwitchQ = 0
+            }elseif(SwapSBMode & !SBSwitchQ){ #Switch between Span Bolster and Articulated modes
+                SBSwitchQ = 1
+                O:soundPlay(0,2,"buttons/lever7.wav")
+                SpanBolsterMode = !SpanBolsterMode
+                
+                if(SpanBolsterMode){
+                    printColor(vec(150,200,255),"[CWH2] Car Type set to Normal/",vec(0,150,255),"Span Bolster Car ",vec(150,200,255),"mode.")
+                }else{
+                    printColor(vec(150,200,255),"[CWH2] Car Type set to Normal/",vec(255),"Articulated Car ",vec(150,200,255),"mode.")
+                }
+                holoModel(5,SpanBolsterMode ? "models/sprops/misc/alphanum/alphanum_s.mdl" : "models/sprops/misc/alphanum/alphanum_a.mdl")
+                holoColor(5,SpanBolsterMode ? vec(0,150,255) : vec(255))
+                
+            }elseif(!SwapSBMode & SBSwitchQ){
+                SBSwitchQ = 0
+            }
+        }
+        
+        if(ActiveQ & IsCar){
+            local Mouse1 = O:keyAttack1()#O:keyPressed("mouse_left")
+            local Mouse2 = O:keyAttack2()#O:keyPressed("mouse_right")
+            
+            if(Mode==0){ #Increment Adjust
+                if(Mouse1 & (Tons<200) & !M1Q){ #Add
+                    M1Q = 1
+                    O:soundPlay(0,0,"buttons/blip1.wav")
+                    Tons = clamp(round((Tons + WeightInterval)/WeightInterval)*WeightInterval,20,200)
+                    local Weight = Tons*(907*Scale)
+                    CB_Mass = round(min(SBCar ? Weight*2/3 : Weight*3/5,50000))
+                    CarBody:setMass(CB_Mass)
+                    soundPitch(0,linterp(Tons,vec2(20,50),vec2(200,200)))
+                    
+                    if(SBCar){
+                        AS_Mass = round((Weight - CB_Mass)/2)
+                        SB_Mass = round(min(AS_Mass*3/5,50000))
+                        TR_Mass = round((AS_Mass - SB_Mass)/2)
+                        SpanBolsters[1,entity]:setMass(SB_Mass)
+                        SpanBolsters[2,entity]:setMass(SB_Mass)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                        Trucks[3,entity]:setMass(TR_Mass)
+                        Trucks[4,entity]:setMass(TR_Mass)
+                        
+                    }else{
+                        local TR_Mass = round((Weight - CB_Mass)/2)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                    }
+                }elseif(!Mouse1 & M1Q){
+                    M1Q = 0
+                    weigh()
+                    soundStop(0)
+                }
+                
+                
+                
+                if(Mouse2 & (Tons>20) & !M2Q){ #Subtract
+                    M2Q = 1
+                    O:soundPlay(0,0,"buttons/blip1.wav")
+                    Tons = clamp(round((Tons - WeightInterval)/WeightInterval)*WeightInterval,20,200)
+                    local Weight = Tons*(907*Scale)
+                    CB_Mass = round(min(SBCar ? Weight*2/3 : Weight*3/5,50000))
+                    CarBody:setMass(CB_Mass)
+                    soundPitch(0,linterp(Tons,vec2(20,50),vec2(200,200)))
+                    
+                    if(SBCar){
+                        AS_Mass = round((Weight - CB_Mass)/2)
+                        SB_Mass = round(min(AS_Mass*3/5,50000))
+                        TR_Mass = round((AS_Mass - SB_Mass)/2)
+                        SpanBolsters[1,entity]:setMass(SB_Mass)
+                        SpanBolsters[2,entity]:setMass(SB_Mass)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                        Trucks[3,entity]:setMass(TR_Mass)
+                        Trucks[4,entity]:setMass(TR_Mass)
+                        
+                    }else{
+                        TR_Mass = round((Weight - CB_Mass)/2)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                    }
+                }elseif(!Mouse2 & M2Q){
+                    M2Q = 0
+                    weigh()
+                    soundStop(0)
+                }
+            }elseif(Mode==1){ #Copy/Paste
+                if(Mouse2 & (Tons>20) & !M2Q){ #Copy
+                    M2Q = 1
+                    O:soundPlay(1,2,"buttons/button6.wav")
+                    CopyTons = Tons
+                    print("Weight Copied: "+CopyTons+" Tons.")
+                }elseif(!Mouse2 & M2Q){
+                    M2Q = 0
+                    weigh()
+                    #soundStop(0)
+                }
+                
+                if(Mouse1 & (Tons<200) & !M1Q){ #Paste
+                    M1Q = 1
+                    O:soundPlay(0,0,"buttons/blip1.wav")
+                    Tons = CopyTons
+                    local Weight = Tons*(907*Scale)
+                    CB_Mass = round(min(SBCar ? Weight*2/3 : Weight*3/5,50000))
+                    CarBody:setMass(CB_Mass)
+                    soundPitch(0,linterp(Tons,vec2(20,50),vec2(200,200)))
+                    
+                    if(SBCar){
+                        AS_Mass = round((Weight - CB_Mass)/2)
+                        SB_Mass = round(min(AS_Mass*3/5,50000))
+                        TR_Mass = round((AS_Mass - SB_Mass)/2)
+                        SpanBolsters[1,entity]:setMass(SB_Mass)
+                        SpanBolsters[2,entity]:setMass(SB_Mass)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                        Trucks[3,entity]:setMass(TR_Mass)
+                        Trucks[4,entity]:setMass(TR_Mass)
+                        
+                    }else{
+                        local TR_Mass = round((Weight - CB_Mass)/2)
+                        Trucks[1,entity]:setMass(TR_Mass)
+                        Trucks[2,entity]:setMass(TR_Mass)
+                    }
+                }elseif(!Mouse1 & M1Q){
+                    M1Q = 0
+                    weigh()
+                    soundStop(0)
+                }
+            }
+        }else{
+            if(M1Q | M2Q){
+                M1Q = M2Q = 0
+                soundStop(0)
+            }
+        }
+        #Loco Weight Reset functionality disabled due to PT2 locomotives using scale weights
+        
+        #if(ActiveQ & O:keyPressed("R")){
+        #    if(!SBCar){
+        #        CarBody:setMass(40000)
+        #        Trucks[1,entity]:setMass(20000)
+        #        Trucks[2,entity]:setMass(20000)
+        #        printColor(vec(150,200,255),"Car Reset to ",vec(0,150,255),"Locomotive Weights (40k/20k)!")
+        #        soundPlay(0,1,"buttons/button18.wav")
+        #    }
+        #}
+    }
+    if(chatClk(O)){
+        local LS = O:lastSaid()
+        local Sentence = LS:explode(" ")
+        local CMD = Sentence[1,string]
+        
+        if(CMD==".set"){
+            if(ActiveQ & IsCar){
+                M2Q = 1
+                O:soundPlay(0,0,"buttons/blip1.wav")
+                Tons = clamp(round((Sentence[2,string]:toNumber())/WeightInterval)*WeightInterval,20,200)
+                local Weight = Tons*(907*Scale)
+                CB_Mass = round(min(SBCar ? Weight*2/3 : Weight*3/5,50000))
+                CarBody:setMass(CB_Mass)
+                soundPitch(0,linterp(Tons,vec2(20,50),vec2(200,200)))
+                
+                if(SBCar){
+                    AS_Mass = round((Weight - CB_Mass)/2)
+                    SB_Mass = round(min(AS_Mass*3/5,50000))
+                    TR_Mass = round((AS_Mass - SB_Mass)/2)
+                    SpanBolsters[1,entity]:setMass(SB_Mass)
+                    SpanBolsters[2,entity]:setMass(SB_Mass)
+                    Trucks[1,entity]:setMass(TR_Mass)
+                    Trucks[2,entity]:setMass(TR_Mass)
+                    Trucks[3,entity]:setMass(TR_Mass)
+                    Trucks[4,entity]:setMass(TR_Mass)
+                    
+                }else{
+                    TR_Mass = round((Weight - CB_Mass)/2)
+                    Trucks[1,entity]:setMass(TR_Mass)
+                    Trucks[2,entity]:setMass(TR_Mass)
+                }
+                printColor(vec(150,200,255),"[CWH2] Car weight set to ",vec(linterp(Tons,vec2(20,0),vec2(100,255)),linterp(Tons,vec2(100,255),vec2(200,0)),0),Tons:toString() + " Tons.")
+                
+            }
+            hideChat(1)
+        }elseif(CMD==".sb"){
+            if(Sentence[2,string]!=""){
+                SpanBolsterMode = Sentence[2,string]:toNumber()
+            }else{
+                SpanBolsterMode = !SpanBolsterMode
+            }
+            if(SpanBolsterMode){
+                printColor(vec(150,200,255),"[CWH2] Car Type set to Normal/",vec(0,150,255),"Span Bolster Car ",vec(150,200,255),"mode.")
+            }else{
+                printColor(vec(150,200,255),"[CWH2] Car Type set to Normal/",vec(255),"Articulated Car ",vec(150,200,255),"mode.")
+            }
+            holoModel(5,SpanBolsterMode ? "models/sprops/misc/alphanum/alphanum_s.mdl" : "models/sprops/misc/alphanum/alphanum_a.mdl")
+            holoColor(5,SpanBolsterMode ? vec(0,150,255) : vec(255))
+            hideChat(1)
+        }elseif(CMD==".interval"){
+            WeightInterval = Sentence[2,string]:toNumber()
+            WeightInterval = clamp(WeightInterval,1,200)
+            printColor(vec(150,200,255),"[CWH2] Weight interval set to ",vec(0,150,255),WeightInterval,vec(150,200,255)," Tons per click.")
+            
+            hideChat(1)
+            
+        }elseif(CMD==".reset"){
+            hideChat(1)
+            print("[CWH2] Reloading Weight Handler...")
+            reset()
+        }
+    }
+}

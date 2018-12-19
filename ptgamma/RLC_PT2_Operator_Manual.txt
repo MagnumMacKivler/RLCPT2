@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.57
+                                                                    For RLC Pt 2.0.58
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -84,6 +84,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         Electronic Traction Control
         Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
         Abusable Traction Motors with Parameterized Ratings
+        Abusable Dynamic Brakes
         
     Air System:
         Complete air system overhaul featuring Auxilliary Reservoir pressure simulation
@@ -291,6 +292,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             3 - Making sure not to exceed the maximum braking amperage, Advance or Release the Dynamic Brakes as necessary to slow the train.
             4 - When you are finished, return the Dynamic Brakes to the OFF Notch and wait 10 seconds before resuming normal Throttle operation.
         Remember, Dynamic Brakes lose effectiveness as the train's speed decreases, and as such, cannot stop a train by themselves.
+        
+        Don't let the dynamic braking current exceed the locomotive's maximum rating! If you do, you may damage (and destroy) your dynamic brakes!
         
         You can use the Automatic Brakes (Train Brakes) in conjunction with the dynamic brakes. The locomotive's brake cylinders will automatically release when doing this.
         Be sure not to apply the Independent (Locomotive) Brakes when the dynamic brakes are in use! Doing so may lock up your wheels and cause you to slide!
@@ -521,4 +524,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.57")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.58")
