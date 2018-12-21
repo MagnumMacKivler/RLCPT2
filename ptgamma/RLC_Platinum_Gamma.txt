@@ -2,7 +2,7 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array
+@outputs AvCurrent GenCurrent Currents:array BlendEqualRes ForceDynaPower
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
@@ -40,12 +40,13 @@
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 59
+#To-Do for 60
 
-#Actual Blended Braking God Please Kill Me
 
 #Finished:
 
+#Dimmable headlights
+#Actual Blended Braking God Please Kill Me
 #Display Names & Versions for Control Stand E2s [x]
 #Abusable Dynamic Brakes [x]
 #Jointed Rail [x]
@@ -80,7 +81,7 @@
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.58"
+    local Version = "Gamma 2.0.59"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -92,7 +93,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_sd40"
+    #include "ptgamma/locos/appn/emd_sd60"
     
     #That's pretty much all the config!
     
@@ -1639,14 +1640,29 @@ if(On1|On2){
             
             #Blended Braking
             
-            if(!Emergency & BlendedBraking & DynamicsMode & (BrakeCyl>0) & (MPH>10)){
-                local MaxDynaPower = 2800/MPH
-                ForceDynaPower = clamp(min(BrakeCyl*2,MaxDynaPower),0,100)
+            local SetEqualRes = CtlTable["SetEqualRes",number]
+            if(!Emergency & BlendedBraking & DynamicsMode & (SetEqualRes<90) & (Throttle==0) & abs(Reverser)){
+                
+                
+                BlendTargetBE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(90-SetEqualRes))*300/90
+                local AirBE = 0#(MaxTrainBrakeForce*BrakeCyl)*300/90
+                local RemainingBE = BlendTargetBE - AirBE
+                #Load = TE/(250*Motors*BaseSpeed/TopSpeed)
+                #Load = -DBP*MPH/4 => DBP = 4*Load/MPH
+                #TE = abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
+                if((RemainingBE>0) & (MPH>5)){
+                    local MaxDBL = clamp(1.5*RemainingBE/(250*Motors*BaseSpeed/TopSpeed),0,MaxDynLoad)
+                    ForceDynaPower = min(4*MaxDBL/MPH,100)
+                    #print(RemainingBE)
+                }else{
+                    ForceDynaPower = 0
+                }
                 
             }else{
                 ForceDynaPower = 0
             }
             WillItBlend = ForceDynaPower>0
+            #print(WillItBlend)
             
             #Actual Dynamics
             
@@ -1917,6 +1933,7 @@ if(On1|On2){
             WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
             TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
+            BlendEqualRes = 90
             
         }elseif(Dynamics & HasTM & Excitation){ #Dynamic Brake Calcs
             Voltage = 0
@@ -1926,9 +1943,16 @@ if(On1|On2){
                 #print(Load)
             }
             if(LimitCurrent & (Load<-MaxDynLoad)){Load = -MaxDynLoad}
-            TE = WillItBlend ? 0 : -sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
+            TE = -sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
             
-            if(-Load > MaxDynLoad){ #DB Consequences
+            #Blended Braking Air Target
+            
+            local RequiredAirBE = BlendTargetBE - abs(TE)
+            local RequiredBrakeCyl = 90*RequiredAirBE/(300*MaxTrainBrakeForce)
+            BlendEqualRes = 90-RequiredBrakeCyl
+            
+            #DB Consequences
+            if(-Load > MaxDynLoad){
                 DB_Temp += linterp(-Load,vec2(MaxDynLoad,1/DB_Maxtime),vec2(MaxDynLoad+300,1/DB_Mintime))
                 if((DB_Temp>60) & !DB_Warning){
                     DB_Warning = 1
@@ -1963,6 +1987,7 @@ if(On1|On2){
             BrakeWarning = Load<-MaxDynLoad
         }else{
             Load = Voltage = TE = 0
+            BlendEqualRes = 90
             if(WheelSlip & SlideQ){
                 SlideQ = 0
                 soundStop(12)
@@ -2261,7 +2286,7 @@ if(Tick){
     }
     
     local BrakeNotch = CtlTable["SetBrakeNotch",number]
-    local SetEqualRes = CtlTable["SetEqualRes",number]
+    local SetEqualRes = WillItBlend ? 90 : CtlTable["SetEqualRes",number]
     local SetBleeding = CtlTable["SetBleeding",number]
     local SetHolding = CtlTable["SetHolding",number]
     local Overcharge = CtlTable["Overcharge",number] #What do you mean, "Overcha-"
@@ -2282,6 +2307,13 @@ if(Tick){
     
     if(BrakeCutIn){
         #AUTOMATIC BRAKES
+        
+        #Blended Braking
+        if(WillItBlend & (BlendEqualRes<90)){
+            if(SetEqualRes>BlendEqualRes){
+                SetEqualRes = BlendEqualRes
+            }
+        }
         
         #Equalizing Reservoir
         if(SetEqualRes>EqualRes){ #Recharge
@@ -2438,7 +2470,7 @@ if(Tick){
     }
     
     #Brake Physprops
-    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90 #If you adjust this, don't forget to correct the DB lockup code!
+    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90 #If you adjust this, don't forget to correct the DB lockup code and Blended Braking!
     Overcome = (abs(TE) - BE)>0
     if(BrakeCutIn){
         if((((Braking_Train | Braking_Loco) & (Power==0)) | HandBrakeOverride) & !BHQ & (MPH<1)){
@@ -2584,8 +2616,8 @@ if((On1|On2) & MU_Master){
     RearPlugOut[11,number] = (FrontPlugIn[11,number]==2) ? 2 : 1
 }
 
-FrontPlugOut[10,number] = RearPlugIn[10,number] | Lights_Front
-RearPlugOut[10,number] = FrontPlugIn[10,number] | Lights_Rear
+FrontPlugOut[10,number] = max(RearPlugIn[10,number],Lights_Front)
+RearPlugOut[10,number] = max(FrontPlugIn[10,number],Lights_Rear)
 
 FrontPlugOut[14,number] = RearPlugIn[14,number] | WheelSlipLocal
 RearPlugOut[14,number] = FrontPlugIn[14,number] | WheelSlipLocal
