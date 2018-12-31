@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_L6_539T
 #ENGINE CONFIG
-ENG_Version = "2.0.56"
+ENG_Version = "2.0.60"
 #For use in early Alco locomotives (HH1000, S2, S4, S7, S12, RS1, RSC13, and DL103-DL110). Also acceptable as a 538T.
 EngineType = "Alco 539T (L6)" #What is the name of the Prime Mover?
 
@@ -45,6 +45,28 @@ EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 UpDelays = array(0,   1300,2000,3000,1850,1300,2000,0)
                    #8-7  7-6  6-5  5-4  4-3  3-2  2-1
 DownDelays = array(2700,4000,2400,6500,2810,4000,0)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
 
 StartupClagDelay = 3 #Time required to hold starter for engine to turn on successfully
 StartupClagDuration = 3 #Duration for starter smoke

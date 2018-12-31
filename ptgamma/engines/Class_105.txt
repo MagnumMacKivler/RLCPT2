@@ -1,6 +1,6 @@
 @name ptgamma/engines/Class 105
 #ENGINE CONFIG
-ENG_Version = "2.0.56"
+ENG_Version = "2.0.60"
 #For use in EMD 1500-series Locomotives (SW1500, MP15DC).
 EngineType = "AEC 150hp" #What is the name of the Prime Mover?
 
@@ -45,6 +45,28 @@ EngineBehavior = array(2,  2,  2,  2,  2,  2,  2,  2)
 UpDelays = array(0,   1500,1800,1200,1200,1000,1200,2500) 
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
 DownDelays = array(1600,1600,1600,2000,2000,2000,3300)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
 
 StartupClagDelay = 1 #Time required to hold starter for engine to turn on successfully
 StartupClagDuration = 1 #Duration for starter smoke

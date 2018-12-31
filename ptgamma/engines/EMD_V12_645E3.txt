@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V12_645E3
 #ENGINE CONFIG
-ENG_Version = "2.0.56"
+ENG_Version = "2.0.60"
 #For use in EMD 39-series Locomotives (GP39, SD39 and dash 2 versions). The low idle feature was not present on the 12 cylinder motor.
 EngineType = "EMD 645E3 V12" #What is the name of the Prime Mover?
 
@@ -43,6 +43,28 @@ EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 UpDelays = array(1291, 2781,4087,3412,4111,3605,5995,3691)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1  1-0
 DownDelays = array(1582,1664,2390,1954,1879,3150,1899, 1344)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
 
 StartupClagDelay = 1.5 #Time required to hold starter for engine to turn on successfully
 StartupClagDuration = 2 #Duration for starter smoke

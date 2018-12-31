@@ -6,7 +6,7 @@
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
-@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays]:array
+@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleCondition1 LowIdleCondition2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
 @persist RevDirection1 RevDirection2 TimeStamp1 TimeStamp2 Dur1 Dur2 NQ TQ1 TQ2 ABQ1 ABQ2 ABlendQ1 ABlendQ2 AnyBlendQ1 AnyBlendQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force Load_Setpoint Load
@@ -36,6 +36,7 @@
 @persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend SwitchingMode
 @persist [CFG_Version ENG_Version CS_Version]:string
 @persist AC_PlugNope MU_Master CtlInitQ [FrontTruck RearTruck]:entity ClicketyQ
+@persist Version:string 
 
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
@@ -45,6 +46,9 @@
 
 #Finished:
 
+#Update Checking
+#New behavior mode for overriding sounds
+#Fix things that use HP not caring about DPM
 #Dimmable headlights
 #Actual Blended Braking God Please Kill Me
 #Display Names & Versions for Control Stand E2s [x]
@@ -81,7 +85,7 @@
 
 if(first()|dupefinished()){
     
-    local Version = "Gamma 2.0.59"
+    Version = "Gamma 2.0.60"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -93,7 +97,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/appn/emd_sd60"
+    #include "ptgamma/locos/generic/emd_sd40"
     
     #That's pretty much all the config!
     
@@ -182,6 +186,9 @@ if(first()|dupefinished()){
         TransitionControlType = CtlTable["TransitionControlType",number]
         return void
     }
+    #Overall Version Check
+    runOnHTTP(1)
+    httpRequest("https://raw.githubusercontent.com/MagnumMacKivler/RLCPT2/master/version.txt")
     
     #Loco
     local LastCompatibleConfig = "2.0.57"
@@ -196,7 +203,7 @@ if(first()|dupefinished()){
     local CFG_Conflict = (RLCV_Major != CFGV_Major) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Engine
-    LastCompatibleConfig = "2.0.56"
+    LastCompatibleConfig = "2.0.60"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -232,8 +239,8 @@ if(first()|dupefinished()){
     local CTLV_Minor = CTLVA[3,string]
     
     local CTL_Conflict = ->CtlTable ? (RLCV_Major != CTLV_Major) | (CTLV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
-    
-    if(CFG_Conflict | ENG_Conflict | CS_Conflict | CTL_Conflict){
+    Conflict_Generic = CFG_Conflict | ENG_Conflict | CS_Conflict | CTL_Conflict
+    if(Conflict_Generic){
         printColor(vec(0,191,255),"[RLCPT] Note: One of your configs are out of date! Please use configs compatible with ",vec(255),Version+"!\n--------")
         printColor("Engine Config version: ",ENG_Conflict ? vec(255,0,0) : vec(63,255,63),(ENG_Version=="") ? "unknown" : ENG_Version)
         printColor("Locomotive Config version: ",CFG_Conflict ? vec(255,0,0) : vec(63,255,63),(CFG_Version=="") ? "unknown" : CFG_Version)
@@ -597,6 +604,28 @@ if(first()|dupefinished()){
                 }
                 RevDirection1 = 0
                 break
+            case 4,
+                local Snd = UpOverrides[From+1,string]
+                Dur1 = sdr(Snd)
+                TimeStamp1 = curtime()
+                if(TimeLeftMS>0){
+                    H1:soundPlay(10,0,Snd)
+                    soundVolume(10,0)
+                    soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                }else{
+                    soundStop(10)
+                    H1:soundPlay(0,0,Snd)
+                }
+                timer("TQU1",sdr(Snd))
+                EngineSpeed1++
+                LRQ1 = 1
+                if(CompQ1 & !CompressorType){
+                    local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
+                    soundPitch(8,CompressorPitch,sdr(Snd)/1000)
+                }
+                Clag1 = 1
+                RevDirection1 = 1
+                break
         }
         stoptimer("TQD1")
         return void
@@ -700,6 +729,28 @@ if(first()|dupefinished()){
                 }
                 RevDirection2 = 0
                 break
+            case 4,
+                local Snd = UpOverrides[From+1,string]
+                Dur2 = sdr(Snd)
+                TimeStamp2 = curtime()
+                if(TimeLeftMS>0){
+                    H2:soundPlay(11,0,Snd)
+                    soundVolume(11,0)
+                    soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                }else{
+                    soundStop(11)
+                    H2:soundPlay(1,0,Snd)
+                }
+                timer("TQU2",sdr(Snd))
+                EngineSpeed2++
+                LRQ2 = 1
+                if(CompQ2 & !CompressorType){
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
+                    soundPitch(9,CompressorPitch,sdr(Snd)/1000)
+                }
+                Clag2 = 1
+                RevDirection2 = 1
+                break
         }
         stoptimer("TQD2")
         return void
@@ -740,7 +791,7 @@ if(first()|dupefinished()){
                     if((To<(From-1)) & (EngineBehavior[From-1,number]==0)){
                         #print("TF "+((To<(From-1))))
                         #print("EB "+(EngineBehavior[From-1,number]==0))
-                        timer("TQD1",DownDelays[8-From+1,number])
+                        timer("TQD1",DownDelays[NumEngineNotches-From+1,number])
                         #print("Play B Cont")
                     }else{
                         timer("TQD1",sdr(Snd))
@@ -810,6 +861,27 @@ if(first()|dupefinished()){
                 }
                 RevDirection1 = 0
                 break
+            case 4,
+                local Snd = DownOverrides[NumEngineNotches-From+1,string]
+                Dur1 = sdr(Snd)
+                TimeStamp1 = curtime()
+                if(TimeLeftMS>0){
+                    H1:soundPlay(10,0,Snd)
+                    soundVolume(10,0)
+                    soundVolume(10,1,clamp(TimeLeftMS/1000,0,(Dur1/1000)-0.001))
+                }else{
+                    soundStop(10)
+                    H1:soundPlay(0,0,Snd)
+                }
+                timer("TQD1",sdr(Snd))
+                EngineSpeed1--
+                LRQ1 = 1
+                if(CompQ1 & !CompressorType){
+                    local CompressorPitch = 100 + EngineSpeed1*CPitch/NumEngineNotches
+                    soundPitch(8,CompressorPitch,sdr(Snd)/1000)
+                }
+                RevDirection1 = -1
+                break
         }
         #print("Yadunfuktupnow!")
         stoptimer("TQU1")
@@ -848,7 +920,7 @@ if(first()|dupefinished()){
                         #print("NOPE")
                     }
                     if((To<(From-1)) & (EngineBehavior[From-1,number]==0)){
-                        timer("TQD2",DownDelays[8-From+1,number])
+                        timer("TQD2",DownDelays[NumEngineNotches-From+1,number])
                     }else{
                         timer("TQD2",sdr(Snd))
                         ABQ2 = 0
@@ -914,6 +986,27 @@ if(first()|dupefinished()){
                     soundPitch(1,98,1)
                 }
                 RevDirection2 = 0
+                break
+            case 4,
+                local Snd = DownOverrides[NumEngineNotches-From+1,string]
+                Dur2 = sdr(Snd)
+                TimeStamp2 = curtime()
+                if(TimeLeftMS>0){
+                    H2:soundPlay(11,0,Snd)
+                    soundVolume(11,0)
+                    soundVolume(11,1,clamp(TimeLeftMS/1000,0,(Dur2/1000)-0.001))
+                }else{
+                    soundStop(11)
+                    H2:soundPlay(1,0,Snd)
+                }
+                timer("TQD2",sdr(Snd))
+                EngineSpeed2--
+                LRQ2 = 1
+                if(CompQ2 & !CompressorType){
+                    local CompressorPitch = 98 + EngineSpeed2*CPitch/NumEngineNotches
+                    soundPitch(9,CompressorPitch,sdr(Snd)/1000)
+                }
+                RevDirection2 = -1
                 break
         }
         #print("Wat")
@@ -1333,7 +1426,71 @@ if(HasPM){ #Actual Engine Starting
 #What is MU_Master?
 MU_Master = EngineRun
 
-
+#Version Checking
+if(httpClk()){
+    runOnHTTP(0)
+    local MasterVersion = httpData()
+    local MVA = MasterVersion:explode(".")
+    local MV_Major = MVA[2,string]
+    local MV_Minor = MVA[3,string]
+    
+    local VA = Version:explode(".")
+    local V_Major = VA[2,string]
+    local V_Minor = VA[3,string]
+    
+    local MV_Conflict = (MV_Major != V_Major) | (V_Minor:toNumber() < MV_Minor:toNumber())
+    if(MV_Conflict){
+        if(!Conflict_Generic){
+            O:soundPlay(0,0,"buttons/combine_button_locked.wav")
+            O:soundPlay(1,0,"vo/engineer_moveup01.mp3")
+        }
+        function vector rb(Hue){
+            return hsv2rgb(Hue*10,1,1)
+        }
+        printColor(
+            "--------\n",
+            rb(1),"A ",
+            rb(2),"N",
+            rb(3),"E",
+            rb(4),"W ",
+            rb(5),"V",
+            rb(6),"E",
+            rb(7),"R",
+            rb(8),"S",
+            rb(9),"I",
+            rb(10),"O",
+            rb(11),"N ",
+            rb(12),"O",
+            rb(13),"F ",
+            rb(14),"R",
+            rb(15),"L",
+            rb(16),"C ",
+            rb(17),"P",
+            rb(18),"L",
+            rb(19),"A",
+            rb(20),"T",
+            rb(21),"I",
+            rb(22),"N",
+            rb(23),"U",
+            rb(24),"M ",
+            rb(25),"I",
+            rb(26),"S ",
+            rb(27),"A",
+            rb(28),"V",
+            rb(29),"A",
+            rb(30),"I",
+            rb(31),"L",
+            rb(32),"A",
+            rb(33),"B",
+            rb(34),"L",
+            rb(35),"E",
+            rb(36),"!"
+        )
+        printColor(vec(0,191,255),"Please go to the following link to get the most recent version of RLC PT 2 ("+httpData()+"):")
+        printColor(vec(255),"https://github.com/MagnumMacKivler/RLCPT2")
+    }
+}
+#Car Count
 if(clk("CarCount")){
     CarCount = carCount(SwitchingMode|IsolateBrakes)
     TrainWeight = trainWeight()
@@ -1643,7 +1800,7 @@ if(On1|On2){
             local SetEqualRes = CtlTable["SetEqualRes",number]
             if(!Emergency & BlendedBraking & DynamicsMode & (SetEqualRes<90) & (Throttle==0) & abs(Reverser)){
                 
-                
+                local DPMF = (On1&Isolation1) + (On2&Isolation2)
                 BlendTargetBE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(90-SetEqualRes))*300/90
                 local AirBE = 0#(MaxTrainBrakeForce*BrakeCyl)*300/90
                 local RemainingBE = BlendTargetBE - AirBE
@@ -1651,7 +1808,7 @@ if(On1|On2){
                 #Load = -DBP*MPH/4 => DBP = 4*Load/MPH
                 #TE = abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
                 if((RemainingBE>0) & (MPH>5)){
-                    local MaxDBL = clamp(1.5*RemainingBE/(250*Motors*BaseSpeed/TopSpeed),0,MaxDynLoad)
+                    local MaxDBL = clamp(1.5*RemainingBE/(250*DPMF*Motors*BaseSpeed/TopSpeed),0,MaxDynLoad)
                     ForceDynaPower = min(4*MaxDBL/MPH,100)
                     #print(RemainingBE)
                 }else{
@@ -1943,7 +2100,8 @@ if(On1|On2){
                 #print(Load)
             }
             if(LimitCurrent & (Load<-MaxDynLoad)){Load = -MaxDynLoad}
-            TE = -sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
+            local DPMF = (On1&Isolation1) + (On2&Isolation2)
+            TE = -DPMF*sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
             
             #Blended Braking Air Target
             
@@ -2575,7 +2733,7 @@ if((On1|On2) & MU_Master){
         MainRes,
         LocoBrakePressure,
         GenField,
-        Horsepower,
+        Horsepower*(On1+On2),
         RearPlugIn[8,number] + 1,
         CompQ1|CompQ2
     )
@@ -2586,7 +2744,7 @@ if((On1|On2) & MU_Master){
         MainRes,
         LocoBrakePressure,
         GenField,
-        Horsepower,
+        Horsepower*(On1+On2),
         FrontPlugIn[8,number] + 1,
         CompQ1|CompQ2
     )
@@ -2998,8 +3156,10 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 break
             default,
                 if(CMD:index(1)=="."){
-                    #print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
-                    hideChat(1)
+                    local CMDL = CMD:lower()
+                    if("abcdefghijklmnopqrstuvwxyz":find(CMDL:index(2))){
+                        hideChat(1)
+                    }
                 }
                 break
         }

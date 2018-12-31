@@ -998,8 +998,10 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
             default,
                 if(CMD:index(1)=="."){
-                    #print("Sorry, \""+CMD+"\" is not a valid command, but we've hidden it anyway to spare you the embarrassment!")
-                    hideChat(1)
+                    local CMDL = CMD:lower()
+                    if("abcdefghijklmnopqrstuvwxyz":find(CMDL:index(2))){
+                        hideChat(1)
+                    }
                 }
                 break
         }

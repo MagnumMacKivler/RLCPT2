@@ -1,6 +1,6 @@
 @name ptgamma/engines/GE_V8_FDL_Early
 #ENGINE CONFIG
-ENG_Version = "2.0.56"
+ENG_Version = "2.0.60"
 #For use in very few GE U-series Locomotives (U18B, or B18-7, which was proposed but never built).
 EngineType = "GE FDL-8" #What is the name of the Prime Mover?
 
@@ -45,6 +45,28 @@ EngineBehavior = array(3,  0,  0,  0,  0,  0,  0,  0)
 UpDelays = array(0,   1400,850,1600,2300,1000,1500,2000)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
 DownDelays = array(200, 1200, 650, 1200, 2000, 1800, 2000)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
 
 StartupClagDelay = 20 #Time required to hold starter for engine to turn on successfully
 StartupClagDuration = 2 #Duration for starter smoke

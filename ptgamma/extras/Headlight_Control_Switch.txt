@@ -1,0 +1,117 @@
+@name ptgamma/extras/Headlight Control Switch
+@inputs Unlock Pod:entity NextWeapon PrevWeapon ThirdPerson
+@outputs IsLookingAt On Position
+@persist Radius Driver:entity Position E:entity
+@persist FourPos Switchtype InitialPos SwitchSound:string ToggleToDim ToggleQ KeyToggle
+@persist KeyUnlock [Key1 Key2]:string UseKeys PK1 PK2
+@trigger NextWeapon PrevWeapon
+@model models/sprops/rectangles/size_1/rect_3x3x3.mdl
+
+if(first()|dupefinished()){
+    #Wire Unlock to one of three outputs:
+    #To IsLookingAt (On this E2); This allows the engineer to change the EC switch when they point at the E2.
+    #To a Pod Controller Key; This allows the engineer to change the EC switch when they hold that key.
+    #To a Wire Button; This allows the engineer to change the EC switch when they hold that button.
+    
+    Switchtype = 0 #0 for EMD, 1 for GE, 2 for ALCO
+    FourPos = 1 #Does the switch have a fourth (Medium Power) position?
+    Direction = 0 #0 for Front, 1 for Rear
+    
+    ToggleToDim = 1 #If 1, toggles to DIM instead of OFF when pressing the "Toggle" key.
+    
+    KeyToggle = 1 #Allow Dim/Bright/Off toggle by pressing Key1 only?
+    Key1 = "F"
+    UseKeys = 1 #Allow unlock by pressing Key1 and Key2?
+    Key2 = "lshift"
+    
+    Radius = 2
+    Position = 0
+    Scale = 1
+    
+    SwitchSound = "gsgtrainsounds/misc/switch_rotating.wav"
+    
+    if(Switchtype==2){FourPos = 0}
+    E = entity()
+    if(E:parent():isValid()){
+        E:setAlpha(0)
+    }
+    
+    InitialPos = (Switchtype==2) ? (7) : (FourPos ? 6 : 0)
+    function number cyclic(P){
+        if(P>7){P-=8}
+        elseif(P<0){P+=8}
+        return P
+    }
+
+    On = 0
+    
+    holoCreate(0,E:pos(),vec(Scale),E:angles(),vec(255),select(Switchtype+1,"models/magtrainslocos/rotaryswitches/headlight_emd.mdl","models/magtrainslocos/rotaryswitches/headlight_ge.mdl","models/magtrainslocos/rotaryswitches/headlight_alco.mdl"))
+    holoParent(0,E)
+    holoBodygroup(0,1,InitialPos)
+    holoSkin(0,Direction ? (FourPos ? 3 : 1) : (FourPos ? 2 : 0))
+    
+    timer("clk",100)
+}
+if(inputClk() & (Unlock | KeyUnlock) & !ThirdPerson){
+    if(PrevWeapon & (Position<(FourPos ? 3 : 2))){ #Switch Pos Up
+        Position += 1
+        soundStop(0)
+        soundPlay(0,1,SwitchSound)
+    }elseif(NextWeapon & (Position>0)){ #Switch Pos Down
+        Position += -1
+        soundStop(0)
+        soundPlay(0,1,SwitchSound)
+    }
+    
+    On = FourPos ? Position/3 : Position/2
+    holoBodygroup(0,1,cyclic(InitialPos + Position))
+    
+}elseif(clk("clk")){
+    #Driver
+    Driver = Pod:driver()
+    
+    #Looking At/Keys
+    if(Driver){
+        IsLookingAt = Driver:aimPos():distance(E:pos()) < Radius
+        PK1 = Driver:keyPressed(Key1)
+        PK2 = Driver:keyPressed(Key2)
+        if(UseKeys){
+            KeyUnlock = PK1 & PK2
+        }
+        local Toggle = KeyToggle & PK1 & !PK2
+        if(Toggle & !ToggleQ){
+            ToggleQ = 1
+            if(FourPos){
+                if(Position==3){
+                    Position = ToggleToDim
+                    soundStop(0)
+                    soundPlay(0,1,SwitchSound)
+                }else{
+                    Position = 3
+                    soundStop(0)
+                    soundPlay(0,1,SwitchSound)
+                }
+            }else{
+                if(Position==2){
+                    Position = ToggleToDim
+                    soundStop(0)
+                    soundPlay(0,1,SwitchSound)
+                }else{
+                    Position = 2
+                    soundStop(0)
+                    soundPlay(0,1,SwitchSound)
+                }
+            }
+            On = FourPos ? Position/3 : Position/2
+            holoBodygroup(0,1,cyclic(InitialPos + Position))
+        }elseif(Toggle & ToggleQ){
+            ToggleQ = 0
+        }
+    }else{
+        IsLookingAt = 0
+        KeyUnlock = 0
+        Pk1 = PK2 = 0
+    }
+    
+    timer("clk",100)
+}

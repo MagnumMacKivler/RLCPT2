@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.58-59
+                                                                    For RLC Pt 2.0.58-60
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -524,4 +524,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.58")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.60")
