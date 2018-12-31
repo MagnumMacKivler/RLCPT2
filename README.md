@@ -3,7 +3,7 @@
 
 RLC Platinum 2.0 is a *work in progress.* It is not final in any regard, and *may not be stable*. There is, and will continue to be, bugs and issues that will cause problems for any locomotive you make. Updates for PT2 will be frequent and significant to its functioning, and will likely force you to rewrite locomotive configs and potentially rewire dupes. Using PT2 before release will not guarantee you any technical support from its developers or those familiar with it, especially if you use PT2 without asking first. *Use at your own risk.*
 
-# RLC Platinum 2.0 Gamma (Version 2.0.59)
+# RLC Platinum 2.0 Gamma (Version 2.0.60)
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
