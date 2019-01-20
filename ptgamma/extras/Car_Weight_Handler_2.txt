@@ -1,4 +1,4 @@
-@name Car Weight Handler 2
+@name ptgamma/extras/Car Weight Handler 2
 @inputs Enable
 @outputs Tons IsCar SBCar CarBody:entity Scale
 @persist E:entity RunQ O:entity ActiveQ CarBody:entity SpanBolsters:array Trucks:array SpanBolsterMode Visible IsCar SBCar Tons WeightInterval M1Q M2Q
@@ -9,7 +9,7 @@
 if(duped()){reset()}
 if(first()|dupefinished()){
     
-    #Version 2.2
+    #Version 2.3
     
     #Point Gravity Gun at carbody.
     #Observe the holo display over each car: Weight (Tons), and A/S for Articulated vs Span Bolster weight setups ("Normal" cars work in both setups).
@@ -356,7 +356,7 @@ if(Runnable){
                     #soundStop(0)
                 }
                 
-                if(Mouse1 & (Tons<200) & !M1Q){ #Paste
+                if(Mouse1 & (Tons<=200) & !M1Q){ #Paste
                     M1Q = 1
                     O:soundPlay(0,0,"buttons/blip1.wav")
                     Tons = CopyTons

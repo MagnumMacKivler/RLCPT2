@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.58-60
+                                                                    For RLC Pt 2.0.58-61
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -268,7 +268,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         To Shut Down a Prime Mover:
             1 - Set the Engine Run Switch and Gen Field Switch to OFF.
             2 - Set the Isolation Switch to OFF (Start/Stop/Isolate).
-            3 - Press the Starter button.
+            3 - Press the Shutdown button.
             
     B: The Reverser
         The Reverser normally has three positions: Neutral, Reverse, and Forward.

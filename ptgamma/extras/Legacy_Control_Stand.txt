@@ -1,10 +1,11 @@
 @name ptgamma/extras/Legacy Control Stand
 #Formerly "RLC Platinum Control Stand GAMMA"
-@inputs MU_Master RLCPT:entity Override:entity Horn BellToggle LightToggle MiscToggle
-@outputs Bell Light Misc CONSTANT Reverser EqualRes TB_Notch LB_Notch
-@persist CS:entity DisableHorn Type RLCPTW:wirelink AirBrakeType DynamicsType DS:array
+@inputs MU_Master RLCPT:entity CtlTable:table Override:entity Horn BellToggle LightToggle MiscToggle
+@outputs Bell Light Misc CONSTANT Reverser Notch DynaNotch EqualRes TB_Notch LB_Notch
+@persist CS:entity DisableHorn Type AirBrakeType LocoBrakeType DynamicsType DS:array RLCPTW:wirelink
 @trigger 
-#Beta v2.8
+#Beta v2.9
+#Compatible with RLC PT 2.0.61
 #If you're using a normal prop instead of letting the E2 do all the work, comment out one of these lines:
 #@model models/magtrainslocos/controlstands/stand_f7.mdl
 #@model models/magtrainslocos/controlstands/stand_e8.mdl
@@ -16,10 +17,15 @@
 #@model models/magtrainslocos/controlstands/stand_fa.mdl
 #@model models/magtrainslocos/controlstands/stand_gp7.mdl
 
+#Wire MU_Master and RLCPT[ENTITY] to the RLC PT2 chip.
+#Wire CtlTable[TABLE] to the control reader (The Legacy Stand REQUIRES one!)
+#Setup is otherwise identical to PT1 control stand setup.
+#Note: Legacy Stands do not show selector/transition lever working.
 
 if(first()|dupefinished()){
     DisableHorn = 0
-    AirBrakeType = 3 #3 for 24RL, 2 for 26L, 1 for Simple Manual Lapping, 0 for Simple Self Lapping
+    AirBrakeType = 2 #4 for No.6 (6SL), 3 for 24RL, 2 for 26L, 1 for Simple Manual Lapping, 0 for Simple Self Lapping
+    LocoBrakeType = 0 #0 for Self Lapping, 1 for Manual Lapping
     Color = vec(255)
     
     if(Override){
@@ -64,8 +70,22 @@ if(first()|dupefinished()){
     Misc = 0
     CONSTANT = 1
     
+    function normal adc(MinVal, MaxVal, Resolution, Input){
+        local Output = 0
+        if(inrange(Input,MinVal,MaxVal)){
+            Output = round(Resolution*((Input - MinVal)/(MaxVal-MinVal)))
+            
+        }elseif(Input < MinVal){
+            Output = 0
+        }elseif(Input > MaxVal){
+            Output = Resolution
+        }
+        
+        return Output
+    }
+    
     RLCPTW = RLCPT:wirelink()
-    timer("doublecheck",500)
+    timer("clk",500)
 }
 if(~RLCPT){
     RLCPTW = RLCPT:wirelink()
@@ -89,20 +109,20 @@ if(~Override){
         print("Please select an override entity and refresh the E2!")
     }
 }
-if(MU_Master & (Type)){
-    timer("clk",100)
-    Reverser = RLCPTW["Reverser",number]
-    local Notch = RLCPTW["Notch",number]
-    local DynaNotch = RLCPTW["DynaNotch",number]
-    local Dynamics = DynaNotch>(-1)
-    local LocoBrakePressure = RLCPTW["LocoBrakePressure",number]
-    EqualRes = RLCPTW["EqualRes",number]
-    local BrakeLine = RLCPTW["BrakeLine",number]
-    local MPH = round(RLCPTW["MPH",number])
-    local Emergency = RLCPTW["Emergency",number]
-TB_Notch = RLCPTW["BrakeNotch",number]
-LB_Notch = RLCPTW["LocoBrakeNotch",number]
-    local InitialReduction = RLCPTW["InitialReduction",number]
+if(MU_Master & (Type) & clk("clk")){
+    Reverser = CtlTable["SetReverser",number]
+    Notch = adc(0,100,8,CtlTable["SetThrottle",number])
+    local Dyn = CtlTable["SetDynamics",number]
+    DynaNotch = (Dyn==0) ? -1 : adc(10,100,8,Dyn)
+    Dynamics = DynaNotch>(-1)
+    LocoBrakePressure = CtlTable["SetLocoBrakePressure",number]
+    EqualRes = CtlTable["SetEqualRes",number]
+    BrakeLine = RLCPTW["BrakePipe",number]
+    MPH = round(RLCPTW["MPH",number])
+    Emergency = RLCPTW["Emergency",number]
+    TB_Notch = CtlTable["SetBrakeNotch",number]
+    LB_Notch = CtlTable["SetLocoBrakeNotch",number]
+    local InitialReduction = CtlTable["InitialReduction",number]
     
     #Reverser
     CS:setBodygroup(1,Reverser+2)
@@ -124,7 +144,7 @@ LB_Notch = RLCPTW["LocoBrakeNotch",number]
     switch(AirBrakeType){
         case 0, #Simple Self Lapping
             CS:setBodygroup(4,(Emergency & (EqualRes==0)) ? 6 : 1+(EqualRes<22.5)+(EqualRes<45)+(EqualRes<67.5)+(EqualRes==0))
-            CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
+            #CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
             break
         case 1, #Simple Manual Lapping
             local TB_BrakePos = 0
@@ -146,7 +166,7 @@ LB_Notch = RLCPTW["LocoBrakeNotch",number]
             }
             
             CS:setBodygroup(4,TB_BrakePos)
-            CS:setBodygroup(5,1 + (LB_Notch*2))
+            #CS:setBodygroup(5,1 + (LB_Notch*2))
             break
         case 2, #26L
         local TB_BrakePos = 0
@@ -168,13 +188,22 @@ LB_Notch = RLCPTW["LocoBrakeNotch",number]
                     break
             }
             CS:setBodygroup(4,TB_BrakePos)
-            CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
+            #CS:setBodygroup(5,1+(LocoBrakePressure>22.5)+(LocoBrakePressure>45)+(LocoBrakePressure>67.5)+(LocoBrakePressure==90))
             break
         case 3, #24RL
             CS:setBodygroup(4,(TB_Notch==6) ? 6 : TB_Notch+1)
-            CS:setBodygroup(5,1 + (LB_Notch*2))
+            #CS:setBodygroup(5,1 + (LB_Notch*2))
+            break
+        case 4, #6SL
+            CS:setBodygroup(4,(TB_Notch==6) ? 6 : TB_Notch+1)
+            #CS:setBodygroup(5,1 + (LB_Notch*2))
             break
         
+    }
+    if(LocoBrakeType){ #ML
+        CS:setBodygroup(5,1 + (LB_Notch*2))
+    }else{ #SL
+        CS:setBodygroup(5,1+(LocoBrakePressure>18)+(LocoBrakePressure>36)+(LocoBrakePressure>54)+(LocoBrakePressure==72))
     }
     
     
@@ -194,7 +223,9 @@ LB_Notch = RLCPTW["LocoBrakeNotch",number]
         setName(Line1+Line2+Line3+Line4+Line5+Line6)
     }
     
-}else{
+        timer("clk",100)
+    
+}elseif(clk()){
     
     CS:setBodygroup(1,0)#Reverser
     CS:setBodygroup(2,1)#Throttle
@@ -204,6 +235,7 @@ LB_Notch = RLCPTW["LocoBrakeNotch",number]
     CS:setBodygroup(6,DisableHorn ? 0 : 1)
     
     setName("Reverser: N\nThrottle: 0/8\nDynamics: Disengaged\nER/BP: 0 psi/0 psi\nLocomotive Brake: 0psi\nSpeed: 0 mph")
+    timer("clk",100)
 }
 
 if(LightToggle & ~LightToggle){

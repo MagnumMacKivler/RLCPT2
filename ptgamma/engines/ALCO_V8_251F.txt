@@ -1,0 +1,86 @@
+@name ptgamma/engines/ALCO_V8_251F
+#ENGINE CONFIG
+ENG_Version = "2.0.60"
+#For use in the Alco C415 and MLW MX615.
+EngineType = "Alco 251F (V8)" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/alco251fv8/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/alco251fv8/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(                                  #Sounds used for each Notch
+    "gsgtrainsounds/alco251fv8/idle_notch1.wav",
+    "gsgtrainsounds/alco251fv8/idle_notch1.wav",
+    "gsgtrainsounds/alco251fv8/notch2.wav",
+    "gsgtrainsounds/alco251fv8/notch3.wav",
+    "gsgtrainsounds/alco251fv8/notch4.wav",
+    "gsgtrainsounds/alco251fv8/notch5.wav",
+    "gsgtrainsounds/alco251fv8/notch6.wav",
+    "gsgtrainsounds/alco251fv8/notch7.wav",
+    "gsgtrainsounds/alco251fv8/notch8.wav"
+)
+
+TransitionPath = "gsgtrainsounds/alco251fv8/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(3,  0,  0,  0,  0,  0,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(0,  1304,2184,1244,2361,1024,1712,1051)
+                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
+DownDelays = array(1883,1852,1821,1993,1882,1721,2233,0)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 2 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 4 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/wh_3cdc_loop3.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/compressor_end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
+
+PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+
+PrimerDuration = randint(10,15)

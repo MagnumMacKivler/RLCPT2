@@ -13,8 +13,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.58 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.58"
+    #FOR USE WITH RLC PT 2.0.61 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.61"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -28,7 +28,7 @@ if(first()){
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
     #include "ptgamma/controls/standard"
     
-    AirBrakeMode = 3
+    AirBrakeMode = 2
     #0 - Simple Self-Lapping (Easy)
     #1 - Simple Manual Lapping (Medium)
     #2 - 26L Self-Lapping (Medium-Hard)
@@ -36,7 +36,7 @@ if(first()){
     #4 - No. 6 (6SL/6BL/6DS/6ET) Manual Lapping (Hard)
     #24RL, No. 6, and 26L are the hardest, but also the most rewarding!
     
-    LocoBrakeMode = 1 #0 for Self Lapping, 1 for Manual Lapping
+    LocoBrakeMode = 0 #0 for Self Lapping, 1 for Manual Lapping
     
     InitialReduction = 6 #If using 24RL or 26L brake modes, the train brake will automatically drop this much pressure in First Service or Initial Reduction positions.
     FeedPressure = 90 #Feed Valve pressure in PSI. 70 was the standard until the 1950s, 90 is the standard for freight. 110 is the passenger standard, 120 is sometimes used by mountain railroads.
@@ -765,7 +765,7 @@ CtlTable["SetEqualRes",number] = SetEqualRes
 CtlTable["SetHolding",number] = (AirBrakeMode==4)&(SetBrakeNotch==2)
 CtlTable["Overcharge",number] = (SetBrakeNotch==0) & ((AirBrakeMode==3)|(AirBrakeMode==4))
 CtlTable["FRC",number] = FullReleaseCock
-#CtlTable["SetLocoBrakeNotch",number] = SetLocoBrakeNotch
+CtlTable["SetLocoBrakeNotch",number] = SetLocoBrakeNotch
 CtlTable["SetLocoBrakePressure",number] = SetLocoBrakePressure
 CtlTable["SetBleeding",number] = SetBleeding
 CtlTable["SetHumpMultiplier",number] = SetHumpMul

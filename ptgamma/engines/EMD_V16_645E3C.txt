@@ -1,8 +1,8 @@
-@name ptgamma/engines/EMD_V16_645E4
+@name ptgamma/engines/EMD_V16_645E3C
 #ENGINE CONFIG
 ENG_Version = "2.0.60"
-#For use in some EMD Locomotives (F40PH-2, F40C).
-EngineType = "EMD 645E4 (V16)" #What is the name of the Prime Mover?
+#For use in some EMD Locomotives (F40PH-2, F40C). Also passable as an 645E3A (DDA40X) and 645E3B.
+EngineType = "EMD 645E3B (V16)" #What is the name of the Prime Mover?
 
 Startup_Hi = "gsgtrainsounds/emd645f/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.

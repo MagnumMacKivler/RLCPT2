@@ -14,8 +14,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.58 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.58"
+    #FOR USE WITH RLC PT 2.0.61 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.61"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -28,7 +28,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Standard"
+    #include "ptgamma/controls/standard"
     
     AirBrakeMode = 2
     #0 - Simple Self-Lapping (Easy)

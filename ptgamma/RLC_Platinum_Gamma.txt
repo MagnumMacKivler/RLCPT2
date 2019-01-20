@@ -2,7 +2,7 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array BlendEqualRes ForceDynaPower
+@outputs AvCurrent GenCurrent Currents:array
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
@@ -14,7 +14,7 @@
 @persist TransitionGroups:array TransitionShunts:array GeneratorTransition NominalVoltage MaxGenCurrent TransitionNotches TransitionThresholds:array GenThreshold
 @persist TM_Temp TM_Warning TM_Health TM_Damage TM_ZapQ TM_Maxtime TM_Mintime
 #Locomotive Config
-@persist Horsepower Weight Adhesion Axles Motors MotorType MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxDynLoad DB_Throttle LimitCurrent BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
+@persist Horsepower Weight Adhesion Axles Motors MotorType MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxContDynLoad MaxDynLoad DB_Throttle LimitCurrent BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
 @persist BaseSpeed TopSpeed ClaspBrakes TractionMode LoadRampSpeed WeightOnAxle
 @persist TransitionMode TransitionVoltage TransitionControlType TransitionQ
 @persist StarterMode OverloadProtection OLPR OLP_Engaged Compressor_CFM MainResVolume
@@ -41,15 +41,15 @@
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 60
+#To-Do for 62
 
 
 #Finished:
 
-#Update Checking
-#New behavior mode for overriding sounds
-#Fix things that use HP not caring about DPM
-#Dimmable headlights
+#Update Checking [x]
+#New behavior mode for overriding sounds [x]
+#Fix things that use HP not caring about DPM [x]
+#Dimmable headlights [x]
 #Actual Blended Braking God Please Kill Me
 #Display Names & Versions for Control Stand E2s [x]
 #Abusable Dynamic Brakes [x]
@@ -85,7 +85,7 @@
 
 if(first()|dupefinished()){
     
-    Version = "Gamma 2.0.60"
+    Version = "Gamma 2.0.61"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -189,9 +189,10 @@ if(first()|dupefinished()){
     #Overall Version Check
     runOnHTTP(1)
     httpRequest("https://raw.githubusercontent.com/MagnumMacKivler/RLCPT2/master/version.txt")
+    timer("vc_timeout",5000)
     
     #Loco
-    local LastCompatibleConfig = "2.0.57"
+    local LastCompatibleConfig = "2.0.61"
     local RLCVA = LastCompatibleConfig:explode(".")
     local RLCV_Major = RLCVA[2,string]
     local RLCV_Minor = RLCVA[3,string]
@@ -200,7 +201,7 @@ if(first()|dupefinished()){
     local CFGV_Major = CFGVA[2,string]
     local CFGV_Minor = CFGVA[3,string]
     
-    local CFG_Conflict = (RLCV_Major != CFGV_Major) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
+    local CFG_Conflict = (RLCV_Major > CFGV_Major) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Engine
     LastCompatibleConfig = "2.0.60"
@@ -212,10 +213,10 @@ if(first()|dupefinished()){
     local ENGV_Major = ENGVA[2,string]
     local ENGV_Minor = ENGVA[3,string]
     
-    local ENG_Conflict = (RLCV_Major != ENGV_Major) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
+    local ENG_Conflict = (RLCV_Major > ENGV_Major) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Control Stand
-    LastCompatibleConfig = "2.0.57"
+    LastCompatibleConfig = "2.0.61"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -225,7 +226,7 @@ if(first()|dupefinished()){
     local CSV_Major = CSVA[2,string]
     local CSV_Minor = CSVA[3,string]
     
-    local CS_Conflict = ->CtlTable ? (RLCV_Major != CSV_Major) | (CSV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
+    local CS_Conflict = ->CtlTable ? (RLCV_Major > CSV_Major) | (CSV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
     
     #Controls
     LastCompatibleConfig = "2.0.56"
@@ -501,6 +502,29 @@ if(first()|dupefinished()){
             Output = MaxVal
         }
         return Output
+    }
+    
+    function number dbc(DBP,SpeedMPH){
+        local LinearStart = MotorType ? 0.5 : 5
+        local LinearEnd = 20
+        local DecayStart = 30
+        local HF = 20
+        
+        local LinearCurve = 0
+        local ExponentialCurve = 0
+        local Amps = 0
+        if(DBP>0){
+            #Y - y = m(X - x) -> Y = m(X - x) + y
+            local M = (MaxDynLoad)/(LinearEnd-LinearStart)
+            LinearCurve = M*(SpeedMPH - LinearStart)
+            
+            #Y = e^(aX - b) + c
+            ExponentialCurve = MaxDynLoad*exp(-(SpeedMPH - DecayStart)/HF)
+            
+            Amps = -max(0,min(LinearCurve,MaxDynLoad,ExponentialCurve))*(DBP/100)*(sign(V)*sign(Reverser))
+        }
+        
+        return Amps
     }
     
     function void transitionUp1(From,To){
@@ -1427,8 +1451,13 @@ if(HasPM){ #Actual Engine Starting
 MU_Master = EngineRun
 
 #Version Checking
-if(httpClk()){
+if(clk("vc_timeout")){
     runOnHTTP(0)
+    print("[RLCPT2] Connection with master server failed, cannot check most recent version.")
+    O:soundPlay(0,0,"vo/engineer_negativevocalization01.mp3")
+}elseif(httpClk()){
+    runOnHTTP(0)
+    stoptimer("vc_timeout")
     local MasterVersion = httpData()
     local MVA = MasterVersion:explode(".")
     local MV_Major = MVA[2,string]
@@ -1438,7 +1467,8 @@ if(httpClk()){
     local V_Major = VA[2,string]
     local V_Minor = VA[3,string]
     
-    local MV_Conflict = (MV_Major != V_Major) | (V_Minor:toNumber() < MV_Minor:toNumber())
+    local MV_Conflict = (MV_Major > V_Major) | (V_Minor:toNumber() < MV_Minor:toNumber())
+    local Dev = (MV_Major < V_Major) | (V_Minor:toNumber() > MV_Minor:toNumber())
     if(MV_Conflict){
         if(!Conflict_Generic){
             O:soundPlay(0,0,"buttons/combine_button_locked.wav")
@@ -1488,6 +1518,9 @@ if(httpClk()){
         )
         printColor(vec(0,191,255),"Please go to the following link to get the most recent version of RLC PT 2 ("+httpData()+"):")
         printColor(vec(255),"https://github.com/MagnumMacKivler/RLCPT2")
+    }elseif(Dev){
+        O:soundPlay(0,0,"buttons/button24.wav")
+        printColor(vec(127,255,127),"Note: you are using a Dev version of RLC PT 2 (Newer than master version)!")
     }
 }
 #Car Count
@@ -1546,7 +1579,7 @@ if(clk("motordamage")){
         TM_Damage = 1
     }
 }elseif(clk("dbdamage")){
-    if(-Load > MaxDynLoad){
+    if(-Load > MaxContDynLoad){
         DB_Damage = 1
         W:soundPlay(14,3,DynamicsDeath)
         W:soundPlay(5,0,Dynamics_Fubar_On)
@@ -1804,12 +1837,21 @@ if(On1|On2){
                 BlendTargetBE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(90-SetEqualRes))*300/90
                 local AirBE = 0#(MaxTrainBrakeForce*BrakeCyl)*300/90
                 local RemainingBE = BlendTargetBE - AirBE
-                #Load = TE/(250*Motors*BaseSpeed/TopSpeed)
-                #Load = -DBP*MPH/4 => DBP = 4*Load/MPH
+                #Load = TE/(210*Motors*BaseSpeed/TopSpeed)
+                #Load = DBP*(MaxDynLoad/15)*(MPH-5)/100 | DBP*MaxDynLoad/100 | DBP*MaxDynLoad*e^(-(MPH-30)/20) /100
+                #DBP = Load*100/(Max*(MPH-5)/15) | Load*100/Max | Load*100/(Max*e(...))
                 #TE = abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
                 if((RemainingBE>0) & (MPH>5)){
-                    local MaxDBL = clamp(1.5*RemainingBE/(250*DPMF*Motors*BaseSpeed/TopSpeed),0,MaxDynLoad)
-                    ForceDynaPower = min(4*MaxDBL/MPH,100)
+                    local MaxDBL = clamp(1.5*RemainingBE/(210*DPMF*Motors*BaseSpeed/TopSpeed),0,MaxContDynLoad)
+                    local DBPI = 0
+                    if(MPH<20){
+                        DBPI = MaxDBL*100/(MaxDynLoad*(MPH-(MotorType ? 0.5 : 5))/(MotorType ? 19 : 15))
+                    }elseif(MPH<=30){
+                        DBPI = MaxDBL*100/MaxDynLoad
+                    }else{
+                        DBPI = MaxDynLoad*100/exp(-(MPH-30)/20)
+                    }
+                    ForceDynaPower = min(DBPI,100)
                     #print(RemainingBE)
                 }else{
                     ForceDynaPower = 0
@@ -1869,19 +1911,19 @@ if(On1|On2){
                     local DBH = 25
                     switch(DB_Level){
                         case 50,
-                            if(-Load>(MaxDynLoad*0.66 + DBH)){
+                            if(-Load>(MaxContDynLoad*0.66 + DBH)){
                                 DB_Level = 75
                             }
                             break
                         case 75,
-                            if(-Load>(MaxDynLoad*0.83 + DBH)){
+                            if(-Load>(MaxContDynLoad*0.83 + DBH)){
                                 DB_Level = 100
-                            }elseif(-Load<(MaxDynLoad*0.66 - DBH)){
+                            }elseif(-Load<(MaxContDynLoad*0.66 - DBH)){
                                 DB_Level = 50
                             }
                             break
                         case 100,
-                            if(-Load<(MaxDynLoad*0.83 - DBH)){
+                            if(-Load<(MaxContDynLoad*0.83 - DBH)){
                                 DB_Level = 75
                             }
                             break
@@ -2092,16 +2134,17 @@ if(On1|On2){
             TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
             BlendEqualRes = 90
             
-        }elseif(Dynamics & HasTM & Excitation){ #Dynamic Brake Calcs
+        }elseif(Dynamics & HasTM & Excitation){ #DYNAMIC BRAKE CALCULATIONS
             Voltage = 0
-            Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
+            #Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
+            Load = dbc(DynamicBrakingPower,MPH)
             if(DB_Damage){
                 Load = random()*Load/2
                 #print(Load)
             }
-            if(LimitCurrent & (Load<-MaxDynLoad)){Load = -MaxDynLoad}
+            if(LimitCurrent & (Load<-MaxContDynLoad)){Load = -MaxContDynLoad}
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
-            TE = -DPMF*sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
+            TE = -DPMF*sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*210
             
             #Blended Braking Air Target
             
@@ -2110,12 +2153,13 @@ if(On1|On2){
             BlendEqualRes = 90-RequiredBrakeCyl
             
             #DB Consequences
-            if(-Load > MaxDynLoad){
-                DB_Temp += linterp(-Load,vec2(MaxDynLoad,1/DB_Maxtime),vec2(MaxDynLoad+300,1/DB_Mintime))
+            if(-Load > MaxContDynLoad){
+                DB_Temp += linterp(-Load,vec2(MaxContDynLoad,1/DB_Maxtime),vec2(MaxContDynLoad+300,1/DB_Mintime))
                 if((DB_Temp>60) & !DB_Warning){
                     DB_Warning = 1
-                    Pod:driver():printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxDynLoad:toString() + " Amps or dynamic brake damage will occur!")
+                    Pod:driver():printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxContDynLoad:toString() + " Amps or dynamic brake damage will occur!")
                     timer("dbdamage",7500)
+                    #MaxDynLoad
                 }
             }else{
                 if(DB_Warning & !DB_Damage){
@@ -2142,7 +2186,7 @@ if(On1|On2){
                 SlideQ = 0
                 soundStop(12)
             }
-            BrakeWarning = Load<-MaxDynLoad
+            BrakeWarning = Load<-MaxContDynLoad
         }else{
             Load = Voltage = TE = 0
             BlendEqualRes = 90
@@ -2499,6 +2543,7 @@ if(Tick){
                 BrakeCyl = (AuxMaxPressure-AuxRes)*72/90
                 if(!SetBleeding & (BleedPressure<BrakeCyl)){
                     BleedPressure = BrakeCyl
+                    #print("Fucko Boingo 2: electric boingaloo")
                 }
             }
             
@@ -2568,16 +2613,18 @@ if(Tick){
         if(Cyl>0){
             Cyl += -4
             if(Cyl<0){Cyl=0}
-            BleedPressure = Cyl
         }
+        BleedPressure = Cyl
     }elseif(!SetHolding){
         if((LocoBrakePressure>0) & (BleedPressure<72)){
+            #print("Fucko Boingo")
             BleedPressure = 72
         }
         local SetLBP = clamp(max(LocoBrakePressure,min(Dynamics ? 0 : BrakeCyl,BleedPressure)),0,72)
         if(Cyl<SetLBP){
             Cyl += 2
             if(Cyl>SetLBP){Cyl = SetLBP}
+            #print(LocoBrakePressure + " / " + BrakeCyl + " / " + BleedPressure)
         }elseif(Cyl>SetLBP){
             Cyl += -2
             if(Cyl<SetLBP){Cyl = SetLBP}
@@ -2657,7 +2704,7 @@ if(Tick){
         BrakePipe = 0
         EqualRes = 0
         BrakeCyl = 90
-        BleedPressure = 90
+        BleedPressure = 72
         
         Throttle = 0
         Notch = 0
