@@ -15,13 +15,14 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.58-61
+                                                                    For RLC Pt 2.0.62
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
 
 Welcome to Magnum's RLC Platinum 2.0 (Currently in Open Gamma)!
-RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Diesel-Electric Locomotives, Cab Cars, Slugs, "Snails", and (Eventually) Electric Locomotives.
+RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Diesel-Electric Locomotives, Cab Cars, Slugs, and "Snails". RLC Pt 2.0 is designed to
+bring simulator-quality realism and standardization to the world of Garry's Mod Train Build.
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,6 +47,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         I- Buttonless Starting
         J- Dual Control Stand Setup
         K- Extra Inputs
+		L- Updating RLC PT 2.0
     III- Locomotive Operation
         A- Startup & Shutdown
         B- Reverser
@@ -65,6 +67,8 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
  |___(_)   \_/\_/ |_||_/_/ \_\_|   |___/ |_|\_|___| \_/\_/  
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, including the original RLC PT.
                                                             
     Configurations:
         Include-based configs for Control, Locomotive, and Engine settings
@@ -80,6 +84,7 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
         Scale Weight System for Cars and Locomotives
         Automatic Tractive Effort Calculation based on Weight and Factor of Adhesion
         Realistic Wheel Slip
+		Realistic Dynamic Brake Curves
         Lockable wheels
         Electronic Traction Control
         Manual/Automatic Transition with Selector Lever Support and Generator Transition Option
@@ -96,22 +101,30 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     Extras:
         Remote Control Support
         MU Headlights
+		Hand Brake Input
         
     Polish:
         Improved Sound System
         Primer/Starter/Isolation Engine Start System
         Seperate Engine Run, Generator Field, and Brake Cut-In inputs
         Multiple HEP Behavior Modes
-        Stand-Specific Special Control Rule Support
+        SControl Stand-Specific Special Control Rule Support
         Invalid Chat Command Embarrassment protection
         Jointed Vs. Welded Rail Sounds
         Clickety Clack when going over switches
         
     Backend: 
+		Increased Control Stand Functionality
         Player-Scale Speed Calculations
         Per-Unit Chat Commands
         Automatic Config Version Validation for Locomotives, Engines, Controls, and Control Stands
+		Automatic Update Checking
         General Optimization
+		
+	Planned (Future) Features:
+		Electric Locomotive Simulation
+		Diesel-Hydraulic Locomotive Simulation
+		Pitch/Volume-Blending Engine Sounds
     
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ___ ___ _   ___ _  _ ___ _____ _   _    _      _ _____ ___ ___  _  _   ___ _  _ ___ _____ ___ _   _  ___ _____ ___ ___  _  _ ___ 
@@ -128,13 +141,13 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
     B: Basic Setup (Required):
         1 - Select or Make an RLC PT2 Locomotive Config file. These can be found in "ptgamma/locos/". There's a lot to configure, so take your time and read through everything!
         2 - Configure RLC PT 2.0 (Henceforth referred to as "RLC"). A lot of the config has been outsourced to the Locomotive Config and Control Reader/Stand E2s.
-        3 - Spawn RLC on the locomotive like you'd attach a thruster. Don't worry about the error message just yet.
+        3 - Spawn RLC on the locomotive body like you'd attach a thruster. Don't worry about the error message just yet.
             The shiny side must point BACKWARDS. Do not attach to the trucks/bogies.
             If there are no suitable faces to attach the chip to, you can spawn RLC on the ground, Physgun it into place, and weld it manually.
             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             > DO NOT PARENT THE RLC CHIP! >
             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        4 - Spawn four (6) Wire Buttons (3 for a B unit) in an accessible area (such as the back wall of the cab). Make two of them NON-TOGGLED, and the rest are TOGGLED.
+        4 - Spawn six (6) Wire Buttons (3 for a B unit) in an accessible area (such as the back wall of the cab). Make two of them NON-TOGGLED, and the rest are TOGGLED.
             Wire RLC's "Start1" to the first NON-TOGGLED button (Henceforth referred to as the "Starter Switch").
             Wire RLC's "Prime1" to the other NON-TOGGLED button (Henceforth referred to as the "Primer Switch").
                 NOTE: For locomotives with the "Latched Primer" or "Automatic Start" modes, follow these substeps:
@@ -244,6 +257,17 @@ RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Di
             locomotives!
             "IsolateBrakes" allows you to close off the air brakes to the rest of the train, eliminating the need for recharging the brakes... at the cost of only being able to use the independent
             brakes. It's good for switching!
+			
+	L: Updating RLC PT 2.0
+		
+		Every now and then, RLC PT2 may be updated. This should be easy to notice as long as you have an internet connection, as RLC PT2 will check for updates when spawned in.
+		If an update is available:
+			1 - Go to the RLC PT2 Github (https://github.com/MagnumMacKivler/RLCPT2) and download the most recent version, including all accompanying files.
+			2 - Specify one of your config files in the RLC PT2 chip and upload it into the RLC chip of an existing RLC PT2 locomotive.
+				RLC PT2 will automatically check to see if your locomotive config, engine config, control config, and control reader/stand E2s are up to date. If any of them aren't, RLC PT2 will notify
+				you immediately via chat message.
+			3 - If any configs are out of date, update them using the latest versions on the github.
+		Once you re-upload the RLC PT2 chip, and it doesn't throw any errors, your RLC PT2 is completely up to date!
             
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ___ ___ ___ _   _    ___   ___ ___  __  __  ___ _____ _____   _____    ___  ___ ___ ___    _ _____ ___ ___  _  _ 
@@ -524,4 +548,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.60")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.62")

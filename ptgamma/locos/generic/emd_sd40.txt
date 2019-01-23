@@ -3,7 +3,7 @@
 @outputs 
 @persist 
 @trigger 
-CFG_Version = "2.0.61"
+CFG_Version = "2.0.62"
 #This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
 #NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
 
@@ -35,8 +35,8 @@ UnitType = 0
 
 #Transition
 #                       1st 2nd 3rd 4th
-TransitionGroups = array(2,  1,  1      ) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
-TransitionShunts = array(1,  1,  0.5    ) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
+TransitionGroups = array(2,  1         ) #The number of motors in series for each transition notch. Note that this number must divide into the number of motors evenly!
+TransitionShunts = array(1,  1      ) #The ratio of current going through the field windings for each transition notch, as a fraction of the total load current.
 GeneratorTransition = 0 #If a locomotive has Generator Transition, set this to 1.
 LoadRampSpeed = 2 #How fast the engine loads when increasing power. 2 is sluggish, 10 is quick.
 
@@ -46,11 +46,10 @@ DynamicsMode = 1
 #0 - No Dynamic Brakes
 #1 - Dynamic Brakes with Mechanically-Driven Traction Motor Blowers
 #2 - Dynamic Brakes with Electrically-Driven Traction Motor Blowers
-MaxDynLoad = 900 #Maximum Dynamic Braking load current (End of Loadmeter).
+MaxDynLoad = 700 #Maximum (peak) Dynamic Braking load current - If current limited, should be the same as continuous rating.
 MaxContDynLoad = 700 #Maximum Continuous Dynamic Braking load current.
 BlendedBraking = 0 #Modern Passenger Thing, turns on dynamic brakes when air brake application is made.
 DB_Throttle = 0 #Throttle percentage to run the engine at for mechanical blowers. Use 0 for automatic adjustment (mechanical), electrical, or N/A.
-LimitCurrent = 1 #Auto-Limit dynamic braking current to maximum continuous value?
 
 #Bonus Features:
 

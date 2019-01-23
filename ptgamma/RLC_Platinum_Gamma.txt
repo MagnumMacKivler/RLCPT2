@@ -2,7 +2,7 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array
+@outputs AvCurrent GenCurrent Currents:array BlendTargetBE TE RequiredAirBE
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
@@ -33,7 +33,7 @@
 @persist SetReverser SetThrottle SetDynamics SetSelector IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake HandBrake SandQ
 #Misc
 @persist [E O W H1 H2]:entity DriverQ RailType RollQ LastProps:array MU_Connected MU_F MU_R WheelSlip WheelSlipLocal WheelSlipRand Sanding APR ForceSand WheelSlipThreshold Reverser_DPM DPM_Delay
-@persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend SwitchingMode
+@persist RemoteMode ForcePrime1 ForcePrime2 ForceStart1 ForceStart2 SoundMultiplier HasPM HasTM SlugMode DroneQ HeadlightRGB:vector WillItBlend BERO SwitchingMode
 @persist [CFG_Version ENG_Version CS_Version]:string
 @persist AC_PlugNope MU_Master CtlInitQ [FrontTruck RearTruck]:entity ClicketyQ
 @persist Version:string 
@@ -85,7 +85,7 @@
 
 if(first()|dupefinished()){
     
-    Version = "Gamma 2.0.61"
+    Version = "Gamma 2.0.62"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -201,7 +201,7 @@ if(first()|dupefinished()){
     local CFGV_Major = CFGVA[2,string]
     local CFGV_Minor = CFGVA[3,string]
     
-    local CFG_Conflict = (RLCV_Major > CFGV_Major) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
+    local CFG_Conflict = (RLCV_Major:toNumber() > CFGV_Major:toNumber()) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Engine
     LastCompatibleConfig = "2.0.60"
@@ -213,7 +213,7 @@ if(first()|dupefinished()){
     local ENGV_Major = ENGVA[2,string]
     local ENGV_Minor = ENGVA[3,string]
     
-    local ENG_Conflict = (RLCV_Major > ENGV_Major) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
+    local ENG_Conflict = (RLCV_Major:toNumber() > ENGV_Major:toNumber()) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Control Stand
     LastCompatibleConfig = "2.0.61"
@@ -226,7 +226,7 @@ if(first()|dupefinished()){
     local CSV_Major = CSVA[2,string]
     local CSV_Minor = CSVA[3,string]
     
-    local CS_Conflict = ->CtlTable ? (RLCV_Major > CSV_Major) | (CSV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
+    local CS_Conflict = ->CtlTable ? (RLCV_Major:toNumber() > CSV_Major:toNumber()) | (CSV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
     
     #Controls
     LastCompatibleConfig = "2.0.56"
@@ -239,7 +239,7 @@ if(first()|dupefinished()){
     local CTLV_Major = CTLVA[2,string]
     local CTLV_Minor = CTLVA[3,string]
     
-    local CTL_Conflict = ->CtlTable ? (RLCV_Major != CTLV_Major) | (CTLV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
+    local CTL_Conflict = ->CtlTable ? (RLCV_Major:toNumber() > CTLV_Major:toNumber()) | (CTLV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
     Conflict_Generic = CFG_Conflict | ENG_Conflict | CS_Conflict | CTL_Conflict
     if(Conflict_Generic){
         printColor(vec(0,191,255),"[RLCPT] Note: One of your configs are out of date! Please use configs compatible with ",vec(255),Version+"!\n--------")
@@ -1467,8 +1467,8 @@ if(clk("vc_timeout")){
     local V_Major = VA[2,string]
     local V_Minor = VA[3,string]
     
-    local MV_Conflict = (MV_Major > V_Major) | (V_Minor:toNumber() < MV_Minor:toNumber())
-    local Dev = (MV_Major < V_Major) | (V_Minor:toNumber() > MV_Minor:toNumber())
+    local MV_Conflict = (MV_Major:toNumber() > V_Major:toNumber()) | (V_Minor:toNumber() < MV_Minor:toNumber())
+    local Dev = (MV_Major:toNumber() < V_Major:toNumber()) | (V_Minor:toNumber() > MV_Minor:toNumber())
     if(MV_Conflict){
         if(!Conflict_Generic){
             O:soundPlay(0,0,"buttons/combine_button_locked.wav")
@@ -1830,11 +1830,11 @@ if(On1|On2){
             
             #Blended Braking
             
-            local SetEqualRes = CtlTable["SetEqualRes",number]
-            if(!Emergency & BlendedBraking & DynamicsMode & (SetEqualRes<90) & (Throttle==0) & abs(Reverser)){
+            local SER = CtlTable["SetEqualRes",number]
+            if(!Emergency & BlendedBraking & DynamicsMode & (SER<FeedPressure) & (Throttle==0) & abs(Reverser) & (CarCount>5)){
                 
                 local DPMF = (On1&Isolation1) + (On2&Isolation2)
-                BlendTargetBE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(90-SetEqualRes))*300/90
+                BlendTargetBE = ((72/90)*(FeedPressure-SER)*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(FeedPressure-SER))*300/90
                 local AirBE = 0#(MaxTrainBrakeForce*BrakeCyl)*300/90
                 local RemainingBE = BlendTargetBE - AirBE
                 #Load = TE/(210*Motors*BaseSpeed/TopSpeed)
@@ -1843,7 +1843,7 @@ if(On1|On2){
                 #TE = abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*250
                 if((RemainingBE>0) & (MPH>5)){
                     local MaxDBL = clamp(1.5*RemainingBE/(210*DPMF*Motors*BaseSpeed/TopSpeed),0,MaxContDynLoad)
-                    local DBPI = 0
+                    DBPI = 0
                     if(MPH<20){
                         DBPI = MaxDBL*100/(MaxDynLoad*(MPH-(MotorType ? 0.5 : 5))/(MotorType ? 19 : 15))
                     }elseif(MPH<=30){
@@ -1860,7 +1860,7 @@ if(On1|On2){
             }else{
                 ForceDynaPower = 0
             }
-            WillItBlend = ForceDynaPower>0
+            WillItBlend = ForceDynaPower>=10
             #print(WillItBlend)
             
             #Actual Dynamics
@@ -1891,7 +1891,7 @@ if(On1|On2){
             DynaNotch = Dynamics ? adc(10,100,NumThrottleNotches,DynamicBrakingPower) : -1
         }
         
-        if((abs(Reverser)) & (Power==0) & ((DynamicBrakingPower + ForceDynaPower)>0) & !Dynamics){
+        if((abs(Reverser)) & (Power==0) & ((DynamicBrakingPower + ForceDynaPower)>=10) & !Dynamics){
             Dynamics = 1
             if(HasTM){W:soundPlay(5,0,DynamicsOn)}
         }elseif(((Power>0) | ((DynamicBrakingPower + ForceDynaPower)==0) | (!abs(Reverser))) & Dynamics){
@@ -2132,25 +2132,25 @@ if(On1|On2){
             WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
             TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
-            BlendEqualRes = 90
+            BlendEqualRes = FeedPressure
             
         }elseif(Dynamics & HasTM & Excitation){ #DYNAMIC BRAKE CALCULATIONS
             Voltage = 0
             #Load = -(max(DynamicBrakingPower,ForceDynaPower))*MPH/4
-            Load = dbc(DynamicBrakingPower,MPH)
+            Load = dbc(max(DynamicBrakingPower,ForceDynaPower),MPH)
             if(DB_Damage){
                 Load = random()*Load/2
                 #print(Load)
             }
-            if(LimitCurrent & (Load<-MaxContDynLoad)){Load = -MaxContDynLoad}
+            #if(LimitCurrent & (Load<-MaxContDynLoad)){Load = -MaxContDynLoad}
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
             TE = -DPMF*sign(V)*abs(Load)*(Motors)*(BaseSpeed/TopSpeed)*210
             
             #Blended Braking Air Target
             
-            local RequiredAirBE = BlendTargetBE - abs(TE)
+            RequiredAirBE = BlendTargetBE - abs(TE)
             local RequiredBrakeCyl = 90*RequiredAirBE/(300*MaxTrainBrakeForce)
-            BlendEqualRes = 90-RequiredBrakeCyl
+            BlendEqualRes = max(FeedPressure-RequiredBrakeCyl,0)
             
             #DB Consequences
             if(-Load > MaxContDynLoad){
@@ -2189,7 +2189,7 @@ if(On1|On2){
             BrakeWarning = Load<-MaxContDynLoad
         }else{
             Load = Voltage = TE = 0
-            BlendEqualRes = 90
+            BlendEqualRes = FeedPressure
             if(WheelSlip & SlideQ){
                 SlideQ = 0
                 soundStop(12)
@@ -2488,7 +2488,7 @@ if(Tick){
     }
     
     local BrakeNotch = CtlTable["SetBrakeNotch",number]
-    local SetEqualRes = WillItBlend ? 90 : CtlTable["SetEqualRes",number]
+    local SetEqualRes = WillItBlend ? FeedPressure : CtlTable["SetEqualRes",number]
     local SetBleeding = CtlTable["SetBleeding",number]
     local SetHolding = CtlTable["SetHolding",number]
     local Overcharge = CtlTable["Overcharge",number] #What do you mean, "Overcha-"
@@ -2511,7 +2511,7 @@ if(Tick){
         #AUTOMATIC BRAKES
         
         #Blended Braking
-        if(WillItBlend & (BlendEqualRes<90)){
+        if(WillItBlend & (BlendEqualRes<FeedPressure)){
             if(SetEqualRes>BlendEqualRes){
                 SetEqualRes = BlendEqualRes
             }
@@ -2547,7 +2547,7 @@ if(Tick){
                 }
             }
             
-        }elseif(BrakePipe>AuxRes){ #Release/Charge
+        }elseif((BrakePipe>AuxRes) & (BlendEqualRes==FeedPressure)){ #Release/Charge
             
             #BC to Atmosphere
             if(GraduatedRelease){
