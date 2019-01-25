@@ -13,8 +13,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.61 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.61"
+    #FOR USE WITH RLC PT 2.0.63 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.63"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -904,59 +904,73 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 if(MU_Master & OnRun){
                     local What = Sentence[2,string]
                     if(What==""){
-                        PenaltyBrake = 1
+                        SetEqualRes = 0
+						SetThrottle = 0
+						Notch = 0
+						SetDynamics = 0
+						SetBrakeNotch = 6
                         Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
-                        timer("PenaltyTimeout",1000)
                     }else{
-                        local Set = clamp(What:toNumber(),0,72)
+                        local Set = clamp(What:toNumber(),0,FeedPressure)
                         switch(AirBrakeMode){
                             case 4, #6SL
                                 if(Set==0){
-                                    SetEqualRes = 72
+                                    SetEqualRes = FeedPressure
                                     SetBrakeNotch = 1
                                 }else{
-                                    SetEqualRes = 72 - Set
+                                    SetEqualRes = FeedPressure - Set
                                     SetBrakeNotch = 3
                                 }
                                 break
                             case 3, #24RL
                                 if(Set==0){
-                                    SetEqualRes = 72
+                                    SetEqualRes = FeedPressure
                                     SetBrakeNotch = 1
                                 }elseif(Set<InitialReduction){
-                                    SetEqualRes = 72 - InitialReduction
+                                    SetEqualRes = FeedPressure - InitialReduction
                                     SetBrakeNotch = 2
                                 }else{
-                                    SetEqualRes = 72 - Set
+                                    SetEqualRes = FeedPressure - Set
                                     SetBrakeNotch = 3
                                 }
                                 break
                             case 2, #26L
                                 if(Set==0){
-                                    SetEqualRes = 72
+                                    SetEqualRes = FeedPressure
                                     SetBrakeNotch = 0
                                 }elseif(Set<InitialReduction){
-                                    SetEqualRes = 72 - InitialReduction
+                                    SetEqualRes = FeedPressure - InitialReduction
                                     SetBrakeNotch = 1
                                 }else{
-                                    SetEqualRes = 72 - Set
+                                    SetEqualRes = FeedPressure - Set
                                     SetBrakeNotch = 1
                                 }
                                 break
                             case 1, #SML
                                 SetBrakeNotch = 1
-                                SetEqualRes = 72 - Set
+                                SetEqualRes = FeedPressure - Set
                                 break
                             case 0, #SSL
                                 SetBrakeNotch = 0
-                                SetEqualRes = 72 - Set
+                                SetEqualRes = FeedPressure - Set
                                 break
                         }
-                        Speaker:printProper("[RLCPT] Setting " + (72-SetEqualRes) + "lb application on train.")
+                        Speaker:printProper("[RLCPT] Setting " + (FeedPressure-SetEqualRes) + "lb application on train.")
                     }
                 }
                 hideChat(1)
                 break
+			case ".brake",
+				if(MU_Master & OnRun){
+					SetEqualRes = 0
+					SetThrottle = 0
+					Notch = 0
+					SetDynamics = 0
+					SetBrakeNotch = 6
+					Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
+				}
+				hideChat(1)
+				break
             case ".lbset",
                 local Set = clamp(Sentence[2,string]:toNumber(),0,72)
                 local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)

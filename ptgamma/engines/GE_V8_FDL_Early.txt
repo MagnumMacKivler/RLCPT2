@@ -1,6 +1,6 @@
 @name ptgamma/engines/GE_V8_FDL_Early
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in very few GE U-series Locomotives (U18B, or B18-7, which was proposed but never built).
 EngineType = "GE FDL-8" #What is the name of the Prime Mover?
 
@@ -41,6 +41,7 @@ EngineBehavior = array(3,  0,  0,  0,  0,  0,  0,  0)
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
+#4 - Override (Full Sweep)
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
 UpDelays = array(0,   1400,850,1600,2300,1000,1500,2000)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1

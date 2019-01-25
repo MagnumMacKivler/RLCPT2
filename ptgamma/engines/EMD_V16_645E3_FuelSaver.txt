@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V16_645E3_FuelSaver
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in EMD 40-series Locomotives (GP40, SD40). The fuel-saver saves a little money in the longrun.
 EngineType = "EMD 645E3 (V16)" #What is the name of the Prime Mover?
 
@@ -41,6 +41,7 @@ EngineBehavior = array(3,  1,  0,  0,  0,  0,  0,  0)
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
+#4 - Override (Full Sweep)
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
 UpDelays = array(0,   2000,3620,2000,3050,2800,3700,2000)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1

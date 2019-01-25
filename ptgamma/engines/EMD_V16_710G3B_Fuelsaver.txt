@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V16_710G3B_Fuelsaver
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in EMD late 60 and 70 Series Locomotives (GP60, SD60, SD70).
 EngineType = "EMD 710G3B (V16)" #What is the name of the Prime Mover?
 

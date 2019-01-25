@@ -13,7 +13,7 @@ if(first()|dupefinished()){
     
     Version = "1.6"
     
-    ConductorScreen = 1 #If 1, LOCOS will synchronize a third screen with EGP1 for the conductor to view
+    ConductorScreen = 0 #If 1, LOCOS will synchronize a third screen with EGP1 for the conductor to view
     
     HeaderText = "APPALACHIA NORTHERN - No."
     

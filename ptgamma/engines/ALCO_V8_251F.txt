@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_V8_251F
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in the Alco C415 and MLW MX615.
 EngineType = "Alco 251F (V8)" #What is the name of the Prime Mover?
 

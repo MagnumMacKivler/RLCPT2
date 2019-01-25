@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_L6_251B
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in the Alco S6, T6, DL531/534 (C-11), and DL532 (B-11).
 EngineType = "Alco 251B (L6)" #What is the name of the Prime Mover?
 

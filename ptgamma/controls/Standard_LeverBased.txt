@@ -1,5 +1,5 @@
 @name ptgamma/controls/Standard_LeverBased
-CTL_Version = "2.0.56"
+CTL_Version = "2.0.63"
 #The standard, default control scheme, but with Lever-based functionality.
 
 #CONTROL CONFIG

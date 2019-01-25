@@ -15,8 +15,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.61 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.61"
+    #FOR USE WITH RLC PT 2.0.63 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.63"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -1048,9 +1048,12 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 if(MU_Master & OnRun){
                     local What = Sentence[2,string]
                     if(What==""){
-                        PenaltyBrake = 1
+                        SetEqualRes = 0
+						SetThrottle = 0
+						Notch = 0
+						SetDynamics = 0
+						SetBrakeNotch = 6
                         Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
-                        timer("PenaltyTimeout",1000)
                     }else{
                         local Set = clamp(What:toNumber(),0,FeedPressure)
                         switch(AirBrakeMode){
@@ -1101,6 +1104,17 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 }
                 hideChat(1)
                 break
+			case ".brake",
+				if(MU_Master & OnRun){
+					SetEqualRes = 0
+					SetThrottle = 0
+					Notch = 0
+					SetDynamics = 0
+					SetBrakeNotch = 6
+					Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
+				}
+				hideChat(1)
+				break
             case ".lbset",
                 local Set = clamp(Sentence[2,string]:toNumber(),0,72)
                 local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)

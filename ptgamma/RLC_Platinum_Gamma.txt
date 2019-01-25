@@ -2,7 +2,8 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array BlendTargetBE TE RequiredAirBE
+@outputs AvCurrent GenCurrent Currents:array
+
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
@@ -41,51 +42,9 @@
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
-#To-Do for 62
-
-
-#Finished:
-
-#Update Checking [x]
-#New behavior mode for overriding sounds [x]
-#Fix things that use HP not caring about DPM [x]
-#Dimmable headlights [x]
-#Actual Blended Braking God Please Kill Me
-#Display Names & Versions for Control Stand E2s [x]
-#Abusable Dynamic Brakes [x]
-#Jointed Rail [x]
-#Re-Add Single-Speed DB cooling and DB limiting [x]
-#Wheel Lockup when using Independents + Dynamics [x]
-#Fix the Cstand thinking PT commands are invalid and vice versa [x]
-#Fix Control Stands Locomotive Brakes [x]
-#Primer Durations [x]
-#Graduated Release + Brake Control Redo [x]
-#Engine Sound Blending [x]
-#Shutdown Button [x]
-#Hump Control HHHHHHHH [x]
-#Add new horn cord code into the other stands (already in KC92) [x]
-#Fix AB/LB Set on control stands [x]
-#Fix Gen Field not MU-ing properly [x]
-#No. 6 Air Brakes [x]
-#Dual Control Stand MUX [x]
-#Air Compressor Nerf with CFM Config [x]
-#Span Bolster Weight Setup [x]
-#TE Output in LBF [x]
-#Fix Dynamic Braking Cooling Modes [x]
-#Rename Brake Cutout to something else [x]
-#Fix Desc in Loco Configs for Load Ramp Speed [x]
-#Dual Prime Mover - Double Current [x]
-#AC Traction Reverser Dynamics Thing [x]
-#Auto TM Protection Option [x]
-#Auto Starter Inputs [x]
-#Pre-Play Soundstop for Control Stands [x]
-#HPT sums HP [x]
-#Buttonfuck 2018 [x]
-
-
 if(first()|dupefinished()){
     
-    Version = "Gamma 2.0.62"
+    Version = "Gamma 2.0.63"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -99,7 +58,7 @@ if(first()|dupefinished()){
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
     #include "ptgamma/locos/generic/emd_sd40"
     
-    #That's pretty much all the config!
+    #That's pretty much all the config you need for the RLC PT2 Chip itself!
     
     #MISC SOUNDS
     
@@ -1478,7 +1437,7 @@ if(clk("vc_timeout")){
             return hsv2rgb(Hue*10,1,1)
         }
         printColor(
-            "--------\n",
+            "[RLCPT]\n",
             rb(1),"A ",
             rb(2),"N",
             rb(3),"E",

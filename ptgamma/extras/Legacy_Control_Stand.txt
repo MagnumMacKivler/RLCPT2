@@ -5,7 +5,7 @@
 @persist CS:entity DisableHorn Type AirBrakeType LocoBrakeType DynamicsType DS:array RLCPTW:wirelink
 @trigger 
 #Beta v2.9
-#Compatible with RLC PT 2.0.61
+#Compatible with RLC PT 2.0.61-63
 #If you're using a normal prop instead of letting the E2 do all the work, comment out one of these lines:
 #@model models/magtrainslocos/controlstands/stand_f7.mdl
 #@model models/magtrainslocos/controlstands/stand_e8.mdl

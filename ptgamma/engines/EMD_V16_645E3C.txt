@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V16_645E3C
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
+ENG_Version = "2.0.63"
 #For use in some EMD Locomotives (F40PH-2, F40C). Also passable as an 645E3A (DDA40X) and 645E3B.
 EngineType = "EMD 645E3B (V16)" #What is the name of the Prime Mover?
 
@@ -41,6 +41,7 @@ EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
+#4 - Override (Full Sweep)
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
 UpDelays = array(0,   2000,2000,2500,2700,2700,3000,3200)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1

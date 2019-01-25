@@ -15,12 +15,12 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.62
+                                                                    For RLC Pt 2.0.63
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
 
-Welcome to Magnum's RLC Platinum 2.0 (Currently in Open Gamma)!
+Welcome to Magnum's RLC Platinum 2.0, now released for public use!
 RLC Pt 2.0 is designed to replace RLC Pt 1 as the premier simulation chip for Diesel-Electric Locomotives, Cab Cars, Slugs, and "Snails". RLC Pt 2.0 is designed to
 bring simulator-quality realism and standardization to the world of Garry's Mod Train Build.
 
@@ -141,6 +141,7 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
     B: Basic Setup (Required):
         1 - Select or Make an RLC PT2 Locomotive Config file. These can be found in "ptgamma/locos/". There's a lot to configure, so take your time and read through everything!
         2 - Configure RLC PT 2.0 (Henceforth referred to as "RLC"). A lot of the config has been outsourced to the Locomotive Config and Control Reader/Stand E2s.
+			Need help making a locomotive config? Check out https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2 !
         3 - Spawn RLC on the locomotive body like you'd attach a thruster. Don't worry about the error message just yet.
             The shiny side must point BACKWARDS. Do not attach to the trucks/bogies.
             If there are no suitable faces to attach the chip to, you can spawn RLC on the ground, Physgun it into place, and weld it manually.
@@ -527,6 +528,7 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
     .dynamics /// <float> /// ".dynamics 25" /// Changes dynamic braking power as a percentage. Any value less than 10 turns the dynamic brakes off.
     .dynanotch /// <integer> /// ".dynanotch -1" /// Changes dynamic braking power using the notched scale, if one exists. -1 is Off, 0 is "Set Up."
     .abset /// <integer> /// ".abset 90" /// Sets the Automatic (Trainline) Brake Application/Reduction to this value. 0 is full release. If no parameter is given, the Emergency Brake trips!
+	.brake /// N/A /// ".brake" /// Sets the emergency brake, like it did in the original RLC PT.
     .lbset /// <integer> /// ".lbset 20" /// Sets the Independent (Locomotive) Brake Application to this value. 0 is full release, 72 is full application.
     
     .switching /// <boolean> /// ".switching 1" /// Enables/Disables switching mode, which isolates the train brake line for easier switching.
@@ -548,4 +550,4 @@ E = entity()
 holoCreate(0,E:toWorld(vec(0,1.5,8)),vec(0.5,0.75,1),E:toWorld(ang(90,91,0)),vec(255),"plane")
 holoParent(0,E)
 holoMaterial(0,"magtrains/logos/ironwatsas/rlc-equipped2")
-setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.62")
+setName("RLC Platinum 2.0\nInstruction & Maintenance Manual\nGamma 2.0.63")

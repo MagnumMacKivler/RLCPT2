@@ -1,7 +1,7 @@
 @name ptgamma/engines/Class 105
 #ENGINE CONFIG
-ENG_Version = "2.0.60"
-#For use in EMD 1500-series Locomotives (SW1500, MP15DC).
+ENG_Version = "2.0.63"
+#For use in the Class 105 DMU. Made to demonstrate how you can make sound sets with nonstandard notch counts and no transitions.
 EngineType = "AEC 150hp" #What is the name of the Prime Mover?
 
 Startup_Hi = "moztrainsounds/diesel/class150/c150_startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
@@ -41,6 +41,7 @@ EngineBehavior = array(2,  2,  2,  2,  2,  2,  2,  2)
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
+#4 - Override (Full Sweep)
                 #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
 UpDelays = array(0,   1500,1800,1200,1200,1000,1200,2500) 
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
