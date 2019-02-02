@@ -44,7 +44,7 @@
 
 if(first()|dupefinished()){
     
-    Version = "Gamma 2.0.63"
+    Version = "Gamma 2.0.64"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -2109,7 +2109,7 @@ if(On1|On2){
             
             RequiredAirBE = BlendTargetBE - abs(TE)
             local RequiredBrakeCyl = 90*RequiredAirBE/(300*MaxTrainBrakeForce)
-            BlendEqualRes = max(FeedPressure-RequiredBrakeCyl,0)
+            BlendEqualRes = WillItBlend ? max(FeedPressure-RequiredBrakeCyl,0) : FeedPressure
             
             #DB Consequences
             if(-Load > MaxContDynLoad){

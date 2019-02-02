@@ -40,4 +40,5 @@ READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
 
 ## Changelog
 
+[02/02/19] 2.0.64 Patch for an issue with compound braking.
 [01/24/19] 2.0.63 Initial Release! If using an earlier version, update everything (Control Reader/Stand, Control Config, Loco Configs, Engine Configs, and Base PT2--Basically do a fresh install)!
