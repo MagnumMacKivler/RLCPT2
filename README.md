@@ -1,4 +1,3 @@
-
 ### *RLC Platinum 2.0 is finally released!*
 
 What does this mean?
@@ -7,7 +6,7 @@ RLC PT 2.0 is now publicly available for use. The version found on here should b
 
 Thankfully, certain features within RLC PT 2.0 make it easier for users to update their locomotives, and the new include-based config system should streamline the process. Gone are the days of copy/pasting blocks of code from one PT chip into the next!
 
-# RLC Platinum 2.0 Gamma (Version 2.0.63)
+# RLC Platinum 2.0 Gamma (Version 2.0.64)
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
@@ -15,7 +14,9 @@ Warning: RLC PT 2.0 is *not* MU-compatible with RLC PT (1).
 
 [Check out the wiki for locomotive data sheets, general info, and PT2-specific tips!](https://github.com/MagnumMacKivler/RLCPT2/wiki)
 
-## To Install (The Easy Way, requires Tortoise SVN):
+## To Install (The Easy Way):
+
+Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads.html) Back in the old days, this was how all the really big Garry's Mod addons were installed.
 
 1. Navigate into `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\` and make a new folder called "ptgamma".
 2. Right click this folder and do an SVN checkout with this link:
