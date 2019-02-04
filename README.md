@@ -15,7 +15,15 @@ Warning: RLC PT 2.0 is *not* MU-compatible with RLC PT (1).
 
 [Check out the wiki for locomotive data sheets, general info, and PT2-specific tips!](https://github.com/MagnumMacKivler/RLCPT2/wiki)
 
-## To Install:
+## To Install (The Easy Way, requires Tortoise SVN):
+
+1. Navigate into `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\` and make a new folder called "ptgamma".
+2. Right click this folder and do an SVN checkout with this link:
+`https://github.com/MagnumMacKivler/RLCPT2/trunk/ptgamma/`
+3. Press "Okay" and Tortoise SVN will automatically install everything.
+4. To update RLC PT2's files, simply right click the ptgamma folder, navigate into the Tortoise SVN bar, and click "SVN Update".
+
+## To Install (The *Apparently* Hard Way, since so many people screw it up):
 
 1. Click the "Clone or Download" button on the righthand side of the screen and select "Download Zip."
 2. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically.
