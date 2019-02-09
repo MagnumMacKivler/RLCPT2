@@ -1,4 +1,4 @@
-@name Monk's Advanced Exhaust V1
+@name Monk's Advanced Exhaust
 @inputs RLCPT:entity
 @outputs ParticleOn Particle:string
 @persist RLCPTEng:string On Clag GenCurrent EngineSpeed EngineNotch
@@ -10,29 +10,31 @@
 
 if(first() | dupefinished()){
     
-    # Made by Monkatraz
+    #v1.10
     
-    # Cleaniness ranges from 1 - 7
+    # made by monkatraz
+    
+    # cleaniness ranges from 1 - 7
     # 7 is a very clean engine, so clean it not visibly exhausting at idle (6 is most engines)
     # 1 is a 'oh god please fix your engine it is dying' and your engine is basically constantly smoking
-    # You should probably have a minimum of like, 4 - 4.5 in cleanliness because below that your engine is gonna die
+    # you should probably have a minimum of like, 4 - 4.5 in cleanliness because below that your engine is gonna die
     
-    local RLCPTEngine = 1 # Which engine to take the values from? (Engine 1 or Engine 2)
+    local RLCPTEngine = 1 # which engine to take the values from? engine 1 or engine 2
     
-    MaximumGenCurrent = 3000 # Find this in your PT chip
-    DPM = 0 # Is it dual prime mover?
+    MaximumGenCurrent = 6000 # find this in your PT chip
+    DPM = 0 # is it dual prime mover?
     
     ForcedInductionType = 2 # 1 supercharged, 2 turbocharged, 3 disengaging superturbocharger
-    SuperTurboChargerNotch = 4 # At what notch does the supercharger disengage? (usually 4)
+    SuperTurboChargerNotch = 4 # at what notch does the supercharger disengage? (usually 4)
     
-    StartCleanliness = 4 # Cleanliness of the starting clag
+    StartCleanliness = 6 # how clean the starting clag is
     
-    IdleCleanliness = 7 # This is how clean the engine is when its not changing RPM or not being stressed by shifting load
-    WorkingCleanliness = 5 # This is how clean the engine is when its being under shifting load or RPM
+    IdleCleanliness = 7 # this is how clean the engine is when its not changing RPM or not being stressed by shifting load
+    WorkingCleanliness = 6 # this is how clean the engine is when its being under shifting load or RPM
     
-    # Particles can also be 'null' which won't play anything
+    # particles can also be 'null' which won't play anything
     
-    PStages = array("clag_4stroke_0","clag_4stroke_1","clag_4stroke_2","clag_4stroke_3","clag_4stroke_4","clag_4stroke_5","clag_4stroke_6")
+    PStages = array("clag_2stroke_0","clag_2stroke_1","clag_2stroke_2","clag_2stroke_3","clag_2stroke_4","clag_2stroke_5","clag_2stroke_6")
     
     # end config
     
@@ -51,8 +53,6 @@ if(first() | dupefinished()){
     
     IDI = 8 - ICL
     WDI = 8 - WCL
-    
-    StartCleanliness = round(StartCleanliness)
     
     function number smooth(Var,SmoothAmount,ID:string,DefaultVal) { #smoothes out a number using delta dampening
         
@@ -92,13 +92,13 @@ if(On){
     
         GenCurrentDelta = $GenCurrent
         
-        LoadStress = smooth(clamp(GenCurrentDelta/(40*(MaximumGenCurrent/2000)),0,10) * WDI,4,"loadstress",1)
+        LoadStress = smooth(clamp(max(GenCurrentDelta,0)/(40*(MaximumGenCurrent/2000)),0,10) * WDI,4,"loadstress",1)
         LoadEffect = smooth((max(GenCurrent,0)/MaximumGenCurrent) * IDI,12,"loadeffect",0)
     
     }else{
     
-        LoadStress = 0
-        LoadEffect = 0
+        LoadStress = smooth(clamp(max(GenCurrentDelta,0)/(80*(MaximumGenCurrent/2000)),0,10) * WDI,12,"loadstress",1)
+        LoadEffect = smooth((max(GenCurrent,0)/MaximumGenCurrent) * IDI/2,12,"loadeffect",0)
         
     }
     
@@ -113,7 +113,7 @@ if(On){
     
 }elseif(!On & Clag){ # starting clag workaround
 
-    LocalParticle = PStages[8-StartCleanliness,string]
+    LocalParticle = PStages[8-round(StartCleanliness),string]
 
 }else{
 
