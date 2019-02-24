@@ -77,8 +77,8 @@ CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 CompressorOn = "gsgtrainsounds/misc/compressors/gd_wbo_loop.wav"
 CompressorOff = "gsgtrainsounds/misc/compressors/gd_wbo_end.wav"
 
-DynamicsOn = "gsgtrainsounds/misc/emd_late_dyn_end.wav"
-DynamicsOff = "gsgtrainsounds/misc/emd_late_dyn_loop.wav"
+DynamicsOn = "gsgtrainsounds/misc/emd_late_dyn_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/emd_late_dyn_end.wav"
 
 PrimeOn = "gsgtrainsounds/emd710g3bv16/primer.wav"
 PrimeOff = ""
