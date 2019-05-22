@@ -28,7 +28,7 @@ Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads
 3. Press "Okay" and Tortoise SVN will automatically install everything.
 4. To update RLC PT2's files, simply right click the ptgamma folder, navigate into the Tortoise SVN bar, and click "SVN Update".
 
-## To Install (The *Apparently* Hard Way, since so many people screw it up):
+## To Install Manually (Harder):
 
 1. Click the "Clone or Download" button on the righthand side of the screen and select "Download Zip."
 2. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically.
