@@ -1,0 +1,58 @@
+@name magspack2/includes/updatelib
+
+function number canHTTP(){ #Returns 1 if HTTP core is enabled, 0 otherwise.
+    #ifdef httpRequest(string)
+        return 1
+    #else
+        return 0
+    #endif
+}
+
+function number startRequest(){ #Pings the Magspack Version TXT File for the file data. Returns 1 if HTTP core is enabled, returns 0 if not.
+    
+    #ifdef httpRequest(string)
+        httpRequest("https://raw.githubusercontent.com/MagnumMacKivler/RLCPT2/master/magspack2/mp2_versions.txt")
+        runOnHTTP(1)
+        return 1
+    #else
+        return 0
+    #endif
+    
+}
+
+function number updateClk(){ #Literally just httpClk() but with ifdef.
+    #ifdef httpClk()
+        return httpClk()
+    #else
+        return 0
+    #endif
+}
+
+function table getUpdateTable(ItemName:string){ #Get Table Elements from HTTP Data
+    local Table = table()
+    #ifdef httpData()
+        local FileData = httpData()
+        local Items = FileData:explode("item:")
+        #print(Items)
+        local TestForLength = ItemName:length()
+        for(N=2,Items:count()){
+            local Item = Items[N,string]
+            #print(Item:left(TestForLength))
+            if(Item:left(TestForLength)==ItemName){ #This your item!
+                #print("A")
+                local Lines = Item:explode("\n")
+                for(M=2,Lines:count()){
+                    if(Lines[M,string]!=""){
+                        local LineText = Lines[M,string]:explode(":")
+                        Table[LineText[1,string],string] = LineText[2,string]
+                    }
+                }
+                break
+            }
+        }
+        
+        
+    #endif
+    return Table
+    
+}
