@@ -2,7 +2,7 @@ item:Crowbar Coupler
 version:2.something
 
 item:Rattlecan
-version:0.9.1
+version:0.11.0
 version_name:Dip Job
-version_last_compatible:0.9.1
+version_config:0.11.0
 changelog:None
