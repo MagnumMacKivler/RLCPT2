@@ -37,6 +37,8 @@ Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads
 The file path should then look like `expression2\ptgamma\...`.
 5. If you see the folder "RLCPT2-master" inside the "expression2" folder, __YOU INSTALLED IT WRONG__ and the E2s will not work!
 
+<br>
+
 You will also need GrovestreetGman's Sound packs for RLC PT2 to work correctly. There are three:
 
 Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
@@ -53,5 +55,5 @@ READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
 
 ## Changelog
 
-[02/02/19] 2.0.64 Patch for an issue with compound braking.
-[01/24/19] 2.0.63 Initial Release! If using an earlier version, update everything (Control Reader/Stand, Control Config, Loco Configs, Engine Configs, and Base PT2--Basically do a fresh install)!
+ * [02/02/19] 2.0.64 Patch for an issue with compound braking.
+ * [01/24/19] 2.0.63 Initial Release! If using an earlier version, update everything (Control Reader/Stand, Control Config, Loco Configs, Engine Configs, and Base PT2--Basically do a fresh install)!
