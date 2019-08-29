@@ -20,6 +20,8 @@ Warning: RLC PT 2.0 is *not* MU-compatible with RLC PT (1).
 
 ## To Install (The Easy Way):
 
+<br>
+
 Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads.html) Back in the old days, this was how all the really big Garry's Mod addons were installed.
 
 1. Navigate into `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\` and make a new folder called "ptgamma".
