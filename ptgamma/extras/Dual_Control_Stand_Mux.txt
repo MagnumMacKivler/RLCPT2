@@ -64,6 +64,22 @@ switch(ActiveStand){
         break
     default,
         CtlTable = table()
+        local CS1 = CtlTable_F["CS_Version",string]:explode(".")[3,string]:toNumber()
+        local CS2 = CtlTable_R["CS_Version",string]:explode(".")[3,string]:toNumber()
+        if(min(CS1,CS2)!=0){
+            CtlTable["CS_Version",string] = "2.0."+min(CS1,CS2)
+        }else{
+            CtlTable["CS_Version",string] = "2.0.?"
+        }
+        
+        local C1 = CtlTable_F["CTL_Version",string]:explode(".")[3,string]:toNumber()
+        local C2 = CtlTable_R["CTL_Version",string]:explode(".")[3,string]:toNumber()
+        if(min(CS1,CS2)!=0){
+            CtlTable["CTL_Version",string] = "2.0."+min(C1,C2)
+        }else{
+            CtlTable["CTL_Version",string] = "2.0.?"
+        }
+        
         Pod = noentity()
         Active = 0
         Lights_Front = 0
