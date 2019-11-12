@@ -15,7 +15,7 @@
  _/ // / / (__  ) /_/ /  / /_/ / /__/ /_/ / /_/ / / / /  / /_/  <   / /  / / /_/ / / / / / /_/  __/ / / / /_/ / / / / /__/  __/  / /  / / /_/ / / / / /_/ / /_/ / /  
 /___/_/ /_/____/\__/_/   \__,_/\___/\__/_/\____/_/ /_/   \____/\/  /_/  /_/\__,_/_/_/ /_/\__/\___/_/ /_/\__,_/_/ /_/\___/\___/  /_/  /_/\__,_/_/ /_/\__,_/\__,_/_/   
                                                                                                                                                                      
-                                                                    For RLC Pt 2.0.64
+                                                                    For RLC Pt 2.0.64-65
                                                              Copyright 2018 Magnum MacKivler
 #####################################################################################################################################################################
 
@@ -171,11 +171,11 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
         
             "Control Stand? Control Reader? Which one do I use?"
             Use the Modernized Control Stand if you're using one of the new Control Stand models. That chip contains the control reader within it.
-            Use the Control Reader if you're using any other control stand, like the older control stands... or none at all!
-            If you're using an older control stand, use the E2 "RLC_Platinum_Control_Stand_GAMMA.txt"
+            Use the Control Reader if you're using any other control stand, like the older (RLC PT1) control stands... or none at all!
+            If you're using an older (RLC PT1) control stand, you should use "ptgamma/extras/Legacy_Control_Stand.txt" to make it work.
             
             Wire the Control Reader/Stand's "Pod[ENTITY]" input to the Pod Controller's "Entity[ENTITY]" output (For B units, you can skip this substep).
-            Wire the Control Reader/Stand's "MU_Master" input to RLC's "MU Master" output (For B units, you can skip this substep).
+            Wire the Control Reader/Stand's "MU_Master" input to RLC's "MU_Master" output (For B units, you can skip this substep).
             Wire RLC's "CtlTable[TABLE]" input to the Control Reader/Stand's "CtlTable[TABLE]" output.
         8 - Refresh the RLC Chip (You can do this easily by taking out the E2 tool and pressing Reload on it)!
         
@@ -190,26 +190,26 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
         3 - Fabricate a Jumper Cable:
             Spawn two Wire Plugs on the ground about 192 units (About 3 PHX Blocks) apart.
             Rope the ends together with a NON-RIGID rope.
-            Wire each plug's "In[ARRAY]" to the other plug's "Out[ARRAY]"
+            Wire each Plug's "In[ARRAY]" to the other Plug's "Out[ARRAY]"
             Save this jumper cable as a separate dupe. Do not include it with the locomotive.
         
     D: MU Headlights Setup (Requires MU Setup):
     
-        1 - Simply allow RLC to insert itself between the lights and whatever controls them in the I/O chain:
-            Wire RLC's "Lights_Front" and "Lights_Rear" to whatever controls each individual headlight.
+        1 - Simply allow RLC to insert itself between the lights and whatever controls them in the I/O chain as follows:
+            Wire RLC's "Lights_Front" and "Lights_Rear" to whatever controls each individual headlight (For example, the headlight button).
             Wire the Front and Rear Headlights' "On" to RLC's "Lights_Forward" and "Lights_Backward," respectively.
-            If using Wire Lights instead of lamps, wire their RGB[VECTOR] to RLC's "Lights_Fwd_RGB" and "Lights_Back_RGB," respectively.
+            If using Wire Lights instead of lamps, wire their RGB[VECTOR] to RLC's "Lights_Fwd_RGB" and "Lights_Back_RGB", respectively.
         
     E: Dual Prime Mover (DPM) Setup:
     
-        1- Simply repeat Basic Setup Step 4 using a separate set of 4 buttons (you do not need a 2nd GenField or BrakeCutIn Button).
-            The Wire inputs for the 2nd Prime Mover are "Prime2," "Start2," "Isolation2," and "EngineRun2."
+        1- Simply repeat Basic Setup Step 4 using a separate set of 4 buttons (you do not need a second GenField or BrakeCutIn Button).
+            RLC's Wire inputs for the 2nd Prime Mover are "Prime2", "Start2", "Isolation2", and "EngineRun2".
     
     F: Head-End Power (HEP) Setup:
     
         1 - Spawn two NON-TOGGLED Wire Buttons somewhere accessible.
-            Wire "HEP_Up" to one of the Wire Buttons.
-            Wire "HEP_Dn" to the other Wire Button.
+            Wire RLC's "HEP_Up" to one of the Wire Buttons.
+            Wire RLC's "HEP_Dn" to the other Wire Button.
         2 - Wire the Control Reader/Stand's "HEP_Notch" input to RLC's "HEP_Notch" output.
         
     G: Slug Compatibility (Requires MU Setup):
@@ -227,7 +227,7 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
             Wire the Control Reader/Stand's "RemoteControl" input to this Button (Henceforth referred to as the "Remote Control Switch").
             Wire the Control Reader/Stand's "Active" input to the Pod Controller's "Active" Output.
             Wire RLC's "RemoteMode" input to the Control Reader/Stand's "RemoteMode" output.
-            You can now control the locomotive using the Wire Remote Controller SWEP, provided the RemoteControl button is on.
+            You can now control the locomotive using the Wire Remote Controller SWEP, provided the Remote Control Switch is on.
     
     I: Buttonless Starting
     
@@ -243,21 +243,22 @@ RLC PT 2.0 has a lot of improvements over prior Locomotive Control chips, includ
     
         The Dual Control Stand Mux (Multiplexer) E2 is a convenient way of sourcing two separate control setups for dual-control stand or dual-cab locomotives.
         Simply set up two completely independent control stands with separate Engine Run, Generator Field, and Brake Cut-In switches.
-        The Mux E2 has two sets of inputs and one set of outputs. Wire all the RLC PT2 inputs you'd normally connect to the control stand to the Mux instead. Don't forget to wire UsingRearSeat!
-        Then, wire The Mux's inputs to the corresponding items on the Front and Rear control stands, and you're done!
+        The Mux E2 has two sets of inputs and one set of outputs. Wire all the RLC PT2 inputs you'd normally connect to the control stand to the Mux instead. Wire the Control Reader/Stand's "UsingRearSeat" input to the Mux's "UsingRearSeat" output.
+        Then, wire The Mux's inputs to the corresponding items on the Front and Rear Control Readers/Stands, and you're done!
+		
+		Note: The variable "MainLogicType" in the Mux E2's Config changes how the Engine Run/Gen Field switches on the two Control Readers/Stands behave.
+		For most locomotives (EMD/ALCO), they are AND'd together, and the engineer is supposed to turn on the OPPOSITE SWITCH FIRST.
+		For some locomotives (FM), the switches are OR'd together, and the only switches that should be on are on the side the engineer is controlling.
         
     K: Extra Inputs
     
         There are a few Optional inputs left over that weren't covered above. What do they do?
-            "UsingRearSeat" (Control Reader/Stand) flips the Reverser controls. Useful for Dual-Cab and Dual-Controlstand Locomotives.
             "HandBrakeOverride" (RLC) allows external control of the handbrake.
             "EmBrake" (Control Reader/Stand) allows external control of the Emergency Brake. Fender Bender Defender (FBD) has an output for this!
-            "BrakeCutout" (RLC) allows you to cut out the Trainline/Automatic brakes for switching. This will make the brakes charge faster,
+            "IsolateBrakes" (RLC) allows you to cut out the Trainline/Automatic brakes for switching. This will make the brakes release faster,
             but you'll only be able to brake the locomotive!
             "Number[STRING]" (RLC AND Control Reader/Stand) lets RLC know what the running number of the Locomotive is. This allows you to send Chat Commands to individual
             locomotives!
-            "IsolateBrakes" allows you to close off the air brakes to the rest of the train, eliminating the need for recharging the brakes... at the cost of only being able to use the independent
-            brakes. It's good for switching!
 			
 	L: Updating RLC PT 2.0
 		

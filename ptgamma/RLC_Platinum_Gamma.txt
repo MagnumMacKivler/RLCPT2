@@ -1,15 +1,16 @@
 @name ptgamma/RLC Platinum Gamma
-@inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes Number:string
+@inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes IdleOverride Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array
-
+@outputs AvCurrent GenCurrent Currents:array ForceStart1 Priming1
+@outputs 
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
 @persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array
+@persist EIIS_Enabled [EIIS_HigherIdle EIIS_HighToHigher EIIS_LowToHigher EIIS_HigherToHigh EIIS_HigherToLow EIIS_HigherTo2 EIIS_2ToHigher EIIS_Shutdown_Higher]:string
 #Engine Data
-@persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleCondition1 LowIdleCondition2 LowIdling1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
+@persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleTarget1 LowIdleCondition2 LowIdleActual1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
 @persist RevDirection1 RevDirection2 TimeStamp1 TimeStamp2 Dur1 Dur2 NQ TQ1 TQ2 ABQ1 ABQ2 ABlendQ1 ABlendQ2 AnyBlendQ1 AnyBlendQ2 LRQ1 LRQ2 RevQ TransitionNotch TE_Starting Power HEP_Notch HEPQ HEPCLAG HEPTHROTTLEBASE TE Force Load_Setpoint Load
 #New Traction Stuff
 @persist TransitionGroups:array TransitionShunts:array GeneratorTransition NominalVoltage MaxGenCurrent TransitionNotches TransitionThresholds:array GenThreshold
@@ -18,7 +19,7 @@
 @persist Horsepower Weight Adhesion Axles Motors MotorType MaxLoad MaxContLoad AirBrakeMode DynamicsMode MaxContDynLoad MaxDynLoad DB_Throttle LimitCurrent BlendedBraking [Controls Routing]:table Shift:string NotchedThrottle
 @persist BaseSpeed TopSpeed ClaspBrakes TractionMode LoadRampSpeed WeightOnAxle
 @persist TransitionMode TransitionVoltage TransitionControlType TransitionQ
-@persist StarterMode OverloadProtection OLPR OLP_Engaged Compressor_CFM MainResVolume
+@persist StarterMode OverloadProtection OLPR OLP_Engaged Compressor_CFM MainResVolume ZTX
 #Locomotive Sounds
 @persist [PrimeOn PrimeOff Lever_Throttle Lever_HandBrake RollSoundWelded RollSoundJointed TractionDrone MotorDamaging MotorDeath DynamicsDeath Dynamics_Fubar_On Dynamics_Fubar_Off]:string
 @persist [WheelSlipOn WheelSlipOff WheelSlide SanderOn SanderOff Button_HEP]:string
@@ -38,13 +39,24 @@
 @persist [CFG_Version ENG_Version CS_Version]:string
 @persist AC_PlugNope MU_Master CtlInitQ [FrontTruck RearTruck]:entity ClicketyQ
 @persist Version:string 
+@persist CC_Enable CC_TargetSpeed CC_Throttle CC_Notch CC_PropRate CC_Lock
 
 @trigger Prime1 Prime2 Start1 Start2 Isolation1 Isolation2 EngineRun GenField
 @model models/cheeze/beta/white_button.mdl
 
 if(first()|dupefinished()){
     
-    Version = "Gamma 2.0.64"
+    #fix Dual Control Stands not working - done
+    #traction motor heat balance
+    #dynamic brake cruise control
+    #Make shutdown actually abort startup
+    #Improve Loading Speed Thing
+	   #Add definition check for HTTP shit AND remove httpSuccess if used
+	   #Fix down-skipping sound bug with IdleOverride and EIIS
+	   #Add 'All is Well' Bleep
+    #Fix PrintProper
+    
+    Version = "Gamma 2.0.65"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -68,8 +80,8 @@ if(first()|dupefinished()){
     
     Button_HEP = "gsgtrainsounds/misc/switch_rotating.wav"
     
-    SanderOn = "gsgtrainsounds/misc/airbrakes/air_sander_loop.wav"
-    SanderOff = "gsgtrainsounds/misc/airbrakes/air_sander_end.wav"
+    SanderOn = "gsgtrainsounds/misc/cab/sand_loop.wav"
+    SanderOff = "gsgtrainsounds/misc/cab/sand_end.wav"
     
     AirBrakeDump = "gsgtrainsounds/misc/airbrakes/air_dump.wav"
     
@@ -151,7 +163,7 @@ if(first()|dupefinished()){
     timer("vc_timeout",5000)
     
     #Loco
-    local LastCompatibleConfig = "2.0.61"
+    local LastCompatibleConfig = "2.0.65"
     local RLCVA = LastCompatibleConfig:explode(".")
     local RLCV_Major = RLCVA[2,string]
     local RLCV_Minor = RLCVA[3,string]
@@ -175,7 +187,7 @@ if(first()|dupefinished()){
     local ENG_Conflict = (RLCV_Major:toNumber() > ENGV_Major:toNumber()) | (ENGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Control Stand
-    LastCompatibleConfig = "2.0.61"
+    LastCompatibleConfig = "2.0.65"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -199,12 +211,21 @@ if(first()|dupefinished()){
     local CTLV_Minor = CTLVA[3,string]
     
     local CTL_Conflict = ->CtlTable ? (RLCV_Major:toNumber() > CTLV_Major:toNumber()) | (CTLV_Minor:toNumber() < RLCV_Minor:toNumber()) : 0
+    local NeedSecondStand = 0
+    #print(CSV_Minor)
+    if((CSV_Minor=="?")|(CTLV_Minor=="?")){
+        NeedSecondStand = 1
+        #print("POOTIS")
+    }
+    
     Conflict_Generic = CFG_Conflict | ENG_Conflict | CS_Conflict | CTL_Conflict
     if(Conflict_Generic){
-        printColor(vec(0,191,255),"[RLCPT] Note: One of your configs are out of date! Please use configs compatible with ",vec(255),Version+"!\n--------")
+        printColor(vec(0,191,255),"[RLCPT] Note: One of your configs is out of date! Please use configs compatible with ",vec(255),Version+"!\n--------")
         printColor("Engine Config version: ",ENG_Conflict ? vec(255,0,0) : vec(63,255,63),(ENG_Version=="") ? "unknown" : ENG_Version)
         printColor("Locomotive Config version: ",CFG_Conflict ? vec(255,0,0) : vec(63,255,63),(CFG_Version=="") ? "unknown" : CFG_Version)
-        if(->CtlTable){
+        if(NeedSecondStand){
+            printColor("You are using a Dual Control Stand Mux but have ",vec(255,0,0),"no 2nd Control Stand!")
+        }elseif(->CtlTable){
             printColor("Control Stand/Reader version: ",CS_Conflict ? vec(255,0,0) : vec(63,255,63),(CS_Version=="") ? "unknown" : CS_Version)
             printColor("Control Config version: ",CTL_Conflict ? vec(255,0,0) : vec(63,255,63),(CTL_Version=="") ? "unknown" : CTL_Version)
         }else{
@@ -233,7 +254,7 @@ if(first()|dupefinished()){
     
     Clag1 = 0
     Clag2 = 0
-    LowIdling1 = 0
+    LowIdleActual1 = 1
     LowIdling2 = 0
     
     E = entity()
@@ -415,8 +436,8 @@ if(first()|dupefinished()){
             RearTruck = V
         }
     }
-    #print("Front:"+FrontTruck:toString())
-    #print("Rear:"+RearTruck:toString())
+    
+    CC_PropRate = 4
     
     
     #DPM Init
@@ -1112,10 +1133,10 @@ if(first()|dupefinished()){
     }
     
     function void entity:printProper(Message:string){
-        if(This==O){
-            print(Message)
-        }else{
+        if(This:isValid()){
             Pod:printDriver(Message)
+        }else{
+            print(Message)
         }
         return void
     }
@@ -1129,9 +1150,15 @@ if(first()|dupefinished()){
 }
 #Autostart Shenannigans
 if(clk("startprime1")){
-    ForcePrime1 = 1
     PrimerSet1 = 1
-    timer("endprime1",1000*(PrimerDuration+1))
+    ForcePrime1 = 1
+    if(PrimerDuration>0){
+        timer("endprime1",1000*(PrimerDuration+10))
+    }else{
+        Primed1 = 1
+        Priming1 = 1
+        timer("startstart1",100)
+    }
 }elseif(clk("endprime1")){
     ForcePrime1 = 0
     timer("startstart1",1000)
@@ -1141,9 +1168,15 @@ if(clk("startprime1")){
 }elseif(clk("endstart1")){
     ForceStart1 = 0
 }elseif(clk("startprime2")){
-    ForcePrime2 = 1
     PrimerSet2 = 1
-    timer("endprime2",1000*(PrimerDuration+1))
+    if(PrimerDuration>0){
+        ForcePrime2 = 1
+        timer("endprime2",1000*(PrimerDuration+10))
+    }else{
+        Primed2 = 1
+        Priming2 = 1
+        timer("startstart2",100)
+    }
 }elseif(clk("endprime2")){
     ForcePrime2 = 0
     timer("startstart2",1000)
@@ -1155,7 +1188,7 @@ if(clk("startprime1")){
 }
 if(HasPM){ #Actual Engine Starting
     #Prime 1
-    if((Prime1|ForcePrime1) & !Priming1){
+    if((Prime1|ForcePrime1) & !Priming1 & (PrimerDuration>0)){
         Priming1 = 1
         if(On1){
             stoptimer("PrimeCool1")
@@ -1185,7 +1218,7 @@ if(HasPM){ #Actual Engine Starting
             timer("startprime1",100)
         }elseif(!On1 & !Starting1 & Primed1 & ((~Start1 & (StarterMode<2))|ForceStart1) & !Isolation1 & ((StarterMode>0) ? Priming1 : 1)){
             Starting1 = 1
-            LowIdling1 = !Startup_Mode
+            LowIdleActual1 = Startup_Mode
             local Snd = Startup_Mode ? Startup_Hi : Startup_Lo
             H1:soundPlay(0,0,Snd)
             stoptimer("PrimeCool1")
@@ -1225,7 +1258,20 @@ if(HasPM){ #Actual Engine Starting
                 Snd = Shutdown_Hi
                 break
             case 2,
-                Snd = LowIdling1 ? Shutdown_Lo : Shutdown_Hi
+                switch(LowIdleActual1){
+                    case 0,
+                        Snd = Shutdown_Lo
+                        break
+                    case 1,
+                        Snd = Shutdown_Hi
+                        break
+                    case 2,
+                        Snd = EIIS_Shutdown_Higher
+                        break
+                    default,
+                        Snd = Shutdown_Hi
+                        break
+                }
                 break
         }
         H1:soundPlay(0,0,Snd)
@@ -1241,7 +1287,6 @@ if(HasPM){ #Actual Engine Starting
         
         if(StarterMode>0){
             soundStop(2,3)
-            #Priming1 = 0
         }
         timer("EndStartClag1",StartupClagDuration*1000)
             
@@ -1249,13 +1294,25 @@ if(HasPM){ #Actual Engine Starting
         #if(FuelSaverMode & !LowIdling1){
         if(0){
             TQ1 = 1
-            LowIdling1 = 1
+            #LowIdling1 = 1
             local Snd = TransitionPath+"down/1-0.wav"
             H1:soundPlay(0,0,Snd)
             timer("FinishStart1",sdr(Snd))
         }else{
             Starting1 = 0
-            H1:soundPlay(0,0,LowIdling1 ? Idle_Low : Notches[1,string])
+            local Snd = ""
+            switch(LowIdleActual1){
+                case 0,
+                    Snd = Idle_Low
+                    break
+                case 1,
+                    Snd = Notches[1,string]
+                    break
+                case 2,
+                    Snd = EIIS_HigherIdle
+                    break
+            }
+            H1:soundPlay(0,0,Snd)
             soundPitch(0,100 + !MU_Master*2*MU_Connected,1)
             
             EngineNotch1 = 0
@@ -1275,26 +1332,26 @@ if(HasPM){ #Actual Engine Starting
     
     if(DPM){
             #Prime 2
-        if((Prime2|ForcePrime2) & !Priming2){
-        Priming2 = 1
-        if(On2){
-            stoptimer("PrimeCool2")
-        }else{
-            
-            H2:soundPlay(3,0,PrimeOn)
-            timer("PrimeCheck2",1000*(PrimerDuration))
+        if((Prime2|ForcePrime2) & !Priming2 & (PrimerDuration>0)){
+            Priming2 = 1
+            if(On2){
+                stoptimer("PrimeCool2")
+            }else{
+                
+                H2:soundPlay(3,0,PrimeOn)
+                timer("PrimeCheck2",1000*(PrimerDuration))
+            }
+        }elseif(!(Prime2|ForcePrime2) & Priming2){
+            Priming2 = 0
+            if(On2 & (StarterMode>0)){
+                timer("PrimeCool2",15000)
+            }else{
+                
+                H2:soundPlay(3,2,PrimeOff)
+                stoptimer("PrimeCheck2")
+            }
+            #print("Kill me.")
         }
-    }elseif(!(Prime2|ForcePrime2) & Priming2){
-        Priming2 = 0
-        if(On2 & (StarterMode>0)){
-            timer("PrimeCool2",15000)
-        }else{
-            
-            H2:soundPlay(3,2,PrimeOff)
-            stoptimer("PrimeCheck2")
-        }
-        #print("Kill me.")
-    }
         if(clk("PrimeCheck2")){
             Primed2 = Primed2 ? 1 : Priming2
         }
@@ -1507,7 +1564,7 @@ if(clk("DPM_Eng")){
     }
 }
 if(clk("IdleDown1")){
-    LowIdling1 = 1
+    LowIdleActual1 = 0
     LowIdleWaiting1 = 0
     TQ1 = 1
     local Snd = TransitionToLow
@@ -1545,6 +1602,8 @@ if(clk("motordamage")){
         DynamicsOn = Dynamics_Fubar_On
         DynamicsOff = Dynamics_Fubar_Off
     }
+}elseif(clk("CC_Unlock")){
+    CC_Lock = 0
 }
 
 
@@ -1765,13 +1824,44 @@ if(On1|On2){
         #Get me Excited
         Excitation = GenField ? 1 : (FrontPlugIn[6,number]|RearPlugIn[6,number])
         
+        #CRUISE CONTROL
+        if(MU_Master){
+            if(CC_Enable){
+                CC_Proportional = (CC_TargetSpeed - MPH)*CC_PropRate
+                
+                CC_Throttle = CC_Proportional
+            }
+        }
         
         #THROTTLE
         
         if(AC_PlugNope){
             Throttle = 0
         }elseif(MU_Master){
-            Throttle = CtlTable["SetThrottle",number]
+            if(CC_Enable){
+                if(NotchedThrottle){
+                    if(abs(MPH-CC_TargetSpeed)>=1){
+                        local CC_N = adc(0,100,NumThrottleNotches,clamp(CC_Throttle,0,100))
+                        if(MPH<(0.75*CC_TargetSpeed)){
+                            if(CC_N>=CC_Notch){
+                                CC_Notch = CC_N
+                                Throttle = dac(0,100,NumThrottleNotches,CC_Notch)
+                            }
+                        }else{
+                            CC_Notch = CC_N
+                            Throttle = dac(0,100,NumThrottleNotches,CC_Notch)
+                        }
+                    }else{
+                        #Throttle = 0
+                    }
+                    
+                }else{
+                    Throttle = clamp(CC_Throttle,0,100)
+                }
+                #Throttle = NotchedThrottle ? dac(0,100,NumThrottleNotches,) : clamp(CC_Throttle,0,100)
+            }else{
+                Throttle = CtlTable["SetThrottle",number]
+            }
         }
         
         Notch = adc(0,100,NumThrottleNotches,Throttle)
@@ -1793,7 +1883,7 @@ if(On1|On2){
             if(!Emergency & BlendedBraking & DynamicsMode & (SER<FeedPressure) & (Throttle==0) & abs(Reverser) & (CarCount>5)){
                 
                 local DPMF = (On1&Isolation1) + (On2&Isolation2)
-                BlendTargetBE = ((72/90)*(FeedPressure-SER)*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*(FeedPressure-SER))*300/90
+                BlendTargetBE = ((72/90)*(FeedPressure-SER)*BrakeMul*(ClaspBrakes ? 1.25 : 1)*(26/72)*Axles/6 + MaxTrainBrakeForce*(FeedPressure-SER))*300/26
                 local AirBE = 0#(MaxTrainBrakeForce*BrakeCyl)*300/90
                 local RemainingBE = BlendTargetBE - AirBE
                 #Load = TE/(210*Motors*BaseSpeed/TopSpeed)
@@ -1896,7 +1986,7 @@ if(On1|On2){
                 
                 EngineNotch1 = (DynamicsMode==1) ? round(adc(0,100,NumEngineNotches,DB_Level)) : 0
             }else{
-                EngineNotch1 = round(adc(0,100,NumEngineNotches,Throttle))
+                EngineNotch1 = max((EIIS_Enabled & IdleOverride & (Throttle>0))*2, round(adc(0,100,NumEngineNotches,Throttle)))
             }
         }else{
             EngineNotch1 = 0
@@ -1947,7 +2037,7 @@ if(On1|On2){
                 Motors = max(FrontCurrentIn[2,number],RearCurrentIn[2,number])
             }
             
-            local PowerNormal = (Power>0) ? (0.2 + (Power/100)*0.8)*HumpMultiplier : 0
+            local PowerNormal = (Power>0) ? (ZTX + (Power/100)*(1-ZTX))*HumpMultiplier : 0
             #local PowerNormal = (Power/100)^1.4
             local ShuntFactor = 1
             local HP_Effective = HEP_Notch ? (Horsepower-HEP_Subtract) : Horsepower
@@ -2117,6 +2207,7 @@ if(On1|On2){
                 if((DB_Temp>60) & !DB_Warning){
                     DB_Warning = 1
                     Pod:driver():printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxContDynLoad:toString() + " Amps or dynamic brake damage will occur!")
+                    O:soundPlay(14,1,"ambient/alarms/klaxon1.wav")
                     timer("dbdamage",7500)
                     #MaxDynLoad
                 }
@@ -2130,7 +2221,7 @@ if(On1|On2){
                 }
             }
             
-            if((Load<-200) & (Cyl>(ClaspBrakes ? 20 : 40))){
+            if((Load<-200) & (Cyl>(ClaspBrakes ? 20 : 30))){
                 #print(TotalEffortOnAxle+"/"+(TE_Starting*32.17))
                 Load = 0
                 TE = 0
@@ -2160,8 +2251,8 @@ if(On1|On2){
         }
         
         #Loadmeter Splits
-        Load1 = Load*On1*Isolation1
-        Load2 = Load*On2*Isolation2
+        Load1 = Load*On1*(Isolation1>0)
+        Load2 = Load*On2*(Isolation2>0)
         
         #Short Time Consequences
         if(Load > MaxContLoad){
@@ -2174,11 +2265,12 @@ if(On1|On2){
                     OLPR = 1
                 }else{
                     Pod:driver():printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Reduce load to below " + MaxContLoad:toString() + " Amps or traction motor damage will occur!")
+                    O:soundPlay(14,1,"ambient/alarms/klaxon1.wav")
                     timer("motordamage",15000)
                 }
                 #You wanna die, buddy?
             }elseif(TM_Damage){
-                if(!TM_ZapQ){
+                if(!TM_ZapQ & (TM_Health>0)){
                     TM_ZapQ = 1
                     W:soundPlay(14,0,MotorDamaging)
                     #There will be CONSEQUENCES!
@@ -2189,6 +2281,7 @@ if(On1|On2){
                     HasTM = 0
                     DroneQ = 0
                     W:soundPlay(2,3,MotorDeath)
+                    soundStop(12)
                     Load = 0
                     SandQ = 0
                     ForceSand = 0
@@ -2206,7 +2299,11 @@ if(On1|On2){
                 OLP_Engaged = 0
             }
             if(TM_Temp > 0){
-                TM_Temp += (-2/TM_Maxtime)*50/1000
+                if(Load==0){
+                    TM_Temp += (1 + 2*max(EngineSpeed1,EngineSpeed2)/NumEngineNotches)*(-2/TM_Maxtime)*50/1000
+                }else{
+                    TM_Temp += (-2/TM_Maxtime)*50/1000
+                }
             }
         }
         
@@ -2240,48 +2337,82 @@ if(On1|On2){
     if(HasPM){
         #Low Idle 1
         if(FuelSaverMode){
-            LowIdleCondition1 = (EngineNotch1==0) & (EngineSpeed1==0) & (Reverser==0)
+            local LIB1 = (EngineNotch1==0) & (EngineSpeed1==0) #Low Idle Basic
+            local LIN1 = (EngineNotch1==0) & (EngineSpeed1==0) & (Reverser==0) #Low Idle Natural
+            LowIdleTarget1 = (EIIS_Enabled & IdleOverride) ? (LIB1 ? 2 : 1) : (LIN1 ? 0 : 1) #0 for Low, 1 for High, 2 for Higher
             if(On1 & !Starting1){
-                if(LowIdleCondition1 & !LowIdling1 & !LowIdleWaiting1){
+                if((LowIdleTarget1==0) & (LowIdleActual1!=0) & !LowIdleWaiting1){ #Go To Low Idle
                     if(FuelSaverDelay>0){
                         LowIdleWaiting1 = 1
                         timer("IdleDown1",FuelSaverDelay*1000)
-                    }elseif(!TQ1){
+                    }elseif(!TQ1){ #Normal
                         TQ1 = 1
-                        LowIdling1 = 1
-                        TQ1 = 1
-                        local Snd = TransitionToLow
+                        local Snd = (LowIdleActual1==1) ? TransitionToLow : EIIS_HigherToLow
                         H1:soundPlay(0,0,Snd)
+                        LowIdleActual1 = 0
                         #print("Pootis1")
                         stoptimer("TQU1")
                         timer("TQD1",sdr(Snd))
-                    }else{
-                        LowIdling1 = 1
+                    }else{ #Fast Change
                         LRQ1 = 1
                         soundVolume(0,0,1)
-                        local Snd = TransitionToLow
+                        local Snd = (LowIdleActual1==1) ? TransitionToLow : EIIS_HigherToLow
                         H1:soundPlay(10,0,Snd)
+                        LowIdleActual1 = 0
                         soundVolume(10,0)
                         soundVolume(10,1,0.5)
                         #print("Pootis2")
                         stoptimer("TQU1")
                         timer("TQD1",sdr(Snd))
                     }
-                }elseif(!LowIdleCondition1 & LowIdling1){
-                    if(!TQ1){
-                        LowIdling1 = 0
+                }elseif((LowIdleTarget1==1) & (LowIdleActual1!=1)){ #Go to High/Normal Idle OR Off of Idle
+                    if(!TQ1){ #Normal
                         TQ1 = 1
                         LRQ1 = 1
-                        local Snd = TransitionToHigh
+                        local Snd = ""
+                        if(EIIS_Enabled & IdleOverride & (EngineNotch1==2) & (EngineSpeed1==0)){
+                            Snd = EIIS_HigherTo2
+                            EngineSpeed1 = 2
+                        }else{
+                            Snd = (LowIdleActual1==0) ? TransitionToHigh : EIIS_HigherToHigh
+                        }
                         H1:soundPlay(0,0,Snd)
+                        LowIdleActual1 = 1
                         stoptimer("TQD1")
                         timer("TQU1",sdr(Snd))
-                    }else{
-                        LowIdling1 = 0
+                    }else{ #Fast Change
                         LRQ1 = 1
                         soundVolume(0,0,1)
-                        local Snd = TransitionToHigh
+                        local Snd = ""
+                        if(EIIS_Enabled & IdleOverride & (EngineNotch1==2) & (EngineSpeed1==0)){
+                            Snd = EIIS_HigherTo2
+                            EngineSpeed1 = 2
+                        }else{
+                            Snd = (LowIdleActual1==0) ? TransitionToHigh : EIIS_HigherToHigh
+                        }
                         H1:soundPlay(10,0,Snd)
+                        LowIdleActual1 = 1
+                        soundVolume(10,0)
+                        soundVolume(10,1,0.5)
+                        stoptimer("TQD1")
+                        timer("TQU1",sdr(Snd))
+                    }
+                }elseif((LowIdleTarget1==2) & (LowIdleActual1!=2)){ #Go To Higher Idle
+                    if(!TQ1){ #Normal
+                        TQ1 = 1
+                        LRQ1 = 1
+                        local Snd = ""
+                        Snd = (LowIdleActual1==0) ? EIIS_LowToHigher : EIIS_HighToHigher
+                        H1:soundPlay(0,0,Snd)
+                        LowIdleActual1 = 2
+                        stoptimer("TQD1")
+                        timer("TQU1",sdr(Snd))
+                    }else{ #Fast Change
+                        LRQ1 = 1
+                        soundVolume(0,0,1)
+                        local Snd = (LowIdleActual1==0) ? EIIS_LowToHigher : EIIS_HighToHigher
+                        H1:soundPlay(10,0,Snd)
+                        LowIdleActual1 = 2
                         soundVolume(10,0)
                         soundVolume(10,1,0.5)
                         stoptimer("TQD1")
@@ -2289,7 +2420,7 @@ if(On1|On2){
                     }
                 }
             
-                if(!LowIdleCondition1 & LowIdleWaiting1){
+                if((LowIdleTarget1>0) & LowIdleWaiting1){
                     stoptimer("IdleDown1")
                     LowIdleWaiting1 = 0
                 }
@@ -2360,7 +2491,18 @@ if(On1|On2){
             #print("TQ1",EngineNotch1,EngineSpeed1)
             #print("CCC")
             if((EngineSpeed1==EngineNotch1) & (ABlendQ1==0)){
-                local Snd = LowIdling1 ? Idle_Low : Notches[EngineSpeed1+1,string]
+                local Snd = ""
+                switch(LowIdleActual1){
+                    case 0,
+                        Snd = Idle_Low
+                        break
+                    case 1,
+                        Snd = Notches[EngineSpeed1+1,string]
+                        break
+                    case 2,
+                        Snd = EIIS_HigherIdle
+                        break
+                }
                 #print(Snd)
                 H1:soundPlay(0,0,Snd)
                 soundPitch(0,100 + !MU_Master*2*MU_Connected)
@@ -2373,16 +2515,29 @@ if(On1|On2){
             #print("TQU1")
             LowIdleWaiting1 = 0
         }
-        if(!LowIdling1 & !LowIdleWaiting1){
+        if((LowIdleActual1==1) & !LowIdleWaiting1){
             if((EngineNotch1+ABlendQ1) > EngineSpeed1){
                 if(!TQ1 | (RevDirection1==-1)){
                     TQ1 = 1
                     transitionUp1(EngineSpeed1,EngineNotch1+ABlendQ1)
+                    #print("upfuk")
                 }
             }elseif((EngineNotch1+ABlendQ1) < EngineSpeed1){
                 if(!TQ1 | (RevDirection1==1)){
                     TQ1 = 1
-                    transitionDown1(EngineSpeed1,EngineNotch1+ABlendQ1)
+                    if(EIIS_Enabled & IdleOverride & (EngineNotch1==0) & (EngineSpeed1==2)){
+                        EngineSpeed1 = 0
+                        local Snd = EIIS_2ToHigher
+                        H1:soundPlay(0,0,Snd)
+                        LowIdleTarget1 = 2
+                        LowIdleActual1 = 2
+                        stoptimer("TQD1")
+                        timer("TQU1",sdr(Snd))
+                        #print("AAA?")
+                    }else{
+                        transitionDown1(EngineSpeed1,EngineNotch1+ABlendQ1)
+                        #print("downfuk")
+                    }
                 }
             }
         }
@@ -2495,14 +2650,13 @@ if(Tick){
         
         if(BrakePipe<AuxRes){ #Reduction
             if(AuxRes>0){
-                AuxRes += -2
+                AuxRes += -1
                 if(AuxRes<0){AuxRes = 0}
                 if(AuxRes<BrakePipe){AuxRes = BrakePipe}
                 
-                BrakeCyl = (AuxMaxPressure-AuxRes)*72/90
+                BrakeCyl = (AuxMaxPressure-AuxRes)
                 if(!SetBleeding & (BleedPressure<BrakeCyl)){
                     BleedPressure = BrakeCyl
-                    #print("Fucko Boingo 2: electric boingaloo")
                 }
             }
             
@@ -2512,16 +2666,16 @@ if(Tick){
             if(GraduatedRelease){
                 local TargetPressure = FeedPressure-BrakePipe
                 if(BrakeCyl>TargetPressure){
-                    BrakeCyl += -2
+                    BrakeCyl += -1
                     if(BrakeCyl<TargetPressure){BrakeCyl = TargetPressure}
                 }
             }elseif(BrakeCyl>0){
-                BrakeCyl += -4
+                BrakeCyl += -2
                 if(BrakeCyl<0){BrakeCyl = 0}
             }
             
             #BP to AR
-            local AuxRate = 4 #Max Change in AR PSI per Second
+            local AuxRate = 2 #Max Change in AR PSI per Second
             
             AuxRes += AuxRate/AuxResVol
             BrakePipe += -AuxRate/BrakePipeVol
@@ -2536,21 +2690,21 @@ if(Tick){
         
         #MR to BP
         if(Overcharge){
-            if(!FRC & (BrakePipe>(FeedPressure-2.5))){
+            if(!FRC & (BrakePipe>(FeedPressure-1))){
                 Overcharge = 0
             }
         }
         local TargetPipe = Overcharge ? MainRes : EqualRes
         CFM = 0
         if(BrakePipe>TargetPipe){ #Reducing
-            BrakePipe += -1/(CarCount/16 + 1)
+            BrakePipe += -0.5/(CarCount/16 + 1)
             if(BrakePipe<TargetPipe){BrakePipe = TargetPipe}
         }elseif(BrakePipe<TargetPipe){ #Recharging
             if(MainRes>=TargetPipe){
                 CFM = max((Overcharge ? MainRes : FeedPressure) - BrakePipe,10)*2/3
                 local TotalBPVol = BrakePipeVol*max(CarCount,1)
-                BrakePipe += CFM*0.5/TotalBPVol
-                if(CarCount>0){MainRes += -CFM*0.5/MU_ResVol}
+                BrakePipe += CFM*0.25/TotalBPVol
+                if(CarCount>0){MainRes += -CFM*0.25/MU_ResVol}
                 if(BrakePipe>TargetPipe){BrakePipe = TargetPipe}
             }else{CFM = 0}
         }
@@ -2634,7 +2788,7 @@ if(Tick){
     }
     
     #Brake Physprops
-    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/90 #If you adjust this, don't forget to correct the DB lockup code and Blended Braking!
+    BE = (Cyl*BrakeMul*(ClaspBrakes ? 1.25 : 1)*(26/72)*Axles/6 + MaxTrainBrakeForce*BrakeCyl)*300/26 #If you adjust this, don't forget to correct the DB lockup code and Blended Braking!
     Overcome = (abs(TE) - BE)>0
     if(BrakeCutIn){
         if((((Braking_Train | Braking_Loco) & (Power==0)) | HandBrakeOverride) & !BHQ & (MPH<1)){
@@ -2822,22 +2976,22 @@ if(chatClk(O)|chatClk(Pod:driver())){
     if((NumberGiven==Num) | NumberGiven==""){
         switch(CMD){
             case ".quickstart1",
-                if(1){
+                if(0){
                     if(HasPM){
                         if(!On1){
                             On1 = 1
                             Primed1 = 1
                             PrimerSet1 = 1
-                            if(FuelSaverMode & !LowIdling1){
+                            if(FuelSaverMode & (LowIdleActual1==1)){
                                 TQ1 = 1
-                                LowIdling1 = 1
+                                LowIdleActual1=0
                                 TQ1 = 1
                                 local Snd = TransitionPath+"down/1-0.wav"
                                 H1:soundPlay(0,0,Snd)
                                 timer("FinishStart1",sdr(Snd))
                             }else{
                                 Starting1 = 0
-                                H1:soundPlay(0,0,LowIdling1 ? Idle_Low : Notches[1,string])
+                                H1:soundPlay(0,0,(LowIdleActual1==0) ? Idle_Low : Notches[1,string])
                                 soundPitch(0,100 + !MU_Master*2*MU_Connected)
                                 
                                 EngineNotch1 = 0
@@ -2853,13 +3007,16 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         H1:soundPlay(0,1,Lever_Throttle)
                     }
                     MainRes = 140
+                    AuxRes = AuxMaxPressure = FeedPressure
+                    BrakePipe = FeedPressure
+                    CarCount = carCount(SwitchingMode|IsolateBrakes)
                 }else{
                     Speaker:printProper("[RLCPT] This command has been disabled.")
                 }
                 hideChat(1)
                 break
             case ".quickstart2",
-                if(1){
+                if(0){
                     if(!On2){
                         On2 = 1
                         Primed2 = 1
@@ -2884,6 +3041,9 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         }
                     }
                     MainRes = 140
+                    AuxRes = AuxMaxPressure = FeedPressure
+                    BrakePipe = FeedPressure
+                    CarCount = carCount(SwitchingMode|IsolateBrakes)
                 }else{
                     Speaker:printProper("[RLCPT] This command has been disabled.")
                 }
@@ -2952,7 +3112,20 @@ if(chatClk(O)|chatClk(Pod:driver())){
                                 Snd = Shutdown_Hi
                                 break
                             case 2,
-                                Snd = LowIdling1 ? Shutdown_Lo : Shutdown_Hi
+                                switch(LowIdleActual1){
+                                    case 0,
+                                        Snd = Shutdown_Lo
+                                        break
+                                    case 1,
+                                        Snd = Shutdown_Hi
+                                        break
+                                    case 2,
+                                        Snd = EIIS_Shutdown_Higher
+                                        break
+                                    default,
+                                        Snd = Shutdown_Hi
+                                        break
+                                }
                                 break
                         }
                         H1:soundPlay(0,0,Snd)
@@ -3158,6 +3331,44 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 }else{
                     Speaker:printProper("[RLCPT] You are currently riding on "+(RailType ? "jointed" : "welded")+" rails.")
                 }
+                hideChat(1)
+                break
+            case ".cc",
+                if(MU_Master){
+                    local Spd = Sentence[2,string]
+                    
+                    if(Spd==""){
+                        CC_TargetSpeed = 0
+                        CC_Enable = 0
+                        Speaker:printProper("[RLCPT] Cruise Control Disabled.")
+                    }else{
+                        local Spdm = Spd:toNumber()
+                        
+                        CC_TargetSpeed = round(Spdm)
+                        if(!CC_Enable){
+                            CC_Enable = 1
+                            local TotalKGR = 0
+                            local WeightProps = E:getConstraints()
+                            foreach(K,V:entity=WeightProps){
+                                TotalKGR += V:mass()
+                            }
+                            local TotalKG = TotalKGR*2
+                            local TrailingLB = toUnit("lb",TotalKG) - (Weight + FrontPlugIn[15,number] + RearPlugIn[15,number])
+                            local TrailingT = round(TrailingLB/2000,1)
+                            CC_PropRate = max(4,TrailingT*8/600)
+                            Speaker:printProper("[RLCPT] Cruise Control Enabled! Target Speed: "+Spdm:toString()+" MPH ("+CC_PropRate+").")
+                        }else{
+                            Speaker:printProper("[RLCPT] Cruise Control Target Speed: "+Spdm:toString()+" MPH.")
+                        }
+                        
+                        
+                    }
+                }
+                
+                hideChat(1)
+                break
+            case ".ccp",
+                CC_PropRate = Sentence[2,string]:toNumber()
                 hideChat(1)
                 break
             default,
