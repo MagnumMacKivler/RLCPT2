@@ -16,8 +16,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.63 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.63"
+    #FOR USE WITH RLC PT 2.0.65 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.65"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -42,7 +42,7 @@ if(first()){
     
     LocoBrakeMode = 0 #0 for Self Lapping, 1 for Manual Lapping
     
-    InitialReduction = 20 #If using 24RL or 26L brake modes, the train brake will automatically drop this much pressure in First Service or Initial Reduction positions.
+    InitialReduction = 6 #If using 24RL or 26L brake modes, the train brake will automatically drop this much pressure in First Service or Initial Reduction positions.
     FeedPressure = 90 #Feed Valve pressure in PSI. 70 was the standard until the 1950s, 90 is the standard for freight. 110 is the passenger standard, 120 is sometimes used by mountain railroads.
     
     NotchedThrottle = 1 #0 for Continuous Throttle, 1 for Notched Throttle
@@ -210,6 +210,7 @@ if(first()){
             C1P = CS:toLocal(Hpos1)
             C1A = CS:toLocal(Hang1)
         }
+        CS:setBodygroup(6,3)
     }
     CtlTable["CTL_Version",string] = CTL_Version
     setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nEMD Composite\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents")
@@ -428,6 +429,7 @@ if(clk("clk")){
     }
     
     #Train Brakes
+    local FSP = FeedPressure*64/90 #Full Service Point
     
     if(AirBrakeMode==4){ #6SL
         #0-Release
@@ -441,7 +443,7 @@ if(clk("clk")){
             SetBrakeNotch++
             soundStop(1)
             Pod:soundPlay(1,0.5,Lever_24RL)
-            if(SetBrakeNotch==4 & (SetEqualRes>0) & !HissQ){
+            if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 Pod:soundPlay(2,6,AirBrakeApply)
                 timer("EndHiss",6000)
@@ -467,26 +469,26 @@ if(clk("clk")){
         switch(SetBrakeNotch){
             case 0, #Release
                 if(SetEqualRes<FeedPressure){
-                    SetEqualRes+=2
+                    SetEqualRes+=0.5
                     if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
                 }
                 break
             case 1, #Running
                 if(SetEqualRes<FeedPressure){
-                    SetEqualRes+=2
+                    SetEqualRes+=0.5
                     if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
                 }
                 break
             case 2, #Holding
                 if(SetEqualRes<FeedPressure){
-                    SetEqualRes+=2
+                    SetEqualRes+=0.5
                     if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
                 }
                 break
             case 4, #Service
-                if(SetEqualRes>0){
-                    SetEqualRes-=2
-                    if(SetEqualRes<0){SetEqualRes=0}
+                if(SetEqualRes>FSP){
+                    SetEqualRes-0.5
+                    if(SetEqualRes<FSP){SetEqualRes=FSP}
                 }
                 break
             default,
@@ -504,7 +506,7 @@ if(clk("clk")){
             SetBrakeNotch++
             soundStop(1)
             Pod:soundPlay(1,0.5,Lever_24RL)
-            if(SetBrakeNotch==4 & (SetEqualRes>0) & !HissQ){
+            if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 Pod:soundPlay(2,6,AirBrakeApply)
                 timer("EndHiss",6000)
@@ -529,26 +531,26 @@ if(clk("clk")){
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
-            soundStop(3)
+            #soundStop(3)
             ABQ = 0
         }
         switch(SetBrakeNotch){
             case 0, #Release
                 if(SetEqualRes<FeedPressure){
-                    SetEqualRes+=2
+                    SetEqualRes+=0.5
                     if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
                 }
                 break
             case 1, #Running
                 if(SetEqualRes<FeedPressure){
-                    SetEqualRes+=2
+                    SetEqualRes+=0.5
                     if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
                 }
                 break
             case 4, #Service
-                if(SetEqualRes>0){
-                    SetEqualRes-=2
-                    if(SetEqualRes<0){SetEqualRes=0}
+                if(SetEqualRes>FSP){
+                    SetEqualRes-=0.5
+                    if(SetEqualRes<FSP){SetEqualRes=FSP}
                 }
                 break
             default,
@@ -569,24 +571,24 @@ if(clk("clk")){
                     soundStop(1)
                     Pod:soundPlay(1,0.5,Lever_24RL)
                     SetEqualRes = FeedPressure-InitialReduction
-                }elseif((SetBrakeNotch==1) & (SetEqualRes>0)){
+                }elseif((SetBrakeNotch==1) & (SetEqualRes>FSP)){
                     soundStop(1)
                     Pod:soundPlay(1,0.5,Lever_26L)
-                }elseif((SetBrakeNotch==1) & (SetEqualRes==0)){
+                }elseif((SetBrakeNotch==1) & (SetEqualRes==FSP)){
                     SetBrakeNotch=2
                     soundStop(1)
                     Pod:soundPlay(1,0.5,Lever_24RL)
                     Suppression = 1
                 }
-                if(!HissQ & (SetEqualRes>0)){
+                if(!HissQ & (SetEqualRes>FSP)){
                     HissQ = 1
                     Pod:soundPlay(2,6,AirBrakeApply)
                     timer("EndHiss",6000)
                 }
             }
-            if((SetBrakeNotch==1) & (SetEqualRes>0) & !Lock_26L){
-                SetEqualRes-=2
-                if(SetEqualRes<0){SetEqualRes=0}
+            if((SetBrakeNotch==1) & (SetEqualRes>FSP) & !Lock_26L){
+                SetEqualRes-=0.5
+                if(SetEqualRes<FSP){SetEqualRes=FSP}
             }
         }elseif(DecreaseTrainBrake){
             if(!ABQ){
@@ -624,8 +626,11 @@ if(clk("clk")){
                 
             }
             if((SetBrakeNotch==1) & (SetEqualRes<(FeedPressure-InitialReduction)) & !Lock_26L){
-                SetEqualRes+=2
-                if(SetEqualRes>(FeedPressure-InitialReduction)){SetEqualRes = FeedPressure - InitialReduction}
+                SetEqualRes+= 1.5 #Triple Release Speed
+                if(SetEqualRes>=(FeedPressure-InitialReduction)){
+                    SetEqualRes = FeedPressure - InitialReduction
+                    ABQ = 0
+                    }
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
             ABQ = 0
@@ -641,7 +646,7 @@ if(clk("clk")){
             SetBrakeNotch++
             soundStop(1)
             Pod:soundPlay(1,0.5,Lever_24RL)
-            if((SetBrakeNotch==2) & (SetEqualRes>0) & !HissQ){
+            if((SetBrakeNotch==2) & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 Pod:soundPlay(2,6,AirBrakeApply)
                 timer("EndHiss",6000)
@@ -665,11 +670,11 @@ if(clk("clk")){
         }
         
 
-        if((SetBrakeNotch==2) & (SetEqualRes>0)){
-            SetEqualRes--
-            if(SetEqualRes<0){SetEqualRes=0}
+        if((SetBrakeNotch==2) & (SetEqualRes>FSP)){
+            SetEqualRes-=0.25
+            if(SetEqualRes<FSP){SetEqualRes=FSP}
         }elseif((SetBrakeNotch==0) & (SetEqualRes<FeedPressure)){
-            SetEqualRes++
+            SetEqualRes+=0.25
             if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
         }
         
@@ -682,7 +687,7 @@ if(clk("clk")){
             ABQ = 1
             soundStop(1)
             Pod:soundPlay(1,0.5,Lever_26L)
-            if((SetEqualRes>0) & !HissQ){
+            if((SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 Pod:soundPlay(2,6,AirBrakeApply)
                 timer("EndHiss",6000)
@@ -707,11 +712,12 @@ if(clk("clk")){
         }
 
             
-        if(IncreaseTrainBrake & (SetEqualRes>0)){
-            SetEqualRes--
-            if(SetEqualRes<0){SetEqualRes=0}
+        if(IncreaseTrainBrake & (SetEqualRes>FSP)){
+            SetEqualRes-=0.25
+            BleedPressure = Bleeding ? 0 : FeedPressure
+            if(SetEqualRes<FSP){SetEqualRes=FSP}
         }elseif(DecreaseTrainBrake & (SetEqualRes<FeedPressure)){
-            SetEqualRes++
+            SetEqualRes+=0.25
             if(SetEqualRes>FeedPressure){SetEqualRes=FeedPressure}
         }
         
@@ -719,14 +725,14 @@ if(clk("clk")){
     
     #Locomotive Brakes
     if(!LocoBrakeMode){ #Self Lapping
-        if(IncreaseLocoBrake & (SetLocoBrakePressure<72)){
+        if(IncreaseLocoBrake & (SetLocoBrakePressure<60)){
             #if(BleedPressure<72){BleedPressure=72}
             if(!LBQ){LBQ=1}
             SetLocoBrakePressure+=2
-            if(SetLocoBrakePressure>72){
-                SetLocoBrakePressure = 72
+            if(SetLocoBrakePressure>60){
+                SetLocoBrakePressure = 60
             }
-            if(SetLocoBrakePressure==72 & !LHissQ){
+            if(SetLocoBrakePressure==60 & !LHissQ){
                 LHissQ = 1
                 soundStop(1)
                 Pod:soundPlay(1,0.5,LocoBrakeFull)
@@ -738,15 +744,15 @@ if(clk("clk")){
             if(SetLocoBrakePressure<0){SetLocoBrakePressure = 0}
             if(!LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,6,(SetLocoBrakePressure>45) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                Pod:soundPlay(2,6,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseLocoBrake & (SetLocoBrakePressure==0) & !LBQ){
             LBQ = 1
             SetBleeding = 1
-            if((SetEqualRes<72) & !LHissQ){
+            if((SetEqualRes<FeedPressure) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,6,(SetEqualRes<45) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                Pod:soundPlay(2,6,(SetEqualRes<30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseLocoBrake & !DecreaseLocoBrake & LBQ){
@@ -769,15 +775,15 @@ if(clk("clk")){
             SetLocoBrakeNotch--
             if((SetLocoBrakeNotch<=0) & (SetLocoBrakePressure>0) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,6,(SetLocoBrakePressure>45) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                Pod:soundPlay(2,6,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseLocoBrake & !LBQ & (SetLocoBrakeNotch==0)){
             LBQ = 1
             SetBleeding = 1
-            if((SetLocoBrakeNotch<=0) & (SetEqualRes<72) & !LHissQ){
+            if((SetLocoBrakeNotch<=0) & (SetEqualRes<FeedPressure) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,6,(SetEqualRes<45) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                Pod:soundPlay(2,6,(SetEqualRes<60) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseLocoBrake & !DecreaseLocoBrake & LBQ){
@@ -789,9 +795,9 @@ if(clk("clk")){
         if(SetBleeding & (SetLocoBrakePressure>0)){
             SetLocoBrakePressure-=4
             if(SetLocoBrakePressure<0){SetLocoBrakePressure=0}
-        }elseif((SetLocoBrakeNotch==2) & (SetLocoBrakePressure<72)){
+        }elseif((SetLocoBrakeNotch==2) & (SetLocoBrakePressure<60)){
             SetLocoBrakePressure+=2
-            if(SetLocoBrakePressure>72){SetLocoBrakePressure=72}
+            if(SetLocoBrakePressure>60){SetLocoBrakePressure=60}
         }elseif((SetLocoBrakeNotch<=0) & (SetLocoBrakePressure>0)){
             SetLocoBrakePressure-=2
             if(SetLocoBrakePressure<0){SetLocoBrakePressure=0}
@@ -809,7 +815,7 @@ if(clk("clk")){
         Notch = 0
         SetDynamics = 0
         DynaNotch = 0
-
+        #SetLocoBrakePressure = 72
         SetBrakeNotch = 6
         
     }
@@ -1049,13 +1055,13 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                     local What = Sentence[2,string]
                     if(What==""){
                         SetEqualRes = 0
-						SetThrottle = 0
-						Notch = 0
-						SetDynamics = 0
-						SetBrakeNotch = 6
+                    				SetThrottle = 0
+                    				Notch = 0
+                    				SetDynamics = 0
+                    				SetBrakeNotch = 6
                         Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
                     }else{
-                        local Set = clamp(What:toNumber(),0,FeedPressure)
+                        local Set = clamp(What:toNumber(),0,FeedPressure*64/90)
                         switch(AirBrakeMode){
                             case 4, #6SL
                                 if(Set==0){
