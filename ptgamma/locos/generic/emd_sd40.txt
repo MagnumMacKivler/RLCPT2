@@ -3,7 +3,7 @@
 @outputs 
 @persist 
 @trigger 
-CFG_Version = "2.0.63"
+CFG_Version = "2.0.65"
 #This file defines what locomotive your RLC PT2 chip will simulate. It is recommended that you save one file for each locomotive you have!
 #NOTE: YOU HAVE TO MANUALLY MAKE A NEW FOLDER BEFORE YOU CAN START SAVING E2S INTO IT!!!
 
@@ -74,5 +74,6 @@ ClaspBrakes = 0 #Set to 1 if you have trucks fitted with Double Clasp or Triple 
 HeadlightRGB = vec(255,255,200) #What color do you want your MU Headlights to be, if used.
 Compressor_CFM = 255.1 #Flow rate of the air compressor when operating at rated speed, in Standard Cubic Feet per Minute
 MainResVolume = 35 #Main air reservoir volume in cubic feet.
+ZTX = 0.2 #Zero Throttle Excitation. Affects how much of the engine's power you get at low throttle. You should only change this for locomotives with really, REALLY high power-to-weight ratios.
 
 #End of Config
