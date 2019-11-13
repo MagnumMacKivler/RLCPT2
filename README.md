@@ -58,7 +58,7 @@ member of the Release Team signs each Current, Beta, LTS, and Misc release.
 ## Download
 
 **Current, Beta, LTS and Misc Releases**
-See all Releases [Here](/releases)
+See all Releases [Here](https://github.com/MagnumMacKivler/RLCPT2/releases)
 
 <br>
 
