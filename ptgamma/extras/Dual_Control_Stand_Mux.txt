@@ -7,6 +7,9 @@
 
 if(first()|duped()){
     MainLogicType = 0 #Button logic for EngineRun and GenField. 0 for AND (EMD/ALCO), 1 for OR (FM).
+    #NOTE: For EMD/ALCO style operation, you have to turn the EngineRun switch for the NON-OPERATING stand on first, THEN the OPERATING stand. So, if you want to use the "Forward" control stand, you
+    #have to turn the "Rear" EngineRun switch on first, then the "Forward" switch. Yes, this is how EMD and ALCO actually did it.
+    #FM works the opposite way, where you only turn on the switch for the stand you want to use... makes more sense, but apparently didn't help them sell locomotives :(
     AuxLogicType = 1 #Button logic for the generic auxilliary inputs Aux1 thru Aux3. 0 for AND, 1 for OR, 2 for Pick based on active stand.
     ActiveStand = 0
 }
