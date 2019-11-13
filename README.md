@@ -19,7 +19,8 @@ RLC PT 2.0 is now publicly available for use. The version found on here should b
 
 Thankfully, certain features within RLC PT 2.0 make it easier for users to update their locomotives, and the new include-based config system should streamline the process. Gone are the days of copy/pasting blocks of code from one PT chip into the next!
 
-**NOTE:** RLC PT 2.0 is **not** MU-compatible with RLC PT (1).
+| NOTE | RLC PT 2.0 is **not** MU-compatible with RLC PT (1). |
+| :--- | :--- |
 
 [Check out the wiki for locomotive data sheets, general info, and PT2-specific tips!](https://github.com/MagnumMacKivler/RLCPT2/wiki)
 
@@ -115,7 +116,10 @@ Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads
 
 <hr>
 
-4. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. **DO NOT** Extract the first folder (Ex, `RLCPT2-master`)! RLC will not work correctly! 
+4. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
+
+| CAUTION | DO NOT Extract the first folder (Ex, `RLCPT2-master`)! RLC will not work correctly!  |
+| :--- | :--- |
 
 <p align="left">
   <a href="https://titusstudios.net/data/static/images/rlcpt2-readme/Screenshot_4.jpg">
@@ -153,19 +157,19 @@ The file path should then look like `..\expression2\ptgamma\..`.
   </a>
 </p>
 
-**NOTE:** If you see the folder "RLCPT2-master" inside the "expression2" folder, **YOU INSTALLED IT WRONG** and the E2s will not work!
+| NOTE | If you see the folder "RLCPT2-master" inside the "expression2" folder, YOU INSTALLED IT WRONG and the E2s will not work!  |
+| :--- | :--- |
 
 <br>
 
 ## Required Addons
 
-**NOTE:** You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly. There are three:
+| NOTE | You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly. There are three.  |
+| :--- | :--- |
 
-Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
-
-Engine Sounds 1: https://steamcommunity.com/sharedfiles/filedetails/?id=1254010890
-
-Engine Sounds 2: https://steamcommunity.com/sharedfiles/filedetails/?id=1254014222
+1. Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
+2. Engine Sounds 1: https://steamcommunity.com/sharedfiles/filedetails/?id=1254010890
+3. Engine Sounds 2: https://steamcommunity.com/sharedfiles/filedetails/?id=1254014222
 
 If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
 
