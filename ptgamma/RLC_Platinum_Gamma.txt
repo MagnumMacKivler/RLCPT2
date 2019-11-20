@@ -53,10 +53,10 @@ if(first()|dupefinished()){
     #Improve Loading Speed Thing
 	   #Add definition check for HTTP shit AND remove httpSuccess if used
 	   #Fix down-skipping sound bug with IdleOverride and EIIS
-	   #Add 'All is Well' Bleep
-    #Fix PrintProper
+	   #Add 'All is Well' Bleep - done
+    #Fix PrintProper - done
     
-    Version = "Gamma 2.0.65"
+    Version = "Gamma 2.0.66"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -238,6 +238,7 @@ if(first()|dupefinished()){
         exit()
     }elseif(->CtlTable){
         ctlTableInit()
+        
     }else{
         printColor(vec(255,191,0),"[RLCPT] Error: Cannot find CtlTable! Please reload E2 when CtlTable is wired.")
         soundPlay(0,0,"buttons/button3.wav")
@@ -1132,10 +1133,12 @@ if(first()|dupefinished()){
         }
     }
     
-    function void entity:printProper(Message:string){
-        if(This:isValid()){
+    function void printProper(Message:string){
+        local Engr = Pod:driver()
+        if(Engr:isValid()){
             Pod:printDriver(Message)
-        }else{
+        }
+        if(Engr != O){
             print(Message)
         }
         return void
@@ -1537,6 +1540,10 @@ if(clk("vc_timeout")){
     }elseif(Dev){
         O:soundPlay(0,0,"buttons/button24.wav")
         printColor(vec(127,255,127),"Note: you are using a Dev version of RLC PT 2 (Newer than master version)!")
+    }else{
+        O:soundPlay(0,0,"ui/hitsound.wav")
+        soundVolume(0,0.5)
+        print("RLC PT2 initialized successfully on most recent version!")
     }
 }
 #Car Count
@@ -1586,7 +1593,7 @@ if(clk("HandBrake")){
     if(HandBrake){
         abRest(E:getConstraints())
         Pod:soundPlay(3,1,"buttons/lever4.wav")
-        Pod:driver():printProper("[RLCPT] Train Handbrakes Tightened!")
+        printProper("[RLCPT] Train Handbrakes Tightened!")
         
     }
 }
@@ -1677,7 +1684,7 @@ if(On1|On2){
     HandBrake = CtlTable["HandBrake",number]
     if(HandBrake & !HandBrakeQ & (MPH<5)){
         HandBrakeQ = 1
-        Pod:driver():printProper("[RLCPT] Tightening Handbrakes...")
+        printProper("[RLCPT] Tightening Handbrakes...")
         timer("HandBrake",1000)
     }elseif(!HandBrake & HandBrakeQ){
         HandBrakeQ = 0
@@ -2206,7 +2213,7 @@ if(On1|On2){
                 DB_Temp += linterp(-Load,vec2(MaxContDynLoad,1/DB_Maxtime),vec2(MaxContDynLoad+300,1/DB_Mintime))
                 if((DB_Temp>60) & !DB_Warning){
                     DB_Warning = 1
-                    Pod:driver():printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxContDynLoad:toString() + " Amps or dynamic brake damage will occur!")
+                    printProper("[RLCPT] Warning! Your dynamic brakes are in danger of overheating! Reduce load to below " + MaxContDynLoad:toString() + " Amps or dynamic brake damage will occur!")
                     O:soundPlay(14,1,"ambient/alarms/klaxon1.wav")
                     timer("dbdamage",7500)
                     #MaxDynLoad
@@ -2260,11 +2267,11 @@ if(On1|On2){
             if((TM_Temp>60) & !TM_Warning){
                 TM_Warning = 1
                 if(OverloadProtection){
-                    Pod:driver():printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Load will be reduced automatically below " + MaxContLoad:toString() + " until motor temperatures drop!")
+                    printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Load will be reduced automatically below " + MaxContLoad:toString() + " until motor temperatures drop!")
                     OLP_Engaged = 1
                     OLPR = 1
                 }else{
-                    Pod:driver():printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Reduce load to below " + MaxContLoad:toString() + " Amps or traction motor damage will occur!")
+                    printProper("[RLCPT] Warning! Your traction motors are in danger of overheating! Reduce load to below " + MaxContLoad:toString() + " Amps or traction motor damage will occur!")
                     O:soundPlay(14,1,"ambient/alarms/klaxon1.wav")
                     timer("motordamage",15000)
                 }
@@ -3011,7 +3018,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     BrakePipe = FeedPressure
                     CarCount = carCount(SwitchingMode|IsolateBrakes)
                 }else{
-                    Speaker:printProper("[RLCPT] This command has been disabled.")
+                    printProper("[RLCPT] This command has been disabled.")
                 }
                 hideChat(1)
                 break
@@ -3045,7 +3052,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     BrakePipe = FeedPressure
                     CarCount = carCount(SwitchingMode|IsolateBrakes)
                 }else{
-                    Speaker:printProper("[RLCPT] This command has been disabled.")
+                    printProper("[RLCPT] This command has been disabled.")
                 }
                 hideChat(1)
                 break
@@ -3053,43 +3060,43 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 hideChat(1)
                 if(HasPM){
                     if(On1){
-                        Speaker:printProper("[RLCPT] Prime Mover is already On!")
+                        printProper("[RLCPT] Prime Mover is already On!")
                     }elseif(Isolation1){
-                        Speaker:printProper("[RLCPT] Isolation Switch is in Run!")
+                        printProper("[RLCPT] Isolation Switch is in Run!")
                     }elseif(Shutdown1){
-                        Speaker:printProper("[RLCPT] Engine is being forced to Shut Down!")
+                        printProper("[RLCPT] Engine is being forced to Shut Down!")
                     }else{
                         timer("startprime1",500)
-                        Speaker:printProper("[RLCPT] Starting Prime Mover 1...")
+                        printProper("[RLCPT] Starting Prime Mover 1...")
                     }
                 }else{
                     On1 = 1
                     EngineNotch1 = 0
                     EngineSpeed1 = 0
                     H1:soundPlay(0,1,Lever_Throttle)
-                    Speaker:printProper("[RLCPT] Unit Engaged!")
+                    printProper("[RLCPT] Unit Engaged!")
                 }
                 break
             case ".autostart2",
                 hideChat(1)
                 if(!DPM){
-                    Speaker:printProper("[RLCPT] Locomotive has only one Prime Mover!")
+                    printProper("[RLCPT] Locomotive has only one Prime Mover!")
                 }elseif(On2){
-                    Speaker:printProper("[RLCPT] Prime Mover is already On!")
+                    printProper("[RLCPT] Prime Mover is already On!")
                 }elseif(Isolation2){
-                    Speaker:printProper("[RLCPT] Isolation Switch is in Run!")
+                    printProper("[RLCPT] Isolation Switch is in Run!")
                 }elseif(Shutdown2){
-                    Speaker:printProper("[RLCPT] Engine is being forced to Shut Down!")
+                    printProper("[RLCPT] Engine is being forced to Shut Down!")
                 }else{
                     timer("startprime2",500)
-                    Speaker:printProper("[RLCPT] Starting Prime Mover 2...")
+                    printProper("[RLCPT] Starting Prime Mover 2...")
                 }
                 break
             case ".shutdown1",
                 hideChat(1)
                 if(HasPM){
                     if(On1){
-                        Speaker:printProper("[RLCPT] Shutting Down Prime Mover 1...")
+                        printProper("[RLCPT] Shutting Down Prime Mover 1...")
                         On1 = 0
                         if(PrimerSet1){PrimerSet1 = 0}
                         if(CompQ1){
@@ -3133,12 +3140,12 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         interrupt(1)
                         timer("Cool1",sdr(Snd))
                     }else{
-                        Speaker:printProper("[RLCPT] Prime Mover 1 is not On!")
+                        printProper("[RLCPT] Prime Mover 1 is not On!")
                     }
                 }else{
                     On1 = 0
                     CompQ1 = 0
-                    Speaker:printProper("[RLCPT] Unit Disengaged!")
+                    printProper("[RLCPT] Unit Disengaged!")
                 
                 }
                 break
@@ -3177,17 +3184,17 @@ if(chatClk(O)|chatClk(Pod:driver())){
                         timer("Cool2",sdr(Snd))
                         #print("Shutdown2")
                     }else{
-                        Speaker:printProper("[RLCPT] Prime Mover 2 is not On!")
+                        printProper("[RLCPT] Prime Mover 2 is not On!")
                     }
                 }else{
-                    Speaker:printProper("[RLCPT] Locomotive has only one Prime Mover!")
+                    printProper("[RLCPT] Locomotive has only one Prime Mover!")
                 }
                 break
             case ".setair",
                 if(0){
                     MainRes = Sentence[2,string]:toNumber()
                 }else{
-                    Speaker:printProper("[RLCPT] This command has been disabled.")
+                    printProper("[RLCPT] This command has been disabled.")
                 }
                 hideChat(1)
                 break
@@ -3196,7 +3203,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     if(MPH<5){
                         abRest(E:getConstraints())
                         Pod:soundPlay(3,1,"buttons/lever4.wav")
-                        Speaker:printProper("[RLCPT] Train Handbrakes Tightened!")
+                        printProper("[RLCPT] Train Handbrakes Tightened!")
                     }
                     hideChat(1)
                 }
@@ -3208,7 +3215,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     if(LocoCount==0){
                         LocoCount = 1
                     }
-                    Speaker:printProper("[RLCPT] Your train is pulling "+(CarCount+1-LocoCount)+" Car(s) with "+LocoCount+" Locomotive(s).")
+                    printProper("[RLCPT] Your train is pulling "+(CarCount+1-LocoCount)+" Car(s) with "+LocoCount+" Locomotive(s).")
                 
                     hideChat(1)
                 }
@@ -3227,7 +3234,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     
                     local SCE = round(fromUnit("lb",TrailingLB)/50000,1)
                     
-                    Speaker:printProper("[RLCPT] Your train is pulling "+TrailingT:toString()+" Trailing Tons ("+SCE:toString()+" SCE).")
+                    printProper("[RLCPT] Your train is pulling "+TrailingT:toString()+" Trailing Tons ("+SCE:toString()+" SCE).")
                     hideChat(1)
                 }
                 break
@@ -3253,7 +3260,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     }
                     local HPT = round(TotalHP/TrailingT,2)
                     
-                    Speaker:printProper("[RLCPT] Your train is supplying "+HPT:toString()+" Horsepower per Trailing Ton ("+TotalHP:toString()+" HP, "+round(TrailingT,1):toString()+" TT).")
+                    printProper("[RLCPT] Your train is supplying "+HPT:toString()+" Horsepower per Trailing Ton ("+TotalHP:toString()+" HP, "+round(TrailingT,1):toString()+" TT).")
                     hideChat(1)
                 }
                 break
@@ -3270,7 +3277,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                             }
                         }
                         
-                        Speaker:printProper(PrintString)
+                        printProper(PrintString)
                     }elseif(TransitionMode & !TransitionControlType){
                         local PrintString = "[RLCPT] This Locomotive has Manual Transition! Shift at "
                             for(N=1,TransitionNotches-1){
@@ -3281,16 +3288,16 @@ if(chatClk(O)|chatClk(Pod:driver())){
                                     PrintString += " MPH."
                                 }
                             }
-                        Speaker:printProper(PrintString)
+                        printProper(PrintString)
                     }elseif(!TransitionMode){
-                        Speaker:printProper("[RLCPT] This Locomotive has no transitions!")
+                        printProper("[RLCPT] This Locomotive has no transitions!")
                     }
                 }
                 hideChat(1)
                 break
             case ".weightreset",
                 setWeight(W,SpanBolsters,Trucks,Weight)
-                Speaker:printProper("[RLCPT] Locomotive weights reset.")
+                printProper("[RLCPT] Locomotive weights reset.")
                 hideChat(1)
                 break
             case ".switching",
@@ -3300,7 +3307,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                 }else{
                     SwitchingMode = Sentence[2,string]=="1"
                 }
-                Speaker:printProper(SwitchingMode ? "[RLCPT] Trainline brakes cut out (Switching Mode engaged)!" : "[RLCPT] Trainline brakes cut in (Switching Mode disengaged)!")
+                printProper(SwitchingMode ? "[RLCPT] Trainline brakes cut out (Switching Mode engaged)!" : "[RLCPT] Trainline brakes cut in (Switching Mode disengaged)!")
             
                 hideChat(1)
                 break
@@ -3321,15 +3328,15 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     if(RollQ){
                         W:soundPlay(7,0,RollSoundWelded)
                     }
-                    Speaker:printProper("[RLCPT] You are now riding on welded rails.")
+                    printProper("[RLCPT] You are now riding on welded rails.")
                 }elseif(RT=="jointed"){
                     RailType = 1
                     if(RollQ){
                         W:soundPlay(7,0,RollSoundJointed)
                     }
-                    Speaker:printProper("[RLCPT] You are now riding on jointed rails.")
+                    printProper("[RLCPT] You are now riding on jointed rails.")
                 }else{
-                    Speaker:printProper("[RLCPT] You are currently riding on "+(RailType ? "jointed" : "welded")+" rails.")
+                    printProper("[RLCPT] You are currently riding on "+(RailType ? "jointed" : "welded")+" rails.")
                 }
                 hideChat(1)
                 break
@@ -3340,7 +3347,7 @@ if(chatClk(O)|chatClk(Pod:driver())){
                     if(Spd==""){
                         CC_TargetSpeed = 0
                         CC_Enable = 0
-                        Speaker:printProper("[RLCPT] Cruise Control Disabled.")
+                        printProper("[RLCPT] Cruise Control Disabled.")
                     }else{
                         local Spdm = Spd:toNumber()
                         
@@ -3356,9 +3363,9 @@ if(chatClk(O)|chatClk(Pod:driver())){
                             local TrailingLB = toUnit("lb",TotalKG) - (Weight + FrontPlugIn[15,number] + RearPlugIn[15,number])
                             local TrailingT = round(TrailingLB/2000,1)
                             CC_PropRate = max(4,TrailingT*8/600)
-                            Speaker:printProper("[RLCPT] Cruise Control Enabled! Target Speed: "+Spdm:toString()+" MPH ("+CC_PropRate+").")
+                            printProper("[RLCPT] Cruise Control Enabled! Target Speed: "+Spdm:toString()+" MPH ("+CC_PropRate+").")
                         }else{
-                            Speaker:printProper("[RLCPT] Cruise Control Target Speed: "+Spdm:toString()+" MPH.")
+                            printProper("[RLCPT] Cruise Control Target Speed: "+Spdm:toString()+" MPH.")
                         }
                         
                         

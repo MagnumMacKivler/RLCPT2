@@ -15,8 +15,8 @@ if(duped()){
     reset()
 }
 if(first()){
-    #FOR USE WITH RLC PT 2.0.65 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.65"
+    #FOR USE WITH RLC PT 2.0.66 OR OTHER COMPATIBLE VERSIONS
+    CtlTable["CS_Version",string] = "2.0.66"
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -112,12 +112,15 @@ if(first()){
         return Output
     }
     
-    function void entity:printProper(Message:string){
-        if(This==owner()){
-            print(Message)
-        }else{
+    function void printProper(Message:string){
+        local Engr = Pod:driver()
+        if(Engr:isValid()){
             Pod:printDriver(Message)
         }
+        if(Engr != owner()){
+            print(Message)
+        }
+        return void
     }
     
     
@@ -915,9 +918,9 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                         local ControlName = ControlPrintOrder[K,string]
                         local X = Controls[ControlName,string]
                         if(Routing[ControlName,number]){
-                            Speaker:printProper(ControlName + ": Shift + " + X)
+                            printProper(ControlName + ": Shift + " + X)
                         }else{
-                            Speaker:printProper(ControlName + ": " + X)
+                            printProper(ControlName + ": " + X)
                         }
                     }
                 }
@@ -926,12 +929,12 @@ if(chatClk(owner())|chatClk(Pod:driver())){
             case ".reverser",
                 if(MU_Master & OnRun){
                     if(Dynamics){
-                        Speaker:printProper("[RLCPT] Dynamic Brakes are On!")
+                        printProper("[RLCPT] Dynamic Brakes are On!")
                     }elseif(SetThrottle>0){
-                        Speaker:printProper("[RLCPT] Throttle is On!")
+                        printProper("[RLCPT] Throttle is On!")
                     }else{
                         SetReverser = sign(Sentence[2,string]:toNumber())
-                        Speaker:printProper("[RLCPT] Reverser set to " + SetReverser:toString() + ".")
+                        printProper("[RLCPT] Reverser set to " + SetReverser:toString() + ".")
                     }
                 }
                 hideChat(1)
@@ -939,9 +942,9 @@ if(chatClk(owner())|chatClk(Pod:driver())){
             case ".throttle",
                 if(MU_Master & OnRun){
                     if(Dynamics){
-                        Speaker:printProper("[RLCPT] Dynamic Brakes are On!")
+                        printProper("[RLCPT] Dynamic Brakes are On!")
                     }elseif(HEP_Notch==1){
-                        Speaker:printProper("[RLCPT] HEP Mode is in Standby!")
+                        printProper("[RLCPT] HEP Mode is in Standby!")
                     }else{
                         if(NotchedThrottle){
                             SetThrottle = clamp(dac(0,100,NumThrottleNotches,adc(0,100,NumThrottleNotches,Sentence[2,string]:toNumber())),0,100)
@@ -950,7 +953,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                             SetThrottle = clamp(Sentence[2,string]:toNumber(),0,100)
                             Notch = adc(0,100,NumThrottleNotches,SetThrottle)
                         }
-                        Speaker:printProper("[RLCPT] Throttle set to " + SetThrottle + "%.")
+                        printProper("[RLCPT] Throttle set to " + SetThrottle + "%.")
                     }
                 }
                 hideChat(1)
@@ -958,17 +961,17 @@ if(chatClk(owner())|chatClk(Pod:driver())){
             case ".notch",
                 if(MU_Master & OnRun){
                     if(Dynamics){
-                        Speaker:printProper("[RLCPT] Dynamic Brakes are On!")
+                        printProper("[RLCPT] Dynamic Brakes are On!")
                     }elseif(HEP_Notch==1){
-                        Speaker:printProper("[RLCPT] HEP Mode is in Standby!")
+                        printProper("[RLCPT] HEP Mode is in Standby!")
                     }else{
                         if(NotchedThrottle){
                             Notch = clamp(round(Sentence[2,string]:toNumber()),0,NumThrottleNotches)
                             SetThrottle = dac(0,100,NumThrottleNotches,Notch)
-                            Speaker:printProper("[RLCPT] Throttle set to Notch " + Notch + ".")
+                            printProper("[RLCPT] Throttle set to Notch " + Notch + ".")
                             
                         }else{
-                            Speaker:printProper("[RLCPT] Throttle has no Notches!")
+                            printProper("[RLCPT] Throttle has no Notches!")
                         }
                         
                     }
@@ -978,11 +981,11 @@ if(chatClk(owner())|chatClk(Pod:driver())){
             case ".dynamics",
                 if(MU_Master & OnRun){
                     if(!HasDynamics){
-                        Speaker:printProper("[RLCPT] Dynamic Brakes are not Enabled!")
+                        printProper("[RLCPT] Dynamic Brakes are not Enabled!")
                     }elseif(!abs(SetReverser)){
-                        Speaker:printProper("[RLCPT] Reverser is not Engaged!")
+                        printProper("[RLCPT] Reverser is not Engaged!")
                     }elseif(SetThrottle>0){
-                        Speaker:printProper("[RLCPT] Throttle is not in Idle!")
+                        printProper("[RLCPT] Throttle is not in Idle!")
                     }else{
                         local Set = clamp(Sentence[2,string]:toNumber(),0,100)
                         SetDynamics = (Set<10) ? 0 : Set
@@ -990,7 +993,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                         
                         #Dynamics = DynamicBrakingPower>0
                         
-                        Speaker:printProper("[RLCPT] Dynamic Brake set to " + SetDynamics + "%.")
+                        printProper("[RLCPT] Dynamic Brake set to " + SetDynamics + "%.")
                     }
                 }
                 hideChat(1)
@@ -999,11 +1002,11 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 if(MU_Master & OnRun){
                     if(NotchedDynamics){
                         if(!HasDynamics){
-                            Speaker:printProper("[RLCPT] Dynamic Brakes are not Enabled!")
+                            printProper("[RLCPT] Dynamic Brakes are not Enabled!")
                         }elseif(!abs(SetReverser)){
-                            Speaker:printProper("[RLCPT] Reverser is not Engaged!")
+                            printProper("[RLCPT] Reverser is not Engaged!")
                         }elseif(SetThrottle>0){
-                            Speaker:printProper("[RLCPT] Throttle is not in Idle!")
+                            printProper("[RLCPT] Throttle is not in Idle!")
                         }else{
                             local Set = clamp(round(Sentence[2,string]:toNumber()),-1,NumThrottleNotches)
                             DynaNotch = Set
@@ -1011,10 +1014,10 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                             
                             #Dynamics = DynamicBrakingPower>0
                             
-                            Speaker:printProper("[RLCPT] Dynamic Brake set to Notch " + DynaNotch + " (" + SetDynamics + "%).")
+                            printProper("[RLCPT] Dynamic Brake set to Notch " + DynaNotch + " (" + SetDynamics + "%).")
                         }
                     }else{
-                        Speaker:printProper("[RLCPT] Dynamic Brakes are not Notched!")
+                        printProper("[RLCPT] Dynamic Brakes are not Notched!")
                     }
                 }
                 hideChat(1)
@@ -1028,7 +1031,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                     				Notch = 0
                     				SetDynamics = 0
                     				SetBrakeNotch = 6
-                        Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
+                        printProper("[RLCPT] Setting Emergency Brake application!")
                     }else{
                         local Set = clamp(What:toNumber(),0,FeedPressure*64/90)
                         switch(AirBrakeMode){
@@ -1074,7 +1077,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                                 SetEqualRes = FeedPressure - Set
                                 break
                         }
-                        Speaker:printProper("[RLCPT] Setting " + (FeedPressure-SetEqualRes) + "lb application on train.")
+                        printProper("[RLCPT] Setting " + (FeedPressure-SetEqualRes) + "lb application on train.")
                     }
                 }
                 hideChat(1)
@@ -1086,7 +1089,7 @@ if(chatClk(owner())|chatClk(Pod:driver())){
         Notch = 0
         SetDynamics = 0
         SetBrakeNotch = 6
-        Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
+        printProper("[RLCPT] Setting Emergency Brake application!")
 				}
 				hideChat(1)
 				break
@@ -1095,14 +1098,14 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)
                 SetLocoBrakePressure = Set
                 if(ML){SetLocoBrakeNotch=1}
-                Speaker:printProper("[RLCPT] Setting " + (SetLocoBrakePressure) + "lb application on locomotive(s).")
+                printProper("[RLCPT] Setting " + (SetLocoBrakePressure) + "lb application on locomotive(s).")
                 
                 hideChat(1)
                 break
             case ".remotemode",
                 if(MU_Master){
                     RemoteMode = sign(Sentence[2,string]:toNumber())
-                    Speaker:printProper("[RLCPT] Remote Control Mode set to " + RemoteMode + ".")
+                    printProper("[RLCPT] Remote Control Mode set to " + RemoteMode + ".")
                     hideChat(1)
                 }
                 break
