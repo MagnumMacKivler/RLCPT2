@@ -179,11 +179,9 @@ READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
 
 <br>
 
-## Current Project Team Members
+## Current Project Team Members & Stats
 
- * Magnum
- * Grovestreetgman
- * Monkatraz
- * TitusStudios
+[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/0)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/0)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/1)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/1)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/2)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/2)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/3)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/3)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/4)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/4)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/5)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/5)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/6)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/6)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/7)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/7)
+
 
 "RLC"'s Logo, (and relating assets) are copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
