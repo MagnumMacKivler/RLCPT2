@@ -46,24 +46,17 @@ The file path should then look like `..\expression2\ptgamma\..`.
 5. If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
 
 # Start using RLC Gamma
-Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2). 
-
-New to PT Gamma? Check out the Operator Manual:
-
-1. [Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)
+Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2). New to PT Gamma? Check out the [Operator Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)!
 
 New to building locomotives? Check out these three tutorials:
-
 1. [Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
 2. [How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
 3. [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
 # Current Project Team Members & Stats
-
 [![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/0)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/0)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/1)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/1)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/2)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/2)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/3)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/3)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/4)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/4)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/5)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/5)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/6)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/6)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/7)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/7)
 
 # License
-
 ```
 TBA
 ```
