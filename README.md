@@ -74,10 +74,10 @@ New to building locomotives? Check out these three tutorials:
 
 # FAQ
 ### Why is it called RLC?
-Blah
+@MagnumMacKivler Add Here
 
 ### Is it called RLCPT2, PT Gamma or...?
-Blah
+@MagnumMacKivler Add Here
 
 ### Is RLCPT2 production ready?
 Sure.
