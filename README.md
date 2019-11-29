@@ -9,8 +9,6 @@
   </a>
 </p>
 
-<br>
-
 <div align="center">
   <sub>Built with ❤︎ by
   <a href="https://github.com/MagnumMacKivler">MagnumMacKivler</a> and
@@ -18,6 +16,8 @@
     contributors
   </a>
 </div>
+
+<br>
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
 
