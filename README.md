@@ -81,4 +81,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-"RLC"'s Logo, (and relating assets) are copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
+RLC's Logo is copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
