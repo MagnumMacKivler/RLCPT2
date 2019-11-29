@@ -77,85 +77,16 @@ Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads
 
 ## Install Using Releases:
 
-1. Head to the releases tab of the RLCPT2 GitHub
-
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2_readmeimg5.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2_readmeimg5.jpg"
-    />
-  </a>
-</p>
-
-<hr>
-
-2. Download the Release of your choice (usually the latest one), usually you will only be downloading `(Current)` Releases.
-
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2_readmeimg1.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2_readmeimg1.jpg"
-    />
-  </a>
-</p>
-
-<hr>
-
-3. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`, As we want the ZIP file. 
-
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2_readmeimg2.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2_readmeimg2.jpg"
-    />
-  </a>
-</p>
-
-<hr>
-
-4. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
+1. Download the [lastest release of RLC Gamma](https://github.com/MagnumMacKivler/RLCPT2/releases/).
+2. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`.
+3. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
 
 | CAUTION | DO NOT Extract the first folder (Ex, `RLCPT2-master`)! RLC will not work correctly!  |
 | :--- | :--- |
 
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2-readme/Screenshot_4.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2-readme/Screenshot_4.jpg"
-    />
-  </a>
-</p>
-
-<hr>
-
-5. Extract **EVERYTHING BUT** the `README.md` and `version.txt`, ie, only extract the folders shown in the red box.... As these are just for the GitHub, and are not required ingame.
-
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2-readme/Screenshot_5.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2-readme/Screenshot_5.jpg"
-    />
-  </a>
-</p>
-
-<hr>
-
-6. Extract the folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
+4. Extract **EVERYTHING BUT** the `README.md` and `version.txt`, ie, only extract the folders shown in the red box.... As these are just for the GitHub, and are not required ingame.
+5. Extract the folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
 The file path should then look like `..\expression2\ptgamma\..`.
-
-<p align="left">
-  <a href="https://titusstudios.net/data/static/images/rlcpt2_readmeimg7.jpg">
-    <img
-      alt="rlcpt-installimg1"
-      src="https://titusstudios.net/data/static/images/rlcpt2_readmeimg7.jpg"
-    />
-  </a>
-</p>
 
 | NOTE | If you see the folder "RLCPT2-master" inside the "expression2" folder, YOU INSTALLED IT WRONG and the E2s will not work!  |
 | :--- | :--- |
