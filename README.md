@@ -11,7 +11,7 @@
 
 <br>
 
-![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2)
+![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub closed issues](https://img.shields.io/github/issues-closed/MagnumMacKivler/RLCPT2)
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
