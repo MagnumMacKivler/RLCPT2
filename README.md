@@ -49,15 +49,14 @@ The file path should then look like `..\expression2\ptgamma\..`.
 Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2). 
 
 New to PT Gamma? Check out the Operator Manual:
-[Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)
+
+1. [Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)
 
 New to building locomotives? Check out these three tutorials:
 
-[Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
-
-[How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
-
-[How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
+1. [Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
+2. [How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
+3. [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
 # Current Project Team Members & Stats
 
