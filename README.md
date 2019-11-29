@@ -45,7 +45,7 @@ The file path should then look like `..\expression2\ptgamma\..`.
 5. If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
 
 # Start using RLC Gamma
-Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has heaps of [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2). New to PT Gamma? Check out the [Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)!
+Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has heaps of [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2) for your pleasure. New to PT Gamma? Check out the [Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)!
 
 New to building locomotives? Check out these three tutorials:
 1. [Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
