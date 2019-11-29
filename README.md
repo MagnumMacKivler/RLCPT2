@@ -25,10 +25,10 @@
 - [Brief Description](#brief-description)
 - [Required Addons](#required-addons)
 - [Installation](#installation)
-  - [Download & Install](#download-install)
+  - [Download & Install](#download--install)
 - [Start using RLC Gamma](#start-using-rlc-gamma)
 - [FAQ](#faq)
-- [Current Project Team Members & Stats](#current-project-team-members-stats)
+- [Current Project Team Members & Stats](#current-project-team-members--stats)
 - [License](#license)
 
 # Brief Description
