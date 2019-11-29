@@ -19,7 +19,7 @@ RLC PT 2.0 is now publicly available for use. The version found on here should b
 
 Thankfully, certain features within RLC PT 2.0 make it easier for users to update their locomotives, and the new include-based config system should streamline the process. Gone are the days of copy/pasting blocks of code from one PT chip into the next!
 
-| NOTE | RLC PT 2.0 is **not** MU-compatible with RLC PT (1). |
+| NOTE | RLC PT 2.0 (Gamma) is **not** MU-compatible with RLC PT 1. |
 | :--- | :--- |
 
 [Check out the wiki for locomotive data sheets, general info, and PT2-specific tips!](https://github.com/MagnumMacKivler/RLCPT2/wiki)
@@ -27,12 +27,8 @@ Thankfully, certain features within RLC PT 2.0 make it easier for users to updat
 # Table of Contents
 
 * [Support](#support)
-* [Release Types](#release-types)
-  * [Download](#download)
-    * [Current, Beta, LTS and Misc Releases](#current-beta-lts-and-misc-releases)
 * [Installation](#installation)
-  * [Install Using SVN](#install-using-svn)
-  * [Install Using Releases](#install-using-releases)
+  * [Download & Install](#download-install)
 * [Required Addons](#required-addons)
 * [In-Game Setup and Usage](#in-game-setup-and-usage)
 * [Current Project Team Members](#current-project-team-members)
@@ -45,37 +41,11 @@ Read the RLCPT2 User Manual [Here](/ptgamma/RLC_PT2_Operator_Manual.txt)
 <br>
 Or Check out [The Wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) for [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2), [data sheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets), and more!
 
-
-## Release Types
-
-* **Current**: Not Under active development. Finished and polished (but may still contain minor bugs) versions of the code Release. (for example, **Version 2.x.x (Current)**).
-* **Betas**: Under active development. Code in the Beta release(s) is currently being worked on, it may contrain game breaking bugs. (for example, **Version 2.x.x (Beta)**).
-* **LTS**: Releases that receive Long-term Support, with a focus on stability. Note if you use an LTS release you may encounter compatibility issues with newer (or older) versions depending on the code version. (for example, **Version 2.x.x (LTS)*
-* **Misc**: Miscellaneous Release. Reasoning for release will be explained in the Release Description. (for example, **Version 2.x.x (Misc)**).
-
-Current, Betas, LTS and Misc releases follow [Semantic Versioning](https://semver.org). A
-member of the Release Team signs each Current, Beta, LTS, and Misc release.
-
-## Download
-
-**Current, Beta, LTS and Misc Releases**
-See all Releases [Here](https://github.com/MagnumMacKivler/RLCPT2/releases)
-
 <br>
 
 # Installation
 
-## Install Using SVN:
-
-Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads.html) Back in the old days, this was how all the really big Garry's Mod addons were installed.
-
-1. Navigate into `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\` and make a new folder called "ptgamma".
-2. Right click this folder and do an SVN checkout with this link:
-`https://github.com/MagnumMacKivler/RLCPT2/trunk/ptgamma/`
-3. Press "Okay" and Tortoise SVN will automatically install everything.
-4. To update RLC PT2's files, simply right click the ptgamma folder, navigate into the Tortoise SVN bar, and click "SVN Update".
-
-## Install Using Releases:
+## Download & Install:
 
 1. Download the [lastest release of RLC Gamma](https://github.com/MagnumMacKivler/RLCPT2/releases/).
 2. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`.
@@ -84,12 +54,13 @@ Please note that this requires [Tortoise SVN.](https://tortoisesvn.net/downloads
 | CAUTION | DO NOT Extract the first folder (Ex, `RLCPT2-master`)! RLC will not work correctly!  |
 | :--- | :--- |
 
-4. Extract **EVERYTHING BUT** the `README.md` and `version.txt`, ie, only extract the folders shown in the red box.... As these are just for the GitHub, and are not required ingame.
-5. Extract the folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
+4. Extract the folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
 The file path should then look like `..\expression2\ptgamma\..`.
 
 | NOTE | If you see the folder "RLCPT2-master" inside the "expression2" folder, YOU INSTALLED IT WRONG and the E2s will not work!  |
 | :--- | :--- |
+
+5. Refresh the E2 browser ingame, and the Gamm Folders should appear.
 
 <br>
 
