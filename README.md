@@ -21,7 +21,7 @@
   </a>
 </div>
 
-# Table of Contents
+## Table of Contents
 - [Brief Description](#brief-description)
 - [Required Addons](#required-addons)
 - [Installation](#installation)
