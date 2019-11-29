@@ -77,7 +77,7 @@ If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "U
 
 ## In-Game Setup and Usage:
 
-READ THE OPERATOR'S MANUAL FOR SETUP AND USAGE INSTRUCTIONS!
+READ THE [OPERATOR'S MANUAL](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt) FOR SETUP AND USAGE INSTRUCTIONS!
 
 <br>
 
