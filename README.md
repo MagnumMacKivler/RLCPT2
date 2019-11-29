@@ -1,4 +1,4 @@
-<p align="center" style="padding: 0 0 10px 0 !important;">
+<p align="center">
   <a href="https://titusstudios.net/">
     <img
       alt="rlc-logo"
