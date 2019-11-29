@@ -2,9 +2,9 @@
   <a href="https://titusstudios.net/">
     <img
       alt="rlc-logo"
-      title="RLC Logo - www.titusstudios.net/"
-      src="https://titusstudios.net/data/static/images/rlc-logo-new-2.png"
-      width="600"
+      title="RLC Logo | www.titusstudios.net/"
+      src="https://titusstudios.net/data/static/images/rlc-gamma-logo/rlc-logo-main-grad.png"
+      width="650"
     />
   </a>
 </p>
