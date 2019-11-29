@@ -19,28 +19,6 @@ RLC PT 2.0 is now publicly available for use. The version found on here should b
 
 Thankfully, certain features within RLC PT 2.0 make it easier for users to update their locomotives, and the new include-based config system should streamline the process. Gone are the days of copy/pasting blocks of code from one PT chip into the next!
 
-| NOTE | RLC PT 2.0 (Gamma) is **not** MU-compatible with RLC PT 1. |
-| :--- | :--- |
-
-[Check out the wiki for locomotive data sheets, general info, and PT2-specific tips!](https://github.com/MagnumMacKivler/RLCPT2/wiki)
-
-# Table of Contents
-
-* [Support](#support)
-* [Installation](#installation)
-  * [Download & Install](#download-install)
-* [Required Addons](#required-addons)
-* [In-Game Setup and Usage](#in-game-setup-and-usage)
-* [Current Project Team Members](#current-project-team-members)
-
-
-## Support
-#### Need help setting up a locomotive?
-
-Read the RLCPT2 User Manual [Here](/ptgamma/RLC_PT2_Operator_Manual.txt)
-<br>
-Or Check out [The Wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) for [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2), [data sheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets), and more!
-
 <br>
 
 # Installation
@@ -62,12 +40,10 @@ The file path should then look like `..\expression2\ptgamma\..`.
 
 5. Refresh the E2 browser ingame, and the Gamm Folders should appear.
 
-<br>
 
 ## Required Addons
 
-| NOTE | You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly. There are three.  |
-| :--- | :--- |
+You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly.
 
 1. Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
 2. Engine Sounds 1: https://steamcommunity.com/sharedfiles/filedetails/?id=1254010890
@@ -79,7 +55,12 @@ If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "U
 
 READ THE [OPERATOR'S MANUAL](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt) FOR SETUP AND USAGE INSTRUCTIONS!
 
-<br>
+# Start using RLC Gamma
+Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2). New to building locomotives? Check out these three tutorials:
+
+[Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
+[How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
+[How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
 ## Current Project Team Members & Stats
 
