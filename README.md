@@ -14,28 +14,22 @@
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
 
 <div align="center">
-  <sub>The little framework that could. Built with ❤︎ by
-  <a href="https://twitter.com/yoshuawuyts">Yoshua Wuyts</a> and
-  <a href="https://github.com/choojs/choo/graphs/contributors">
+  <sub>Built with ❤︎ by
+  <a href="https://github.com/MagnumMacKivler">MagnumMacKivler</a> and
+  <a href="https://github.com/MagnumMacKivler/RLCPT2/graphs/contributors">
     contributors
   </a>
 </div>
 
 # Table of Contents
-- [Features](#features)
-- [Example](#example)
-- [Philosophy](#philosophy)
-- [Events](#events)
-- [State](#state)
-- [Routing](#routing)
-- [Server Rendering](#server-rendering)
-- [Components](#components)
-- [Optimizations](#optimizations)
-- [FAQ](#faq)
-- [API](#api)
+- [Brief Description](#brief-description)
+- [Required Addons](#required-addons)
 - [Installation](#installation)
-- [See Also](#see-also)
-- [Support](#support)
+  - [Download & Install](#download-install)
+- [Start using RLC Gamma](#start-using-rlc-gamma)
+- [FAQ](#faq)
+- [Current Project Team Members & Stats](#current-project-team-members-stats)
+- [License](#license)
 
 # Brief Description
 
