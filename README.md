@@ -11,9 +11,7 @@
 
 <br>
 
-<p align="center">
 ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
-</p>
 
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
@@ -53,6 +51,16 @@ New to building locomotives? Check out these three tutorials:
 1. [Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
 2. [How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
 3. [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
+
+# FAQ
+### Why is it called RLC?
+Blah
+
+### Is it called RLCPT2, PT Gamma or...?
+Blah
+
+### Is RLCPT2 production ready?
+Sure.
 
 # Current Project Team Members & Stats
 [![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/0)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/0)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/1)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/1)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/2)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/2)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/3)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/3)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/4)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/4)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/5)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/5)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/6)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/6)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/7)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/7)
