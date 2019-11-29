@@ -3,7 +3,7 @@
     <img
       alt="rlc-logo"
       title="RLC Logo | www.titusstudios.net/"
-      src="https://titusstudios.net/data/static/images/rlc-gamma-logo/rlc-logo-main-grad2.png"
+      src="https://titusstudios.net/data/static/images/rlc-gamma-logo/rlc-logo-main-nograd.png"
       width="650"
     />
   </a>
