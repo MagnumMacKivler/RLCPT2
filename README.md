@@ -13,6 +13,32 @@
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
 
+<div align="center">
+  <sub>The little framework that could. Built with ❤︎ by
+  <a href="https://twitter.com/yoshuawuyts">Yoshua Wuyts</a> and
+  <a href="https://github.com/choojs/choo/graphs/contributors">
+    contributors
+  </a>
+</div>
+
+# Table of Contents
+- [Features](#features)
+- [Example](#example)
+- [Philosophy](#philosophy)
+- [Events](#events)
+- [State](#state)
+- [Routing](#routing)
+- [Server Rendering](#server-rendering)
+- [Components](#components)
+- [Optimizations](#optimizations)
+- [FAQ](#faq)
+- [API](#api)
+- [Installation](#installation)
+- [See Also](#see-also)
+- [Support](#support)
+
+# Brief Description
+
 RLC Platinum 2.0 (RLC PT2 or simply PT2 for short) is a highly realistic simulation chip for diesel-electric locomotives in Garry's Mod.
 
 RLC PT 2.0 is now publicly available for use. The version found on here should be stable, however, there is always the chance that some bugs may remain in the code. Future updates are certain, and you will need to update your locomotives as time goes by. That means updating E2s, re-wiring dupes.
