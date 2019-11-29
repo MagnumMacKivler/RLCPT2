@@ -54,7 +54,9 @@ New to PT Gamma? Check out the Operator Manual:
 New to building locomotives? Check out these three tutorials:
 
 [Where to find models](https://github.com/MagnumMacKivler/RLCPT2/wiki/Where-to-find-models)
+
 [How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
+
 [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
 # Current Project Team Members & Stats
