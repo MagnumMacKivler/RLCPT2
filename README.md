@@ -42,7 +42,6 @@ The file path should then look like `..\expression2\ptgamma\..`.
 
 | NOTE | If you see the folder "RLCPT2-master" inside the "expression2" folder, YOU INSTALLED IT WRONG and the E2s will not work!  |
 | :--- | :--- |
-
 5. If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
 
 # Start using RLC Gamma
