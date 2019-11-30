@@ -109,4 +109,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-<img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/law.svg" height="16px" /> RLC's Logo is copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
+RLC's Logo is copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
