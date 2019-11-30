@@ -40,16 +40,16 @@ RLC PT 2.0 is now publicly available for use. The version found on here should b
 
 Thankfully, certain features within RLC PT 2.0 make it easier for users to update their locomotives, and the new include-based config system should streamline the process. Gone are the days of copy/pasting blocks of code from one PT chip into the next!
 
-# Required Addons
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/checklist.svg" height="24px" /> Required Addons
 
 You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly.
 1. Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
 2. Engine Sounds 1: https://steamcommunity.com/sharedfiles/filedetails/?id=1254010890
 3. Engine Sounds 2: https://steamcommunity.com/sharedfiles/filedetails/?id=1254014222
 
-# Installation
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/package.svg" height="24px" /> Installation
 
-## Download & Install:
+## <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/repo-pull.svg" height="24px" /> Download & Install:
 2. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`.
 3. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
 
@@ -63,7 +63,7 @@ The file path should then look like `..\expression2\ptgamma\..`.
 | :--- | :--- |
 5. If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
 
-# Start using RLC Gamma
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/terminal.svg" height="24px" /> Start using RLC Gamma
 Our [wiki](https://github.com/MagnumMacKivler/RLCPT2/wiki) has heaps of [datasheets](https://github.com/MagnumMacKivler/RLCPT2/wiki/Locomotive-Data-Sheets) and [tutorials](https://github.com/MagnumMacKivler/RLCPT2/wiki/Configuring-Locomotives-in-RLC-PT2) for your pleasure. New to PT Gamma? Check out the [Operator's Manual](https://github.com/MagnumMacKivler/RLCPT2/blob/dev/ptgamma/RLC_PT2_Operator_Manual.txt)!
 
 New to building locomotives? Check out these three tutorials:
@@ -71,7 +71,7 @@ New to building locomotives? Check out these three tutorials:
 2. [How to add Bogies to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Bogies-to-your-Locomotive)
 3. [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
-# FAQ
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/quote.svg" height="24px" /> FAQ
 ### Why is it called RLC?
 @MagnumMacKivler Add Here
 
@@ -81,10 +81,10 @@ New to building locomotives? Check out these three tutorials:
 ### Is RLCPT2 production ready?
 Sure.
 
-# Current Project Team Members & Stats
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/organization.svg" height="24px" /> Current Project Team Members & Stats
 [![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/0)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/0)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/1)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/1)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/2)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/2)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/3)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/3)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/4)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/4)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/5)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/5)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/6)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/6)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/7)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/7)
 
-# License
+# <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/law.svg" height="24px" /> License
 ```
 MIT License
 
