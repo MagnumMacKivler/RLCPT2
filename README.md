@@ -23,14 +23,14 @@
 
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/list-unordered.svg" height="24px" /> Table of Contents
-- [Brief Description](#brief-description)
-- [Required Addons](#required-addons)
-- [Installation](#installation)
-  - [Download & Install](#download--install)
-- [Start using RLC Gamma](#start-using-rlc-gamma)
-- [FAQ](#faq)
-- [Current Project Team Members & Stats](#current-project-team-members--stats)
-- [License](#license)
+- [Brief Description](#-brief-description)
+- [Required Addons](#-required-addons)
+- [Installation](#-installation)
+  - [Download & Install](#-download--install)
+- [Start using RLC Gamma](#-start-using-rlc-gamma)
+- [FAQ](#-faq)
+- [Current Project Team Members & Stats](#-current-project-team-members--stats)
+- [License](#-license)
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/book.svg" height="24px" /> Brief Description
 
