@@ -10,7 +10,7 @@
 </p>
 
 <div align="center">
-  <sub>Built with ❤︎ by
+  <sub>Built with :heart: by
   <a href="https://github.com/MagnumMacKivler">MagnumMacKivler</a> and
   <a href="https://github.com/MagnumMacKivler/RLCPT2/graphs/contributors">
     contributors
