@@ -49,7 +49,7 @@ You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly.
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/package.svg" height="24px" /> Installation
 
-## <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/repo-pull.svg" height="24px" /> Download & Install:
+## <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/repo-pull.svg" height="18px" /> Download & Install:
 2. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`.
 3. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
 
