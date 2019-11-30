@@ -85,28 +85,6 @@ Sure.
 [![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/0)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/0)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/1)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/1)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/2)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/2)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/3)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/3)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/4)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/4)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/5)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/5)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/6)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/6)[![](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/images/7)](https://sourcerer.io/fame/TitusStudiosMediaGroup/MagnumMacKivler/RLCPT2/links/7)
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/law.svg" height="24px" /> License
-```
-MIT License
-
-Copyright (c) 2019 MagnumMacKivler
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+![carbon-MIT](https://titusstudios.net/data/static/images/rlcpt2-readme/rlcpt2-rm-MIT-carbon.svg)
 
 RLC's Logo is copyrighted under: Copyright © 2019 Titus Studios Media. [www.titusstudios.net](https://titusstudios.net/)
