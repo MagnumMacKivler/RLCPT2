@@ -72,13 +72,13 @@ New to building locomotives? Check out these three tutorials:
 3. [How to add Exhaust Smoke to your Locomotive](https://github.com/MagnumMacKivler/RLCPT2/wiki/How-to-add-Exhaust-Smoke-to-your-Locomotive)
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/comment-discussion.svg" height="24px" /> FAQ
-### <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/quote.svg" height="18px" /> Why is it called RLC?
+### Why is it called RLC?
 @MagnumMacKivler Add Here
 
-### <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/quote.svg" height="18px" /> Is it called RLCPT2, PT Gamma or...?
+### Is it called RLCPT2, PT Gamma or...?
 @MagnumMacKivler Add Here
 
-### <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/quote.svg" height="18px" /> Is RLCPT2 production ready?
+### Is RLCPT2 production ready?
 Sure.
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/organization.svg" height="24px" /> Current Project Team Members & Stats
