@@ -21,7 +21,9 @@
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
 
-# Table of Contents
+## <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/list-unordered.svg" height="18px" /> Table of Contents
+
+## <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/list-unordered.svg" height="18px" /> Table of Contents
 - [Brief Description](#brief-description)
 - [Required Addons](#required-addons)
 - [Installation](#installation)
@@ -49,8 +51,6 @@ You will also need Grovestreetgman's Sound packs for RLC PT2 to work correctly.
 # Installation
 
 ## Download & Install:
-
-1. Download the [lastest release of RLC Gamma](https://github.com/MagnumMacKivler/RLCPT2/releases/).
 2. Under the Release's Description, look for `Assets`, then download the `Source code (zip)`.
 3. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically. Then open the first folder in the zip file. 
 
