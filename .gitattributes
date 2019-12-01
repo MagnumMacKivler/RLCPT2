@@ -1,3 +1,2 @@
 # Using a `.gitattributes` file, with GitHubs Linguist, which reclassifies `.txt` files as C#:
 *.txt linguist-language=csharp
-.gitattributes linguist-language=YAML
