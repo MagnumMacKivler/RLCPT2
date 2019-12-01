@@ -21,6 +21,14 @@
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Discord](https://img.shields.io/discord/574783886580514816) ![GitHub issues](https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2) ![GitHub pull requests](https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MagnumMacKivler/RLCPT2) ![GitHub last commit](https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2) ![GitHub](https://img.shields.io/github/license/MagnumMacKivler/RLCPT2)
 
+<div align="center">
+<img src="https://img.shields.io/badge/build-passing-brightgreen"/>
+<img src="https://img.shields.io/discord/574783886580514816"/>
+<img src="https://img.shields.io/github/issues/MagnumMacKivler/RLCPT2"/>
+<img src="https://img.shields.io/github/issues-pr/MagnumMacKivler/RLCPT2"/>
+<img src="https://img.shields.io/github/last-commit/MagnumMacKivler/RLCPT2"/>
+<img src="https://img.shields.io/github/license/MagnumMacKivler/RLCPT2"/>
+</div>
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/list-unordered.svg" height="24px" /> Table of Contents
 - [Brief Description](#-brief-description)
