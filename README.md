@@ -29,6 +29,10 @@
 <img src="https://img.shields.io/github/license/MagnumMacKivler/RLCPT2"/>
 </div>
 
+<br>
+
+<p align="center"><strong><a href="https://github.com/MagnumMacKivler/RLCPT2/releases/latest">» Download the latest release «</a></strong></p>
+
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/list-unordered.svg" height="24px" /> Table of Contents
 - [Brief Description](#-brief-description)
 - [Required Addons](#-required-addons)
