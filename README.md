@@ -87,7 +87,7 @@ New to building locomotives? Check out these three tutorials:
 Realistic Locomotive Control, kinda obvious duh.
 
 ### Is it called RLCPT2, PT Gamma or...?
-Call it whatever you want. Official name is: RLC PT Gamma
+Call it whatever you want. Official name is: RLC Platinum 2.0 Gamma
 
 ### Is RLCPT2 production ready?
 Sure.
