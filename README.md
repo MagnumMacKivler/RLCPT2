@@ -80,10 +80,10 @@ New to building locomotives? Check out these three tutorials:
 
 # <img src="https://titusstudios.net/data/static/scss/fonts/octicons/svg/comment-discussion.svg" height="24px" /> FAQ
 ### Why is it called RLC?
-@MagnumMacKivler Add Here
+Realistic Locomotive Control, kinda obvious duh.
 
 ### Is it called RLCPT2, PT Gamma or...?
-@MagnumMacKivler Add Here
+Call it whatever you want. Official name is: RLC PT Gamma
 
 ### Is RLCPT2 production ready?
 Sure.
