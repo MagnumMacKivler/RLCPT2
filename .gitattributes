@@ -1,5 +1,5 @@
 # Using a `.gitattributes` file, with GitHubs Linguist, which reclassifies `.txt` files as C#:
 *.txt linguist-language=csharp
 RLC_PT2_Operator_Manual.txt linguist-language=plaintext
-titusstudios-mdss.css linguist-language=css
-build.html linguist-language=html
+github-markdown.css linguist-language=css
+html-css-build.html linguist-language=html
