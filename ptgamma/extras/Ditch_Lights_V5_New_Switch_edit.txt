@@ -1,0 +1,88 @@
+@name Ditch Lights V5 New Switch edit
+@inputs Enable_Front Enable_Rear Horn Headlights_Front Headlights_Rear BellToggle
+@outputs [RGB1_Front RGB2_Front RGB1_Rear RGB2_Rear]:vector T Bell
+@persist T On:vector Flashing Period FlashDuration ResidualBrightness
+@trigger 
+if(first()|duped()){
+    #V5.4
+    
+    #Setup Instructions
+    #1- Configure the E2... There shouldn't be much you'll want to change, except maybe "On."
+    #2- Place this E2 somewhere with the rest of your wire stuff on the locomotive.
+    #3- Place two Wire Lights (With NO boxes ticked!) at each end of the locomotive according to the FRA Standards below. Putting them on the rear end is optional.
+    #4- (If you want the lights to flash): Wire Enable_Front and Enable_Rear (If Used) to a pair of Toggled Buttons in the cab,
+    #and wire Horn to whichever Pod Controller output controls the Horn.
+    #5- (If you want the lights to come on with the headlights): Wire Headlights_Front and Headlights_Rear to whatever controls the headlights on your locomotive.
+    #6- (If you want the Bell to come on when you honk the horn): Wire your Bell to the Bell output on the E2, and wire BellToggle to a Pod Controller output or a Button (NON-Toggled)!
+    #7- Wire the Lefthand Wire Light's RGB[VECTOR] to RGB1_Front
+    #8- Wire the Righthand Wire Light's RGB[VECTOR] to RGB2_Front
+    #9- Repeat Steps 7 and 8 for the Rear Lights, if used. Obviously, those go to RGB1_Rear and RGB2_Rear.
+    
+    #How to Work the Ditch Lights:
+    
+    #Enable_Front and Enable_Rear turn on/off the automatic flashing when the horn is sounded. They do not force the lights to flash.
+    #Actually, in real life, the only thing capable of making the lights flash was the horn! So that's what I did here. Deal with it. B)
+    #Headlights_Front and Headlights_Rear make the lights come on solid.
+    #The "Headlight" and "Enable" functionalities can be used independently or together!
+    
+    On = vec(255,255,200) #The color of the Lights
+    ResidualBrightness = 0.25 #Value between 0 and 1 (full brightness), the minimum brightness during a flash cycle.
+    Period = 1 #Time, in seconds, for one flash cycle.
+    FlashDuration = 30 #Duration, in seconds, for lights to flash after the horn was used. Real locomotives use 30 seconds.
+    
+    #By FRA Standards (Post 1997):
+    #The Ditch Lights should be white;
+    #The Ditch Lights must be on if the locomotive is in motion (and by extension, if the headlight is on);
+    #The Ditch Lights must flash alternately as the locomotive approaches a railroad crossing or any other high-traffic area (so they are often triggered by the horn);
+    #If the headlight is over 60 units (60 inches) above the ditch lights, the ditch lights should be spaced 60 units apart;
+    #Otherwise, if the headlight is less than 60 units above the ditch lights, they should be spaced 36 units (36 inches) apart;
+    #The Flash Period must be between 0.33 and 1.5 seconds (or between 40 and 180 flashes per minute).
+    
+    #If your locomotive is set in a world pre-1997, you can ignore all the FRA restrictions.
+    
+    
+    Bell = 0
+    
+    T = 0
+    function number supersine(Min, Max, Theta){
+        local Sin = sin(Theta)
+        return Min + (Sin+1)*(Max-Min)/2
+    }
+}
+Enable = Enable_Front | Enable_Rear
+if(Horn & ~Horn){
+    if(Enable){
+        Flashing = 1
+        stoptimer("reset")
+        timer("reset",FlashDuration*1000)
+    }
+    if(!Bell){
+        Bell = 1
+    }
+}
+if(Enable & Flashing){
+    timer("clk",50)
+    
+    local RGB1 = On*supersine(ResidualBrightness,1,T)
+    local RGB2 = On*supersine(ResidualBrightness,1,T+180)
+    
+    T += 18/(Period)
+    if(T > 360){T -= 360}
+    
+    RGB1_Front = RGB1*(Enable_Front>0)
+    RGB2_Front = RGB2*(Enable_Front>0)
+    RGB1_Rear = RGB1*(Enable_Rear>0)
+    RGB2_Rear = RGB2*(Enable_Rear>0)
+}else{
+    RGB1_Front = On*(Headlights_Front==1)
+    RGB2_Front = On*(Headlights_Front==1)
+    RGB1_Rear = On*(Headlights_Rear==1)
+    RGB2_Rear = On*(Headlights_Rear==1)
+}
+if(clk("reset")){
+    Flashing = 0
+}
+if(BellToggle & ~BellToggle){
+    Bell = !Bell
+}
+
