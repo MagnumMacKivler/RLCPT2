@@ -1,0 +1,86 @@
+@name ptgamma/engines/GE_7FDL16G
+#ENGINE CONFIG
+ENG_Version = "2.0.60"
+#For use in mid-production to late-production EMD 40-series "Dash 2" Locomotives (GP40-2, SD40-2).
+EngineType = "GE 7FDL16G" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/ge7fdl16g/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/ge7fdl16g/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "gsgtrainsounds/ge7fdl16g/idle.wav", #Idle
+    "gsgtrainsounds/ge7fdl16g/notch1.wav", #Notch 1
+    "gsgtrainsounds/ge7fdl16g/notch2.wav", #Notch 2
+    "gsgtrainsounds/ge7fdl16g/notch3.wav", #Notch 3
+    "gsgtrainsounds/ge7fdl16g/notch4.wav", #And so On
+    "gsgtrainsounds/ge7fdl16g/notch5.wav",
+    "gsgtrainsounds/ge7fdl16g/notch5.wav",
+    "gsgtrainsounds/ge7fdl16g/notch7.wav",
+    "gsgtrainsounds/ge7fdl16g/notch8.wav"
+)
+
+TransitionPath = "gsgtrainsounds/ge7fdl16g/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  3,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1 1-2  2-3   3-4   4-5  5-6  6-7   7-8 
+UpDelays = array(0, 1726, 4300, 3504, 3762, 0, 3575, 3900)
+                  #8-7   7-6  6-5  5-4  4-3   3-2   2-1  1-0
+DownDelays = array(1277, 2391, 0, 2227, 2252, 3809, 3690, 0)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 4.5 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 2 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/gd_wbo_dash7_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/gd_wbo_dash7_end.wav"
+
+DynamicsOn = ""
+DynamicsOff = ""
+
+PrimeOn = "gsgtrainsounds/ge7fdl16g/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/ge7fdl16g/prime_end.wav"
+
+PrimerDuration = randint(3,5)
