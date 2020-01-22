@@ -17,14 +17,9 @@ If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "U
 
 <br>
 
-You will also need GrovestreetGman's Sound packs for RLC PT2 to work correctly. These are the three addons required:
+You will also need GrovestreetGman's Sound pack for RLC PT2 to work correctly.
 
-Base Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
-<br>
-Engine Sounds 1: https://steamcommunity.com/sharedfiles/filedetails/?id=1254010890
-<br>
-Engine Sounds 2: https://steamcommunity.com/sharedfiles/filedetails/?id=1254014222
-
+Sounds: https://steamcommunity.com/sharedfiles/filedetails/?id=240020348
 
 ## In-Game Setup and Usage:
 
