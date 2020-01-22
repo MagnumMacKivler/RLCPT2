@@ -2,12 +2,12 @@
 @inputs Prime1 Prime2 Start1 Start2 Shutdown1 Shutdown2 Isolation1 Isolation2 EngineRun GenField BrakeCutIn CtlTable:table Active Pod:entity Trucks:array SpanBolsters:array UsingRearSeat [FrontPlugIn RearPlugIn FrontCurrentIn RearCurrentIn]:array HandBrakeOverride HEP_Up HEP_Dn Lights_Front Lights_Rear RemoteMode IsolateBrakes IdleOverride Number:string
 @outputs RLCPT:entity Primed1 Primed2 PrimerSet1 PrimerSet2 Clag1 Clag2 On1 On2 [FrontPlugOut RearPlugOut FrontCurrentOut RearCurrentOut]:array MU_Master Reverser Throttle Notch Dynamics DynaNotch DynamicBrakingPower SelectorNotch Emergency V MPH KPH Load1 Load2 TE_LBF Voltage TransitionNotch EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2
 @outputs MainRes EqualRes BrakePipe BrakeCyl Cyl CFM LocoBrakePressure BrakeNotch LocoBrakeNotch Bleeding CarCount TrainWeight MU_F MU_R WheelSlip BrakeWarn ForceSand HEP_Notch Lights_Forward Lights_Backward Lights_Fwd_RGB:vector Lights_Back_RGB:vector AirBrakeMode InitialReduction
-@outputs AvCurrent GenCurrent Currents:array ForceStart1 Priming1
+@outputs AvCurrent GenCurrent Currents:array PercentGrade
 @outputs 
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
-@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array
+@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array SoundDurations:table
 @persist EIIS_Enabled [EIIS_HigherIdle EIIS_HighToHigher EIIS_LowToHigher EIIS_HigherToHigh EIIS_HigherToLow EIIS_HigherTo2 EIIS_2ToHigher EIIS_Shutdown_Higher]:string
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleTarget1 LowIdleCondition2 LowIdleActual1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
@@ -56,7 +56,7 @@ if(first()|dupefinished()){
 	   #Add 'All is Well' Bleep - done
     #Fix PrintProper - done
     
-    Version = "Gamma 2.0.66"
+    Version = "Gamma 2.0.67"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -175,7 +175,7 @@ if(first()|dupefinished()){
     local CFG_Conflict = (RLCV_Major:toNumber() > CFGV_Major:toNumber()) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Engine
-    LastCompatibleConfig = "2.0.60"
+    LastCompatibleConfig = "2.0.67"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -452,8 +452,12 @@ if(first()|dupefinished()){
     #CUSTOM FUNCTIONS
     function number sdr(Soundpath:string){
         #local Tick = round(1/tickInterval())
-        
-        DR = floor(soundDuration(Soundpath)*100/SoundMultiplier)*10 - 20
+        local DR = 0
+        if(SoundDurations:exists(Soundpath)){ # precompiled sounddurations
+            DR = SoundDurations[Soundpath,number] - 20
+        }else{
+            DR = floor(soundDuration(Soundpath)*100/SoundMultiplier)*10 - 20
+        }
         #print(DR)
         return DR
     }
@@ -1538,11 +1542,11 @@ if(clk("vc_timeout")){
         printColor(vec(0,191,255),"Please go to the following link to get the most recent version of RLC PT 2 ("+httpData()+"):")
         printColor(vec(255),"https://github.com/MagnumMacKivler/RLCPT2")
     }elseif(Dev){
-        O:soundPlay(0,0,"buttons/button24.wav")
+        E:soundPlay(0,0,"buttons/button24.wav")
         printColor(vec(127,255,127),"Note: you are using a Dev version of RLC PT 2 (Newer than master version)!")
     }else{
-        O:soundPlay(0,0,"ui/hitsound.wav")
-        soundVolume(0,0.5)
+        E:soundPlay(0,0,"ui/hitsound.wav")
+        #soundVolume(0,0.5)
         print("RLC PT2 initialized successfully on most recent version!")
     }
 }
@@ -1678,6 +1682,18 @@ if(On1|On2){
     V = -E:velL():z()
     MPH = toUnit("mph",abs(V))*4/3
     KPH = toUnit("km/h",abs(V))*4/3
+    
+    #Grade Sensor
+    local ForAxis = -E:up()
+    
+    local Horizontal = vec2(ForAxis):length()
+    local Vertical = ForAxis:z()
+    if(Horizontal==0){
+        PercentGrade = inf()
+    }else{
+        PercentGrade = round(100*Vertical/Horizontal,1)
+        if(PercentGrade<0.25){PercentGrade = 0} #Stops the flickering 0.1 while moving
+    }
     
     #HANDBRAKE
         
@@ -2187,7 +2203,7 @@ if(On1|On2){
             
             WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
-            TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
+            TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1700/8
             BlendEqualRes = FeedPressure
             
         }elseif(Dynamics & HasTM & Excitation){ #DYNAMIC BRAKE CALCULATIONS
@@ -2263,7 +2279,7 @@ if(On1|On2){
         
         #Short Time Consequences
         if(Load > MaxContLoad){
-            TM_Temp += linterp(Load,vec2(MaxContLoad,1/TM_Maxtime),vec2(MaxLoad,1/TM_Mintime))*50/1000
+            TM_Temp += linterp(Load,vec2(MaxContLoad,1/TM_Maxtime),vec2(MaxLoad,1/TM_Mintime))*50/2500
             if((TM_Temp>60) & !TM_Warning){
                 TM_Warning = 1
                 if(OverloadProtection){

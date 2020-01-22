@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V12_645E3
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in EMD 39-series Locomotives (GP39, SD39 and dash 2 versions). The low idle feature was not present on the 12 cylinder motor.
 EngineType = "EMD 645E3 V12" #What is the name of the Prime Mover?
 
@@ -82,3 +82,37 @@ PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/0-1.wav",number] = 1290
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/1-2a.wav",number] = 670
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/1-2b.wav",number] = 4210
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/2-3a.wav",number] = 730
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/2-3b.wav",number] = 5320
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/3-4a.wav",number] = 300
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/3-4b.wav",number] = 4680
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/4-5a.wav",number] = 350
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/4-5b.wav",number] = 5110
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/5-6a.wav",number] = 460
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/5-6b.wav",number] = 4080
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/6-7a.wav",number] = 440
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/6-7b.wav",number] = 5990
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/7-8a.wav",number] = 580
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/up/7-8b.wav",number] = 4430
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/1-0.wav",number] = 1340
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/2-1a.wav",number] = 960
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/2-1b.wav",number] = 2490
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/3-2a.wav",number] = 950
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/3-2b.wav",number] = 3840
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/4-3a.wav",number] = 490
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/4-3b.wav",number] = 2540
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/5-4a.wav",number] = 280
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/5-4b.wav",number] = 2760
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/6-5a.wav",number] = 390
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/6-5b.wav",number] = 3030
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/7-6a.wav",number] = 300
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/7-6b.wav",number] = 2230
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/8-7a.wav",number] = 250
+SoundDurations["gsgtrainsounds/emd645e3v12/transitions/down/8-7b.wav",number] = 1970
+SoundDurations["gsgtrainsounds/emd645e3v12/startup.wav",number] = 8720
+SoundDurations["gsgtrainsounds/emd645e3v12/shutdown.wav",number] = 29450

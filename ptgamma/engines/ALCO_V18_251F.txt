@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_V18_251F
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in Late MLW/Bombardier locomotives (M640, HR618).
 EngineType = "Alco 251F (V18)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,38 @@ PrimeOn = "gsgtrainsounds/alco251fv16/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251fv16/prime_end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/0-1.wav",number] = 1180
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/1-2a.wav",number] = 590
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/1-2b.wav",number] = 3840
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/2-3a.wav",number] = 730
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/2-3b.wav",number] = 3240
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/3-4a.wav",number] = 230
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/3-4b.wav",number] = 5680
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/4-5a.wav",number] = 460
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/4-5b.wav",number] = 2510
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/5-6a.wav",number] = 170
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/5-6b.wav",number] = 4330
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/6-7a.wav",number] = 170
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/6-7b.wav",number] = 2330
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/7-8a.wav",number] = 740
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/up/7-8b.wav",number] = 5000
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/1-0.wav",number] = 1180
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/2-1a.wav",number] = 760
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/2-1b.wav",number] = 2750
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/3-2a.wav",number] = 780
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/3-2b.wav",number] = 4100
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/4-3a.wav",number] = 490
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/4-3b.wav",number] = 3580
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/5-4a.wav",number] = 620
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/5-4b.wav",number] = 3540
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/6-5a.wav",number] = 680
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/6-5b.wav",number] = 2170
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/7-6a.wav",number] = 400
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/7-6b.wav",number] = 1740
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/8-7a.wav",number] = 300
+SoundDurations["gsgtrainsounds/alco251fv16/transitions/down/8-7b.wav",number] = 1850
+SoundDurations["gsgtrainsounds/alco251fv16/startup.wav",number] = 13180
+SoundDurations["gsgtrainsounds/alco251fv16/startup_air.wav",number] = 10600
+SoundDurations["gsgtrainsounds/alco251fv16/shutdown.wav",number] = 8140

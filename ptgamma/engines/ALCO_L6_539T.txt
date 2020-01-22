@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_L6_539T
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in early Alco locomotives (HH1000, S2, S4, S7, S12, RS1, RSC13, and DL103-DL110). Also acceptable as a 538T.
 EngineType = "Alco 539T (L6)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,37 @@ PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/0-1.wav",number] = 2620
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/1-2a.wav",number] = 150
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/1-2b.wav",number] = 1560
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/2-3a.wav",number] = 130
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/2-3b.wav",number] = 2360
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/3-4a.wav",number] = 310
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/3-4b.wav",number] = 3430
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/4-5a.wav",number] = 100
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/4-5b.wav",number] = 3130
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/5-6a.wav",number] = 130
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/5-6b.wav",number] = 2330
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/6-7a.wav",number] = 140
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/6-7b.wav",number] = 2890
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/7-8a.wav",number] = 100
+SoundDurations["gsgtrainsounds/alco539t/transitions/up/7-8b.wav",number] = 2400
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/1-0.wav",number] = 2560
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/2-1a.wav",number] = 1180
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/2-1b.wav",number] = 790
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/3-2a.wav",number] = 110
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/3-2b.wav",number] = 4550
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/4-3a.wav",number] = 360
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/4-3b.wav",number] = 2820
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/5-4a.wav",number] = 250
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/5-4b.wav",number] = 6670
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/6-5a.wav",number] = 260
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/6-5b.wav",number] = 3190
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/7-6a.wav",number] = 340
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/7-6b.wav",number] = 5920
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/8-7a.wav",number] = 440
+SoundDurations["gsgtrainsounds/alco539t/transitions/down/8-7b.wav",number] = 3740
+SoundDurations["gsgtrainsounds/alco539t/startup.wav",number] = 13140
+SoundDurations["gsgtrainsounds/alco539t/shutdown.wav",number] = 14550

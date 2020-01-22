@@ -1,6 +1,6 @@
 @name ptgamma/engines/GE_V16_FDL_Late_Standard
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in GE Dash 8/9 Locomotives (C44-9W, P42DC). The fuel-saver saves a little money in the longrun.
 EngineType = "GE 7FDL16" #What is the name of the Prime Mover?
 
@@ -84,3 +84,37 @@ PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/0-1.wav",number] = 1890
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/1-2a.wav",number] = 650
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/1-2b.wav",number] = 5670
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/2-3a.wav",number] = 920
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/2-3b.wav",number] = 2500
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/3-4a.wav",number] = 230
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/3-4b.wav",number] = 4550
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/4-5a.wav",number] = 440
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/4-5b.wav",number] = 4450
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/5-6a.wav",number] = 210
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/5-6b.wav",number] = 2500
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/6-7a.wav",number] = 230
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/6-7b.wav",number] = 4240
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/7-8a.wav",number] = 770
+SoundDurations["gsgtrainsounds/gefdl/transitions/up/7-8b.wav",number] = 3610
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/1-0.wav",number] = 5540
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/2-1a.wav",number] = 410
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/2-1b.wav",number] = 2180
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/3-2a.wav",number] = 540
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/3-2b.wav",number] = 2270
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/4-3a.wav",number] = 780
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/4-3b.wav",number] = 3410
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/5-4a.wav",number] = 800
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/5-4b.wav",number] = 2290
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/6-5a.wav",number] = 1150
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/6-5b.wav",number] = 2460
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/7-6a.wav",number] = 470
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/7-6b.wav",number] = 1600
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/8-7a.wav",number] = 150
+SoundDurations["gsgtrainsounds/gefdl/transitions/down/8-7b.wav",number] = 1670
+SoundDurations["gsgtrainsounds/gefdl/startup.wav",number] = 11580
+SoundDurations["gsgtrainsounds/gefdl/shutdown.wav",number] = 7190

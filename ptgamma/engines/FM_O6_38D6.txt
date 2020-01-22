@@ -1,6 +1,6 @@
 @name ptgamma/engines/FM_O6_38D6
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in Fairbanks-Morse Switchers (H-10-44, H-12-44).
 EngineType = "FM 38D-6 (3-Cyl Opposed Piston)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,25 @@ PrimeOn = "gsgtrainsounds/fm38d-6/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/fm38d-6/prime_end.wav"
 
 PrimerDuration = 5
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/0-1.wav",number] = 2720
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/1-2.wav",number] = 1990
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/2-3.wav",number] = 1540
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/3-4.wav",number] = 1370
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/4-5.wav",number] = 1630
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/5-6.wav",number] = 1660
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/6-7.wav",number] = 1340
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/up/7-8.wav",number] = 2490
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/1-0.wav",number] = 1460
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/2-1.wav",number] = 1850
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/3-2.wav",number] = 2350
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/4-3.wav",number] = 1410
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/5-4.wav",number] = 1650
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/6-5.wav",number] = 1400
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/7-6.wav",number] = 870
+SoundDurations["gsgtrainsounds/fm38d-6/transitions/down/8-7.wav",number] = 940
+SoundDurations["gsgtrainsounds/fm38d-6/startup_cold.wav",number] = 16160
+SoundDurations["gsgtrainsounds/fm38d-6/startup_hot.wav",number] = 9120
+SoundDurations["gsgtrainsounds/fm38d-6/shutdown.wav",number] = 11750
+
