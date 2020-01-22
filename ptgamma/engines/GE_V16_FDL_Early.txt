@@ -1,6 +1,6 @@
 @name ptgamma/engines/GE_V16_FDL_Early
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in GE U-series and Dash-7 Locomotives (U25B, C30-7).
 EngineType = "GE FDL-16" #What is the name of the Prime Mover?
 
@@ -84,3 +84,37 @@ PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/0-1.wav",number] = 1800
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/1-2a.wav",number] = 790
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/1-2b.wav",number] = 3150
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/2-3a.wav",number] = 140
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/2-3b.wav",number] = 3910
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/3-4a.wav",number] = 250
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/3-4b.wav",number] = 5150
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/4-5a.wav",number] = 470
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/4-5b.wav",number] = 3880
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/5-6a.wav",number] = 800
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/5-6b.wav",number] = 2740
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/6-7a.wav",number] = 560
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/6-7b.wav",number] = 3020
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/7-8a.wav",number] = 600
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/up/7-8b.wav",number] = 4370
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/1-0.wav",number] = 1850
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/2-1a.wav",number] = 1640
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/2-1b.wav",number] = 5770
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/3-2a.wav",number] = 1220
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/3-2b.wav",number] = 3820
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/4-3a.wav",number] = 900
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/4-3b.wav",number] = 2840
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/5-4a.wav",number] = 720
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/5-4b.wav",number] = 4400
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/6-5a.wav",number] = 710
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/6-5b.wav",number] = 4170
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/7-6a.wav",number] = 790
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/7-6b.wav",number] = 1400
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/8-7a.wav",number] = 260
+SoundDurations["gsgtrainsounds/gefdlearly/transitions/down/8-7b.wav",number] = 1460
+SoundDurations["gsgtrainsounds/gefdlearly/startup.wav",number] = 11160
+SoundDurations["gsgtrainsounds/gefdlearly/shutdown.wav",number] = 7720

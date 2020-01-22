@@ -1,6 +1,6 @@
 @name ptgamma/engines/ALCO_V12_244D
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in early Alco road locomotives (RS2-RS3, RS10, RSC24, RSD4-RSD5, and FA/FB).
 EngineType = "Alco 244D (V12)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,35 @@ PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/alco244/transitions/up/1-2a.wav",number] = 270
+SoundDurations["gsgtrainsounds/alco244/transitions/up/1-2b.wav",number] = 3400
+SoundDurations["gsgtrainsounds/alco244/transitions/up/2-3a.wav",number] = 380
+SoundDurations["gsgtrainsounds/alco244/transitions/up/2-3b.wav",number] = 4190
+SoundDurations["gsgtrainsounds/alco244/transitions/up/3-4a.wav",number] = 320
+SoundDurations["gsgtrainsounds/alco244/transitions/up/3-4b.wav",number] = 3300
+SoundDurations["gsgtrainsounds/alco244/transitions/up/4-5a.wav",number] = 210
+SoundDurations["gsgtrainsounds/alco244/transitions/up/4-5b.wav",number] = 1480
+SoundDurations["gsgtrainsounds/alco244/transitions/up/5-6a.wav",number] = 540
+SoundDurations["gsgtrainsounds/alco244/transitions/up/5-6b.wav",number] = 1420
+SoundDurations["gsgtrainsounds/alco244/transitions/up/6-7a.wav",number] = 400
+SoundDurations["gsgtrainsounds/alco244/transitions/up/6-7b.wav",number] = 1270
+SoundDurations["gsgtrainsounds/alco244/transitions/up/7-8a.wav",number] = 600
+SoundDurations["gsgtrainsounds/alco244/transitions/up/7-8b.wav",number] = 990
+SoundDurations["gsgtrainsounds/alco244/transitions/down/2-1a.wav",number] = 560
+SoundDurations["gsgtrainsounds/alco244/transitions/down/2-1b.wav",number] = 1910
+SoundDurations["gsgtrainsounds/alco244/transitions/down/3-2a.wav",number] = 980
+SoundDurations["gsgtrainsounds/alco244/transitions/down/3-2b.wav",number] = 1650
+SoundDurations["gsgtrainsounds/alco244/transitions/down/4-3a.wav",number] = 280
+SoundDurations["gsgtrainsounds/alco244/transitions/down/4-3b.wav",number] = 2310
+SoundDurations["gsgtrainsounds/alco244/transitions/down/5-4a.wav",number] = 290
+SoundDurations["gsgtrainsounds/alco244/transitions/down/5-4b.wav",number] = 2870
+SoundDurations["gsgtrainsounds/alco244/transitions/down/6-5a.wav",number] = 330
+SoundDurations["gsgtrainsounds/alco244/transitions/down/6-5b.wav",number] = 1420
+SoundDurations["gsgtrainsounds/alco244/transitions/down/7-6a.wav",number] = 420
+SoundDurations["gsgtrainsounds/alco244/transitions/down/7-6b.wav",number] = 1610
+SoundDurations["gsgtrainsounds/alco244/transitions/down/8-7a.wav",number] = 310
+SoundDurations["gsgtrainsounds/alco244/transitions/down/8-7b.wav",number] = 1620
+SoundDurations["gsgtrainsounds/alco244/startup.wav",number] = 19710
+SoundDurations["gsgtrainsounds/alco244/shutdown.wav",number] = 14890

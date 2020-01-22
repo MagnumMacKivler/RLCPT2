@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V16_710G3B_Fuelsaver
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in EMD late 60 and 70 Series Locomotives (GP60, SD60, SD70).
 EngineType = "EMD 710G3B (V16)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,49 @@ PrimeOn = "gsgtrainsounds/emd710g3bv16/primer.wav"
 PrimeOff = ""
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/0-1.wav",number] = 7770
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/0-1a.wav",number] = 800
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/0-1b.wav",number] = 6960
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/1-2a.wav",number] = 600
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/1-2b.wav",number] = 6580
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/2-3a.wav",number] = 940
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/2-3b.wav",number] = 5600
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/3-4a.wav",number] = 790
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/3-4b.wav",number] = 4610
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/4-5a.wav",number] = 960
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/4-5b.wav",number] = 5630
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/5-6a.wav",number] = 1360
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/5-6b.wav",number] = 3630
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/6-7a.wav",number] = 910
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/6-7b.wav",number] = 4340
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/7-8a.wav",number] = 1160
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/7-8b.wav",number] = 5560
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/1-0.wav",number] = 5580
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/1-0a.wav",number] = 440
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/1-0b.wav",number] = 5140
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/2-1b.wav",number] = 4360
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/3-2a.wav",number] = 300
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/3-2b.wav",number] = 7200
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/4-3a.wav",number] = 550
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/4-3b.wav",number] = 5530
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/5-4a.wav",number] = 360
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/5-4b.wav",number] = 4140
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/6-5a.wav",number] = 270
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/6-5b.wav",number] = 7360
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/7-6a.wav",number] = 280
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/7-6b.wav",number] = 5170
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/8-7a.wav",number] = 1630
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/8-7b.wav",number] = 1570
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/2-idle_high.wav",number] = 1670
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/idle_high-0.wav",number] = 9320
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/down/idle_high-1.wav",number] = 5260
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/0-idle_high.wav",number] = 8590
+SoundDurations["gsgtrainsounds/emd710g3bv16/transitions/up/1-idle_high.wav",number] = 6690
+SoundDurations["gsgtrainsounds/emd710g3bv16/startup.wav",number] = 12220
+SoundDurations["gsgtrainsounds/emd710g3bv16/startup_auto.wav",number] = 27040
+SoundDurations["gsgtrainsounds/emd710g3bv16/shutdown.wav",number] = 9900
+SoundDurations["gsgtrainsounds/emd710g3bv16/shutdown_low.wav",number] = 9900
+SoundDurations["gsgtrainsounds/emd710g3bv16/shutdown_med.wav",number] = 11920
+SoundDurations["gsgtrainsounds/emd710g3bv16/shutdown_high.wav",number] = 15650

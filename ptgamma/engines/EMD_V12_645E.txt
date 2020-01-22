@@ -1,6 +1,6 @@
 @name ptgamma/engines/EMD_V12_645E
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in EMD 1500-series Locomotives (SW1500, MP15DC).
 EngineType = "EMD 645E (V12)" #What is the name of the Prime Mover?
 
@@ -84,3 +84,35 @@ PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
 PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/0-1.wav",number] = 1160
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/1-2.wav",number] = 2010
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/2-3a.wav",number] = 530
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/2-3b.wav",number] = 3890
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/3-4a.wav",number] = 440
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/3-4b.wav",number] = 2440
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/4-5a.wav",number] = 320
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/4-5b.wav",number] = 2810
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/5-6a.wav",number] = 630
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/5-6b.wav",number] = 2440
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/6-7a.wav",number] = 730
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/6-7b.wav",number] = 3790
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/7-8a.wav",number] = 810
+SoundDurations["gsgtrainsounds/emd645v12/transitions/up/7-8b.wav",number] = 3540
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/1-0.wav",number] = 1510
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/2-1.wav",number] = 5380
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/3-2a.wav",number] = 960
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/3-2b.wav",number] = 4620
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/4-3a.wav",number] = 460
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/4-3b.wav",number] = 2770
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/5-4a.wav",number] = 430
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/5-4b.wav",number] = 2390
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/6-5a.wav",number] = 580
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/6-5b.wav",number] = 2000
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/7-6a.wav",number] = 500
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/7-6b.wav",number] = 2860
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/8-7a.wav",number] = 750
+SoundDurations["gsgtrainsounds/emd645v12/transitions/down/8-7b.wav",number] = 2250
+SoundDurations["gsgtrainsounds/emd645v12/startup.wav",number] = 10460
+SoundDurations["gsgtrainsounds/emd645v12/shutdown.wav",number] = 9130

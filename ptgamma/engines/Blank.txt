@@ -1,6 +1,6 @@
 @name ptgamma/engines/Blank
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in things that don't have an engine.
 EngineType = "No Engine" #What is the name of the Prime Mover?
 
@@ -84,3 +84,5 @@ PrimeOn = ""
 PrimeOff = ""
 
 PrimerDuration = 1
+
+SoundDurations = table()
