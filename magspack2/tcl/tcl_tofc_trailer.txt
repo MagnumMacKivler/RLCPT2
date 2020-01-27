@@ -1,0 +1,45 @@
+@name TCL TOFC Trailer
+@persist Base:entity
+
+#TOFC trailer holo for use with the 89-foot flatcar from Magnum's pack.
+#Hacked together from the ENRL Logo Bender.
+#Place straight on the flatcar deck.
+
+Model = "models/gsgtrainprops/misc/trailers/trailer_48_load.mdl"
+
+Skin = randint(0,8) #Refresh the E2 to cycle through trailer skins
+
+Colour = vec(255) #Trailer model colour (best to leave at 255)
+
+Bendangle = 180 #set to 180 to turn trailer around
+
+PosAdj = vec(0,0,0) #play with this to adjust the trailer's position
+
+WheelHeight = 49 #mess with this to set the clip for the wheel width adjustment - leave at 49 if using trailer_48_load
+
+if(dupefinished()) { reset() }
+if(first() | duped()){
+Baseentity = entity()
+
+# wheels
+A=0
+holoCreate(A, Baseentity:toWorld(PosAdj), vec(4), Baseentity:toWorld(ang(0,Bendangle,0)))
+holoModel(A, Model)
+holoColor(A, Colour)
+holoScale(A, vec(0.8,1,1))
+holoSkin(A, Skin)
+holoParent(A, Baseentity)
+holoClipEnabled(A, 1, 1) 
+holoClip(A,1,vec(0,0,WheelHeight),vec(0,0,-1),0)
+
+# body
+A++
+holoCreate(A, Baseentity:toWorld(PosAdj), vec(4), Baseentity:toWorld(ang(0,Bendangle,0)))
+holoModel(A, Model)
+holoColor(A, Colour)
+holoScale(A, vec(1)) 
+holoSkin(A, Skin)
+holoParent(A, Baseentity)
+holoClipEnabled(A, 1, 1) 
+holoClip(A,1,vec(0,0,WheelHeight),vec(0,0,1),0)
+}

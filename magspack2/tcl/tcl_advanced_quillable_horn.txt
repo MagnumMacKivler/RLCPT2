@@ -1,0 +1,142 @@
+@name TCL Advanced Quillable Horn
+@inputs Horn Quill
+@outputs [Horn_On Horn_Off]:string [Quill_On Quill_Off]:string HQ QQ 
+@persist [Horn_On Horn_Off Quill_On Quill_Off]:string QuillPitch HornPitch QuillLv HornLv HQ QQ [H1 H2 Q1 Q2]:entity HornVol QuillVol Fade
+@trigger Horn Quill
+@model models/nathan/k_series/k5la.mdl
+#@model models/nathan/p_series/p3.mdl
+#@model models/nathan/p_series/p5_hm.mdl
+#@model models/gsgtrainprops/parts/horns/leslie_a200.mdl
+#@model models/gsgtrainprops/parts/horns/leslie_rs3l.mdl
+#@model models/gsgtrainprops/parts/horns/leslie_rs5t.mdl
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Quillable Horn E2!                                 #
+#                                                                               #
+# This is based heavily off Magnum's 2-in-1 Horn and Bell E2.                   #
+#                                                                               #
+# This E2 features Sound Level settings to make horns sound louder, further.    #
+# No longer will your PT2 engine sound overpower your awesome horn!             #
+#                                                                               #
+# The default horn in this E2 is the two-stage sandcast K5L from my workshop    #
+# addon Trans' Train Sounds. Consider this a plug for that! The Scott's Train   #
+# Sounds pack also has some great quillable horns.                              #
+#                                                                               #
+#   Inputs:                                                                     #
+#       Horn - If "1", sounds the horn.                                         #
+#       Quill - "1" sounds the horn at half pressure, or sounds another horn    #
+#       entirely - whatever you set it to do. Using a single horn? You can      #
+#       skip wiring this, or use it for something else.                         #
+#                                                                               #
+#   Outputs:                                                                    #
+#       HQ - Will be "1" if horn is sounding.                                   #
+#       QQ - Same as above, but for the quill.                                  #
+#                                                                               #
+# THIS E2 IS INTENDED FOR ADVANCED TRAINBUILD USERS. If you're looking for a    #
+# simple horn and bell sound system, check out the TCL 3 in 1 Quillable Horn    #
+# and Bell E2.                                                                  #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first()|duped()){
+    
+# Setup here. Pretty self explanatory. 
+    
+    # Horn settings
+    Horn_On = "trans_train_sounds/horns/bcr_budd_k5l.wav" #Sound path for horn loop
+    Horn_Off = "trans_train_sounds/horns/bcr_budd_k5l_end.wav" #Sound path for horn end
+    HornPitch = 100 #Pitch tweak for horn (use to match pitch with quill to your liking)
+    HornVol = 1 #Horn volume (max 1 = 100%)
+    HornLv = 110 #Horn level (decibels)
+    
+    # Horn quill settings
+    Quill_On = "trans_train_sounds/horns/bcr_budd_k5l_quill.wav" #Sound path for quill loop
+    Quill_Off = "trans_train_sounds/horns/bcr_budd_k5l_quill_end.wav" #Sound path for quill end
+    QuillPitch = 100 #Pitch tweak for quill (use to match pitch with the main horn sound to your liking)
+    QuillVol = 1 #Quill volume (max 1 = 100%)
+    QuillLv = 100 #Quill level (decibels)
+    
+    # Horn model settings can be found below line 134.
+    # To change horn type, uncomment ONE @model line at the top of the E2.
+    
+# HORN CODE #
+    
+    # Don't touch any of this, it won't work if you do.
+    H1 = entity()
+    H2 = holoCreate(0,entity():pos())
+    Q1 = holoCreate(1,entity():pos())
+    Q2 = holoCreate(2,entity():pos())
+    holoAlpha(0,0)
+    holoAlpha(1,0)
+    holoAlpha(2,0)
+    holoParent(0,H1)
+    holoParent(1,H1)
+    holoParent(2,H1)
+    HQ = QQ = BQ = Fade = 0
+}
+
+if(Horn & !HQ){
+    HQ = 1
+    H1:soundPlay(1,0,Horn_On)
+    H2:soundPlay(2,0,Horn_On)
+    soundLevel(1,HornLv)
+    soundLevel(2,HornLv)
+    soundPitch(1,HornPitch)
+    soundPitch(2,HornPitch)
+    soundVolume(1,HornVol)
+    soundVolume(2,HornVol)
+}elseif(!Horn & HQ){
+    HQ = 0
+    if(Fade){
+    soundStop(1,0)
+    soundStop(2,0)
+    }else{
+        H1:soundPlay(1,0,Horn_Off)
+        H2:soundPlay(2,0,Horn_Off)
+        soundLevel(1,HornLv)
+        soundLevel(2,HornLv)
+        soundPitch(1,HornPitch)
+        soundPitch(2,HornPitch)
+        soundVolume(1,HornVol)
+        soundVolume(2,HornVol)
+    }
+}
+
+if(Quill & !QQ){
+    QQ = 1
+    Q1:soundPlay(3,0,Quill_On)
+    Q2:soundPlay(4,0,Quill_On)
+    soundLevel(3,QuillLv)
+    soundLevel(4,QuillLv)
+    soundPitch(3,QuillPitch)
+    soundPitch(4,QuillPitch)
+    soundVolume(3,QuillVol)
+    soundVolume(4,QuillVol)
+}elseif(!Quill & QQ){
+    QQ = 0
+    if(Fade){
+        soundStop(3,0)
+        soundStop(4,0)
+    }else{
+        Q1:soundPlay(3,0,Quill_Off)
+        Q2:soundPlay(4,0,Quill_Off)
+        soundLevel(3,QuillLv)
+        soundLevel(4,QuillLv)
+        soundPitch(3,QuillPitch)
+        soundPitch(4,QuillPitch)
+        soundVolume(3,QuillVol)
+        soundVolume(4,QuillVol)
+    }
+}
+
+# HORN MODEL SETTINGS #
+
+H1:setColor(50,50,50)
+H1:setSubMaterial(2,"models/proppertextures/acrylic_white") # White bell throats (K5LA)
+H1:setBodygroup(2,1) # Bell 2 reversal (K5LA)
+H1:setBodygroup(3,1) # Bell 3 reversal (K5LA)

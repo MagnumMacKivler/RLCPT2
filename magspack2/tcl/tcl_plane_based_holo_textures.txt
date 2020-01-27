@@ -1,0 +1,100 @@
+@name TCL Plane Based Holo Textures
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Holo Plane-Based Textures E2!                      #
+#                                                                               #
+# This E2 uses simple planes to create flat, hopefully non-laggy, texture-based #
+# text, numbers, labels or anything you can imagine. Sky's the limit!           #
+#                                                                               #
+# Based off the Generic Flexible Holo from Magnum's pack and the ENRL Logo      #
+# Bender E2s, using textures from my pack Trans' Train Stuff as default.        #
+#                                                                               #
+# Holos not rendering right? SLOWLY refresh the chip until they do.             #
+# Don't forget to make the chip invisible and parent it when you're done!       #
+#                                                                               #
+# THIS E2 IS INTENDED FOR ADVANCED TRAINBUILD USERS.                            #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+#Holo character positioning
+Posa = vec(0,-57,0.1)
+Posb = vec(0,0,0.1)
+Posc = vec(0,57,0.1)
+#Add as many as you need.
+
+#Holo character textures
+Mata = "trans_train_stuff/logos/pgne_text_1"
+Matb = "trans_train_stuff/logos/pgne_text_2"
+Matc = "trans_train_stuff/logos/pgne_text_3"
+#Add as many as you need.
+
+#Default adjustments
+DefAng = ang(0,0,0)       # Default angle adjustment for all holos.
+#DefScale = vec(1)        # Default scale for all holos. [vec(1,1,1)]
+DefColour = vec(50)      # Default colour for all holos. [vec(255,255,255)]
+DefAlpha = 255            # Default alpha (opacity) for all holos.
+#Can also be individually edited on a character basis down in the Code Blocks - documentation at the bottom
+
+E=entity()
+#E:setAlpha(0) #Uncomment this when you're finished to make the E2 invisible.
+
+#Code Blocks
+
+A=0
+holoCreate(A,E:toWorld(Posa),vec(1,8,1),E:toWorld(DefAng),DefColour,"plane")
+holoParent(A,E)
+holoMaterial(A,Mata)
+holoAlpha(A,DefAlpha)
+
+A++
+holoCreate(A,E:toWorld(Posb),vec(1,1,1),E:toWorld(DefAng),DefColour,"plane")
+holoParent(A,E)
+holoMaterial(A,Matb)
+holoAlpha(A,DefAlpha)
+
+A++
+holoCreate(A,E:toWorld(Posc),vec(1,8,1),E:toWorld(DefAng),DefColour,"plane")
+holoParent(A,E)
+holoMaterial(A,Matc)
+holoAlpha(A,DefAlpha)
+
+# To add more characters, copy one of the above Blocks, add 1 to A in each
+# new block, and add/adjust Pos(x) and Mat(x) accordingly.
+
+# You can also change everything character-by-character directly in the holo
+# blocks, rather than setting all the variables at the top and having to
+# cross-check back and forth. Also affords much more customization.
+# Documentation below - advanced users only.
+
+#-------------------------------------------------------------------------------#
+# "Code Block"                                                                  #
+#                                                                               #
+# A = 0                                                                         #
+# holoCreate(A,E:toWorld(Posb),DefScale,E:toWorld(DefAng),DefColour,"plane")    #
+# holoParent(A,E)                                                               #
+# holoMaterial(A,Matb)                                                          #
+# holoAlpha(A,DefAlpha)                                                         #
+#                                                                               #
+# A = 0 -- Holo ID                                                              #
+# Tells the E2 which "number" holo this code block represents. If two holos     #
+# have the same number, they won't render. Not limited to single digits.        #
+#                                                                               #
+# holoCreate -- Core Holo Code                                                  #
+# Gives the E2 all needed information to create the holo.                       #
+# Format is [POSITION],[SCALE],[ANGLE],[COLOUR],[MODEL] in that order.          #
+# Position and angle are given relative to the E2's physical placement.         #
+#                                                                               #
+# holoParent                                                                    #
+# Don't touch this.                                                             #
+#                                                                               #
+# holoMaterial                                                                  #
+# Sets the material for each holo. Self-explanatory.                            #
+#                                                                               #
+# holoAlpha                                                                     #
+# Sets the opacity for each holo. Self-explanatory.                             #
+#-------------------------------------------------------------------------------#

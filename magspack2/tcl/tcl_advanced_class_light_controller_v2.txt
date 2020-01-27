@@ -1,0 +1,153 @@
+@name TCL Advanced Class Light Controller V2
+@inputs Pod:entity NextWeapon PrevWeapon ThirdPerson
+@outputs RGB:vector TB_Wht:vector TB_Red:vector TB_Grn:vector SwitchPos
+@persist E:entity Driver:entity Position Unlock SwitchUp:string SwitchDown:string
+@persist [Colour1 Colour2 Colour3]:vector
+@trigger NextWeapon PrevWeapon
+@model models/magtrainslocos/rotaryswitches/headlight_alco.mdl
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Advanced Class Light Controller!                   #
+#                                                                               #
+# This E2 was hacked together from code from the Headlight Controller E2, with  #
+# the output split amongst four colour-changing RGB values for class lights.    #
+#                                                                               #
+# This type of rotary class light switch can be found in pretty much any        #
+# mid- to late-era Canadian diesel that has tri-beam class lights.              #
+#                                                                               #
+# This version can also work in tandem with the TCL Advanced Tri-Beam Class     #
+# Light E2. For setup of that system, see that E2.                              #
+#                                                                               #
+# Setup Instructions for Wire Lights (legacy method)                            #
+#   1)  Spawn and position your class lights on your locomotive. This E2 is     #
+#       very versatile, capable of controlling pretty much any tri-beam class   #
+#       light arrangement you can throw at it.                                  #
+#   2)  Spawn Wire Lights (with NO boxes checked - important!) over the lenses  #
+#       of your class light props.                                              #
+#   3)  Wire the TB_Wht, TB_Red and TB_Grn vector outputs to each respective    #
+#       Light. The separate "RGB" output can be used for in-cab indicators, or  #
+#       can be linked to the class light inputs in LOCOS.                       #
+#   4)  Wire all four inputs on the switch E2 to the respective outputs of      #
+#       your Pod Controller.                                                    #
+#   5)  Use the grid on the back of the E2 to position the switch wherever you  #
+#       like in your cab.                                                       #
+#   6)  Use whichever method you like to make the Wire Lights invisible.        #
+#   7)  Don't forget to test and parent everything when you're done!            #
+#                                                                               #
+# Setup Tips:                                                                   #
+#     - When placing your class lights, you can use Model Manipulator to swap   #
+#       the Wire Light's model to the prop you want to use, saving possible     #
+#       headaches with lining it up on top of the prop itself. Note that your   #
+#       mileage may vary with this technique.                                   #
+#     - Not sure where to place your class light switches? Older Canadian       #
+#       locomotives usually have a small extension built onto the left of the   #
+#       control stand, directly adjacent to the brake controls, to house them.  #
+#                                                                               #
+# SUPER thanks to Monkatraz for help with development and optimization!         #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first() | dupefinished()){ 
+    
+#Sounds
+SwitchUp = "trans_train_sounds/buttons/toggle_switch1_on.wav"
+SwitchDown = "trans_train_sounds/buttons/toggle_switch1_off.wav"
+
+#Colours
+Colour1 = vec(200)
+Colour2 = vec(200,0,0)
+Colour3 = vec(100,200,100)
+
+E=entity()
+E:setBodygroup(2,1)
+E:setMaterial("models/proppertextures/plastic_white")
+
+#Holo Base
+
+holoCreate(1,E:toWorld(vec(0,0,0.1)),vec(0.3),E:toWorld(ang(0,0,0)),vec(255),"plane")
+holoParent(1,E)
+holoMaterial(1,"models/proppertextures/plastic_black")
+
+holoCreate(2,E:toWorld(vec(-0.8,-0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
+holoParent(2,E)
+holoColor(2,vec(100,100,200))
+holoMaterial(2,"models/proppertextures/acrylic")
+
+holoCreate(3,E:toWorld(vec(-0.8,0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
+holoParent(3,E)
+holoColor(3,Colour1)
+holoMaterial(3,"models/proppertextures/acrylic")
+
+holoCreate(4,E:toWorld(vec(0.8,0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
+holoParent(4,E)
+holoColor(4,Colour2)
+holoMaterial(4,"models/proppertextures/acrylic")
+
+holoCreate(5,E:toWorld(vec(0.8,-0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
+holoParent(5,E)
+holoColor(5,Colour3)
+holoMaterial(5,"models/proppertextures/acrylic")
+
+holoCreate(6,E:toWorld(vec(0)),vec(0.3),E:toWorld(ang(180,0,0)),vec(255),"plane")
+holoParent(6,E)
+holoMaterial(6,"models/proppertextures/grid_b")
+
+}
+
+#Main Code
+
+Driver = Pod:driver()
+if(Driver){
+Unlock = Driver:aimPos():distance(E:pos()) < 2
+}
+
+if(Unlock & !ThirdPerson){
+    if(Unlock & !ThirdPerson){
+        if(PrevWeapon & (Position<3)){ #Switch Pos Up
+            Position++
+            soundPlay(0,1,SwitchUp)
+        }elseif(NextWeapon & (Position>0)){ #Switch Pos Down
+            Position--
+            soundPlay(0,1,SwitchDown)
+        }
+    }
+}
+
+#All lights off
+if(Position==0){
+    E:setBodygroup(1,7)
+    RGB = TB_Wht = TB_Red = TB_Grn = vec(0)
+    SwitchPos = 0
+}
+
+#Colour 1 (White)
+if(Position==1){
+    E:setBodygroup(1,1)
+    RGB = Colour1
+    TB_Wht = Colour1
+    TB_Red = TB_Grn = vec(0)
+    SwitchPos = 1
+}
+
+#Colour 2 (Red)
+if(Position==2){
+    E:setBodygroup(1,3)
+    RGB = Colour2
+    TB_Red = Colour2
+    TB_Wht = TB_Grn = vec(0)
+    SwitchPos = 2
+}
+
+#Colour 3 (Green)
+if(Position==3){
+    E:setBodygroup(1,5)
+    RGB = Colour3
+    TB_Grn = Colour3
+    TB_Wht = TB_Red = vec(0)
+    SwitchPos = 3
+}

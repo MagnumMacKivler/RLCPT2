@@ -1,0 +1,96 @@
+@name TCL Digital Ring Speedo EGP V3
+@inputs EGP:wirelink MPH
+@outputs 
+@persist MPHR:string
+@trigger 
+@model models/sprops/cuboids/height12/size_1/cube_12x12x12.mdl
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Canadian Digital Speedometer EGP!                  #
+#                                                                               #
+# This EGP simulates the "ring" style speedometer commonly found in Canadian    #
+# locomotives, with an added digital readout for operational simplicity.        #
+#                                                                               #
+# This version uses a 12x12x12 cube and generates a basic holo model to         #
+# represent the real speedometer.                                               #
+#                                                                               #
+# The code was heavily inspired by and borrows from the LOCOS Display system.   #
+#                                                                               #
+# Requires Trans' Train Stuff on the workshop to function properly, otherwise   #
+# you'll just see random shapes on a blank screen.                              #
+#                                                                               #
+# INSTALLATION INSTRUCTIONS:                                                    #
+# 1) Spawn this E2 on the ground. It will generate some holos around itself -   #
+#    this is the base model of the speedometer.                                 #
+# 2) Spawn an EGP screen (preferably the default Wire screen). Use the          #
+#    Submaterial tool to either make the silver border invisible, or set it to  #
+#    models/proppertextures/enamel_black to match the rest of the model.        #
+# 3) Use the Precision Move tool to line up the EGP screen with the grid on     #
+#    the front of the E2.                                                       #
+# 4) Wire the EGP wirelink to the screen and parent the screen to the E2.       #
+# 5) Place the E2 in your cab. Wire MPH from your RLC chip to the E2's input.   #
+# 6) You're done! Don't forget to parent the E2 and screen to your locomotive!  #
+#                                                                               #
+# Happy Railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+#LED ring
+EGP:egpWedge(1,vec2(256),vec2(256))
+EGP:egpColor(1,vec(255,200,0))
+EGP:egpAngle(1,225.6)
+EGP:egpSize(1,-1-round(MPH)*272/100)
+EGP:egpOrder(1,1)
+
+#always-on 0 LED
+EGP:egpCircle(2,vec2(92,426),vec2(5))
+EGP:egpColor(2,vec(255,200,0))
+EGP:egpOrder(2,2)
+
+#speedometer base layer
+EGP:egpBox(3,vec2(256),vec2(512))
+EGP:egpMaterial(3,"trans_train_stuff/cabstuff/cdnspeedo/egp_baselayer")
+EGP:egpOrder(3,3)
+
+#speedometer lit feature layer (MPH readings, green LEDs, red "power" LED)
+EGP:egpBox(4,vec2(256),vec2(512))
+EGP:egpMaterial(4,"trans_train_stuff/cabstuff/cdnspeedo/egp_numberlayer")
+EGP:egpOrder(4,4)
+
+#digital readout (comment out all below lines to disable)
+MPHR=round(MPH):toString()
+
+EGP:egpText(5,"0",vec2(223,240))
+EGP:egpFont(5,"Lucida Console",60)
+EGP:egpColor(5,vec(255,200,0))
+
+if(MPH<99){
+    if(MPH<10){
+        EGP:egpSetText(5,"0"+MPHR[1])
+    }
+    if(MPH>=10){
+        EGP:egpSetText(5,MPHR)
+    }
+}
+elseif(MPH>=99){
+    EGP:egpSetText(5,"XX")
+}
+
+#create base model
+E = entity()
+E:setMaterial("models/proppertextures/enamel_black")
+holoCreate(0,E:toWorld(vec(7.5,5.75,0)),vec(1),E:toWorld(ang(90,0,0)),vec(255,255,255),"models/sprops/triangles_superthin/right/size_0/st_rtri_3x12.mdl")
+holoParent(0,E)
+holoMaterial(0,"models/proppertextures/enamel_black")
+holoCreate(1,E:toWorld(vec(7.5,-5.75,0)),vec(1),E:toWorld(ang(90,0,0)),vec(255,255,255),"models/sprops/triangles_superthin/right/size_0/st_rtri_3x12.mdl")
+holoParent(1,E)
+holoMaterial(1,"models/proppertextures/enamel_black")
+holoCreate(2,E:toWorld(vec(1.5,0,6.2)),vec(1.25,1,1),E:toWorld(ang(0,0,0)),vec(255,255,255),"models/sprops/rectangles_superthin/size_2/rect_12x12.mdl")
+holoParent(2,E)
+holoMaterial(2,"models/proppertextures/enamel_black")
+holoCreate(3,E:toWorld(vec(6.1,0,0)),vec(0.5),E:toWorld(ang(90,0,0)),vec(255,255,255),"plane")
+holoParent(3,E)
+holoMaterial(3,"sprops/sprops_grid")
