@@ -1,0 +1,271 @@
+@name magspack2/monk/HeadSplight
+@inputs On RGB:vector Lamp:entity
+@persist DefaultRGB:vector HeadLightColor:vector RGBBoost NearScale FarScale NearSprite:string FarSprite:string
+@persist Version:string E:entity NoModel TrueRGB:vector Lights:array LampPos:vector LampAng:angle LightSub LightOnMat:string NearSprites:array FarSprites:array LampWirelink:wirelink LampCache:entity
+@model models/gsgtrainprops/parts/headlights/headlight_twinbeam_plate.mdl
+#@model models/gsgtrainprops/parts/headlights/headlight_twinbeam_large.mdl
+#@model models/gsgtrainprops/parts/headlights/headlight_singlebeam_plate.mdl
+#@model models/gsgtrainprops/parts/headlights/headlight_singlebeam_large.mdl
+#@model models/gsgtrainprops/parts/headlights/headlight_singlebeam_mars_sb-2000.mdl
+#@model models/gsgtrainprops/parts/headlights/headlight_twinbeam_mars_sb-9000.mdl
+#@model models/anytrains/props/detail/headlights/big_pyle_hd.mdl
+#@model models/gsgtrainprops/parts/auxlights/class_light.mdl
+#@model models/gsgtrainprops/parts/auxlights/caboose_marker.mdl
+#@model models/wam98_trainparts/miscellaneous/cn_ditchlight.mdl
+#@model models/jaanus/wiretool/wiretool_range.mdl
+# You can use this model ^ (or even other models, if they face the right direction) if you want something mimicking a normal wire light that you can make invisible
+
+if(first() | duped()){
+    
+    # Made by Monkatraz
+    # From: https://github.com/MagnumMacKivler/RLCPT2
+    # V1.0
+    
+    # HeadSplight: Effectively a generic wire light replacement that supports automatic lamp attachment. Comes with much less FPS cost than a wire light.
+    # This supports bodygroups and submaterials - when you change the bodygroups, reset the chip.
+    # Requires Spritecore: https://steamcommunity.com/sharedfiles/filedetails/?id=811333794
+    
+    # Setup
+    # 1. Uncomment the model path you'd desire at the top of the E2. Make sure to comment out the ones you don't want.
+    # 2. Set the HeadlightColor variable and other config options, although other than the color you probably don't need to touch them.
+    # 2. Wire On to whatever enables your headlights, such as PT2. It can also accept decimal On values, such as 0.5, which will affect the brightness.
+    # 3. Wire RGB to whatever, such as PT2. You only need to wire it if you want the color to change with something.
+    # 4. Wire Lamp, if you want, to your lamp entity. It will auto-attach. 
+    #    I recommend placing the E2 before you do this, so that the lamp doesn't interfere with placing the E2.
+    # 5. You're done!
+    
+    # General
+    DefaultRGB = vec(255,255,255) # Default color for the light, if you don't have RGB wired.
+    HeadlightColor = vec(255,255,255) # The color of the actual headlight prop.
+    RGBBoost = 200 # If set to a threshold, it means that the "lit" texture on the light will be boosted to a minimum of that value. Basically, the light can't get too dim.
+    
+    # Sprites
+    NearScale = 1 # Scale of the near sprites. Set to 0 to disable near sprites.
+    FarScale = 1 # Scale of the far sprites. Set to 0 to disable far sprites.
+    NearSprite = "sprites/light_glow02" # Should be a sprite texture.
+    FarSprite = "models/proppertextures/lightglow_white" # Should be a model texture. This material's color can't change - it is a limitation.
+    
+    # "models/proppertextures/lightglow_white"
+    # "models/proppertextures/lightglow_warmwhite"
+    # "models/proppertextures/lightglow_green"
+    # "models/proppertextures/lightglow_red"
+    
+    # CONFIG DONE
+    # INIT
+    
+    Version = "1.0"
+    #include "magspack2/includes/updatelib"
+    startRequest()
+    
+    E = entity()
+    setName("HeadSplight V1.0")
+    runOnLast(1)
+    local Model = E:model()
+    E:setColor(HeadlightColor)
+    TrueRGB = ->RGB ? RGB : DefaultRGB
+    NoModel = 0
+    
+    # boosts the RGB to a minimum threshold
+    function vector maxRGB(RGB:vector){
+        if(!RGBBoost){ return RGB }
+        local Max = 0
+        if(RGB:x()>Max){ Max = RGB:x() }
+        if(RGB:y()>Max) { Max = RGB:y() }
+        if(RGB:z()>Max) { Max = RGB:z() }
+        if(Max>RGBBoost){ return RGB }
+        local Ratio = RGBBoost/Max
+        return RGB*Ratio
+    }
+
+    switch(Model){
+        case "models/gsgtrainprops/parts/headlights/headlight_twinbeam_plate.mdl",
+            LampPos = vec(0,0,4)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(4,0,3.5)
+            Lights[2,vector] = vec(-4,0,3.5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 4
+        break        
+        case "models/gsgtrainprops/parts/headlights/headlight_twinbeam_large.mdl",
+            LampPos = vec(0,0,6)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(5,0,5.5)
+            Lights[2,vector] = vec(-5,0,5.5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 4
+        break       
+        case "models/gsgtrainprops/parts/headlights/headlight_singlebeam_plate.mdl",
+            LampPos = vec(0,0,4)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(0,0,3.5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 4
+        break        
+        case "models/gsgtrainprops/parts/headlights/headlight_singlebeam_large.mdl",
+            LampPos = vec(0,0,6)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(0,0,5.5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 4
+        break
+        case "models/gsgtrainprops/parts/headlights/headlight_singlebeam_mars_sb-2000.mdl",
+            LampPos = vec(0,0,4)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(0,0,3.5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 3
+        break            
+        case "models/gsgtrainprops/parts/headlights/headlight_twinbeam_mars_sb-9000.mdl",
+            LampPos = vec(0,0,5.5)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(4,0,5)
+            Lights[2,vector] = vec(-4,0,5)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 4
+        break
+        case "models/anytrains/props/detail/headlights/big_pyle_hd.mdl",
+            LampPos = vec(0,0,3)
+            LampAng = ang(-90,0,0)
+            Lights[1,vector] = vec(0,0,2)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 5
+        break
+        case "models/gsgtrainprops/parts/auxlights/class_light.mdl",
+            LampPos = vec(3,0,0)
+            LampAng = ang(0,0,0)
+            Lights[1,vector] = vec(2,0,0)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 1
+        break          
+        case "models/gsgtrainprops/parts/auxlights/caboose_marker.mdl",
+            LampPos = vec(3,0,0)
+            LampAng = ang(0,0,0)
+            Lights[1,vector] = vec(2,0,0)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 1
+        break          
+        case "models/wam98_trainparts/miscellaneous/cn_ditchlight.mdl",
+            LampPos = vec(7.25,0,11.7)
+            LampAng = ang(0,0,0)
+            Lights[1,vector] = vec(6.85,0,11.7)
+            LightOnMat = "models/debug/debugwhite"
+            LightSub = 3
+        break 
+        default,
+            NoModel = 1
+            Lights[1,vector] = vec(0,0,3)
+            LampPos = vec(0,0,3)
+            LampAng = ang(-90,0,0)
+        break 
+    }
+    
+    # set up lamp
+    if(->Lamp){
+        LampCache = Lamp
+        Lamp:deparent()
+        Lamp:setPos(E:toWorld(LampPos))
+        Lamp:setAng(E:toWorld(LampAng))
+        Lamp:setAlpha(0)
+        LampWirelink = Lamp:wirelink()
+        LampWirelink["On",number] = On!=0
+        LampWirelink["RGB",vector] = TrueRGB
+        timer("parent",100)
+    }
+    
+    # set up hologram for lights
+    if(!NoModel){
+        local Bodygroups = array()
+        for(N=0,15){ # really doubt there is lights with than 16 bodygroups
+            local Bodygroup = E:getBodygroup(N)
+            if(Bodygroup != 0){ Bodygroups:pushVector2(vec2(N,Bodygroup)) }
+        }
+        E:setSubMaterial(LightSub,On!=0 ? "models/proppertextures/invisible" : "")
+        local Holo = holoCreate(1)
+        holoModel(1,Model)
+        holoPos(1,E:pos())
+        holoAng(1,E:angles())
+        holoParent(1,E)
+        holoDisableShading(1,1)
+        for(N=1,16){ # this is actually cheaper than getMaterials I bet
+            Holo:setSubMaterial(N,"models/proppertextures/invisible")
+        }
+        Holo:setSubMaterial(LightSub,LightOnMat)
+        holoAlpha(1,255*(On!=0))
+        holoColor(1,maxRGB(TrueRGB))
+        foreach(K,V:vector2=Bodygroups){
+            holoBodygroup(1,V[1],V[2])
+        }
+    }
+    
+    local SpriteN = 0
+    foreach(K,V:vector=Lights){
+        local Pos = E:toWorld(Lights[K,vector])
+        # near
+        if(NearScale != 0){
+            SpriteN++
+            spriteSpawn(SpriteN,NearSprite)
+            spriteSetPos(SpriteN,Pos)
+            spriteSetScale(SpriteN,NearScale*1.5*On)
+            spriteSetAlpha(SpriteN,255)
+            spriteSetColor(SpriteN,TrueRGB)
+            spriteEnable(SpriteN,On!=0)
+            NearSprites:pushNumber(SpriteN)
+        }
+        
+        if(FarScale != 0){
+            # far
+            SpriteN++
+            spriteSpawn(SpriteN,FarSprite)
+            spriteSetPos(SpriteN,Pos)
+            spriteSetScale(SpriteN,0.02*FarScale*On)
+            spriteSetRendermode(SpriteN,3)
+            spriteEnable(SpriteN,On!=0)
+            FarSprites:pushNumber(SpriteN)
+        }
+    }
+    
+    function tickLight(){
+        if(!inputClk()){ return }
+        TrueRGB = ->RGB ? RGB : DefaultRGB
+        if(NearScale != 0){
+            foreach(K,V:number=NearSprites){
+                spriteEnable(V,On!=0)
+                spriteSetColor(V,TrueRGB)
+                spriteSetScale(V,1.5*NearScale*On)
+            }
+        }
+        
+        if(FarScale != 0){
+            foreach(K,V:number=FarSprites){
+                spriteEnable(V,On!=0)
+                spriteSetScale(V,0.02*FarScale*On)
+            }
+        }
+        
+        if(!NoModel){
+            E:setSubMaterial(LightSub,On!=0 ? "models/proppertextures/invisible" : "")
+            holoAlpha(1,255*(On!=0))
+            holoColor(1,maxRGB(TrueRGB))
+        }
+        
+        if(->Lamp){
+            LampWirelink["On",number] = On!=0
+            LampWirelink["RGB",vector] = TrueRGB
+        }
+    }
+    
+}
+
+tickLight()
+
+if(changed(->Lamp) & ->Lamp){ reset() } # wiring lamp after chip start
+if(clk("parent")){ Lamp:parentTo(E) }
+if((changed(!->Lamp) & !->Lamp) | last()){ LampCache:deparent(), LampCache:setAlpha(255), LampCache = noentity() }
+if(updateClk()){
+    local Table = getUpdateTable("HeadSplight")
+    local MP2Version = Table["version",string]:explode(".")
+    local Version = Version:explode(".")
+    local Major = MP2Version[1,string]:toNumber() > Version[1,string]:toNumber()
+    local Minor = MP2Version[2,string]:toNumber() > Version[2,string]:toNumber() & !(MP2Version[1,string]:toNumber() < Version[1,string]:toNumber())
+    if(Major | Minor){ setName("HeadSplight V1.0\nUpdate Available: V"+Table["version",string]) }
+}
