@@ -1,0 +1,103 @@
+@name TCL Oscitrol Light V4
+@inputs On
+@outputs [RGB1 RGB2]:vector On1 On2
+@persist T LightColour:vector CycleLength BeamOff Painted
+@trigger 
+@model models/gsgtrainprops/parts/headlights/headlight_twinbeam_plate.mdl
+
+if(first()|duped()){
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# This E2 is designed to simulate the Oscitrol oscillating headlight, which     #
+# in turn simulates a Gyralite or MARS Light without any moving parts. They     #
+# were used by a few railways, including the ATSF on some of their SD40-2       #
+# fleet and the Alaska Railroad on the grand majority of their Geeps. Amtrak    #
+# also used them extensively in the Northeast.                                  #
+#                                                                               #
+# This version (V4) is fully compatible with HeadSplight, and now features a    #
+# much more realistic simulation of the Oscitrol flash pattern. Special thanks  #
+# to Monkatraz once again for help with development and optimization!           #
+#                                                                               #
+# Based off the Ditch Lights V5 E2, but changed to a simple toggle on-off       #
+# switch rather than limited to a horn-based timer.                             #
+#                                                                               #
+# Setup Instructions using HeadSplight E2s (recommended)                        #
+#   1) Position the Oscitrol E2 on your locomotive.                             #
+#   2) Spawn two HeadSplight E2s (set @model to wiretool_range) on the ground   #
+#      and use Precision Move to position them over the lenses of the Oscitrol. #
+#   3) Wire the HeadSplights' RGB[VECTOR] inputs to the two vector outputs of   #
+#      the Oscitrol, and do the same with the two Ons. Make sure you wire them  #
+#      in tandem - RGB1 and On1; RGB2 and On2 should be wired to the same       #
+#      respective number.                                                       #
+#   4) Wire a toggled button to the On input of the Oscitrol.                   #
+#   5) Turn the switch on and test. The two beams of your Oscitrol should flash #
+#      alternately.                                                             #
+#   6) Make the HeadSplights invisible by whatever means you prefer, parent     #
+#      everything to your locomotive and enjoy!                                 #
+#                                                                               #
+# Setup Instructions using Wire Lights (legacy method)                          #
+#   1) Position the Oscitrol E2 on your locomotive.                             #
+#   2) Place one Wire Light (With NO boxes ticked - important!) over each lens  #
+#      of the E2's bezel.                                                       #
+#   3) Wire the lights' RGB[VECTOR] to the two vector outputs of the E2.        #
+#   4) Wire a toggled button to the On input.                                   #
+#   5) Turn the switch on and test. The two beams of your Oscitrol should flash #
+#      alternately.                                                             #
+#   6) Make the Wire Lights invisible by whatever means you prefer, parent      #
+#      everything to your locomotive and enjoy!                                 #
+#                                                                               #
+# Happy Railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+    
+# Configuration #
+
+LightColour = vec(255,255,200) #The color of the Lights. 255,255,200 is the default used by RLC headlights.
+BeamOff = 0.01 #Minimum brightness during a flash cycle. If using HeadSplights, I recommend leaving this at 0.01
+CycleLength = 1.25 #Time, in seconds, for one flash cycle.
+
+Painted = 0 #Whether or not the light bezel is painted (1) or left as shiny aluminum (0).
+PaintColour = vec(255) #Colour to use for painted light bezel.
+
+# Be sure to not check any of the boxes in your Wire Lights unless you're on singleplayer or a really
+# robust server. Casting shadows causes lag - you just want the light sprites!
+
+# ---- Don't touch anything below this line - this E2 was hacked together, don't try to hack it more! ---- #
+
+    T = 0
+    function number supersine(Min, Max, Theta){
+        local Sin = sin(Theta)
+        return Min + (Sin+1)*(Max-Min)/2
+    }
+}
+
+if(On){
+    timer("clk",50)
+    local Sine1 = supersine(-1,2,T)
+    local Sine2 = supersine(-1,2,T+180)
+    RGB1 = clamp(LightColour*Sine1,LightColour*BeamOff,LightColour)
+    RGB2 = clamp(LightColour*Sine2,LightColour*BeamOff,LightColour)
+    On1 = clamp(1*Sine1,0,1)
+    On2 = clamp(1*Sine2,0,1)
+    T += 18/(CycleLength)
+    if(T > 360){T -= 360}
+}
+
+else{
+    RGB1 = RGB2 = vec()
+    On1 = On2 = 0
+}
+
+E=entity()
+
+E:setColor(PaintColour)
+
+if(Painted==0){
+    E:setSubMaterial(0,"models/proppertextures/aluminum")
+}
+elseif(Painted==1){
+    E:setSubMaterial(0,"models/proppertextures/acrylic")
+}
