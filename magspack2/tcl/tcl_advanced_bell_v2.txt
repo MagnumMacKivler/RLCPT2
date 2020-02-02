@@ -1,7 +1,7 @@
-@name TCL Advanced Bell
+@name TCL Advanced Bell V2
 @inputs On
 @outputs SoundOn:string SoundOff:string
-@persist SoundOn:string SoundOff:string Pitch Default_Volume Default_Level H:entity BellType BellColor:vector
+@persist SoundOn:string SoundOff:string Pitch Default_Volume Default_Level H:entity BellType BellColor:vector Q
 @trigger 
 @model models/anytrains/props/detail/12in_emd_bell_brass.mdl
 
@@ -12,6 +12,10 @@
 #                                                                               #
 # Not much to say for this one. Setup below, spawn, position, parent and enjoy! #
 #                                                                               #
+# IMPORTANT NOTE - The soundLevel function only works on the FC&N Trainbuild    #
+# servers, it's a function coded there specifically. You'll have to use other   #
+# bell sound systems on other servers.                                          #
+#                                                                               #
 # Happy railroading!                                                     TCL <3 #
 #                                                                               #
 #         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
@@ -21,14 +25,14 @@ if(first() | duped()){
     
 # SETUP #
     
-    SoundOn = "gsgtrainsounds/bells/ge_6731022a_steel_bell_2_loop.wav"
-    SoundOff = "gsgtrainsounds/bells/ge_6731022a_steel_bell_2_end.wav"
-    Pitch = 100 #Pitch adjustment (May not work properly)
-    Default_Volume = 1 #Volume, percentage (How loud the Source engine plays the sound - 1 = 100%)
-    Default_Level = 75 #Volume, decibels (How far away the bell can be heard - 75 is a nice value)
+    SoundOn = "trans_train_sounds/bells/gmdd_bronze_bell_single_2.wav"
+    SoundOff = "trans_train_sounds/bells/gmdd_bronze_bell_end_noclap.wav"
+    Pitch = 90 #Pitch adjustment
+    Default_Volume = 1 #Volume, percentage (How loud the Source Engine plays the sound - 1 = 100%)
+    Default_Level = 75 #Volume, decibels (How far away the bell can be heard - 75-80 is a nice value)
     
-    BellType = 1 #0 for bronze bell, 1 for steel bell, 2 for painted bell
-    BellColor = vec(255,255,255) #Color for painted bell
+    BellType = 2 #0 for bronze bell, 1 for steel bell, 2 for painted bell
+    BellColor = vec(100,125,100) #Color for painted bell
     
 # Advanced users only beyond this point #
 
@@ -46,35 +50,22 @@ if(BellType==2){
     E:setSubMaterial(1,"models/proppertextures/acrylic")
 }
     
-    H = holoCreate(0,entity():pos())
-    holoAlpha(0,0)
-    holoParent(0,entity())
 }
 
-if(On & ~On){
-    soundStop(1)
-    soundStop(3)
-    soundPlay(0,0,SoundOn)
-    H:soundPlay(2,0,SoundOn)
-	soundPitch(0,Pitch)
-	soundPitch(2,Pitch)
-    soundVolume(0,Default_Volume)
-    soundVolume(2,Default_Volume)
-    soundLevel(0,Default_Level)
-    soundLevel(2,Default_Level)
-}elseif(!On & ~On){
+if(On & !Q){
+    Q = 1
     soundStop(0)
-    soundStop(2)
-    soundPlay(1,0,SoundOff)
-    H:soundPlay(3,0,SoundOff)
-	soundPitch(1,Pitch)
-	soundPitch(3,Pitch)
-    soundVolume(1,Default_Volume)
-    soundVolume(3,Default_Volume)
-    soundLevel(1,Default_Level)
-    soundLevel(3,Default_Level)
+    soundPlay(0,0,SoundOn)
+    soundVolume(0,Default_Volume)
+    soundLevel(0,Default_Level)
+}elseif(!On & Q){
+    Q = 0
+    soundStop(0)
+    soundPlay(0,0,SoundOff)
+    soundVolume(0,Default_Volume)
+    soundLevel(0,Default_Level)
 }
 
-
+soundPitch(0,Pitch)
 
 

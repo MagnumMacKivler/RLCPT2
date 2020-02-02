@@ -1,7 +1,7 @@
-@name TCL Advanced Quillable Horn
+@name TCL Advanced Quillable Horn V2
 @inputs Horn Quill
 @outputs [Horn_On Horn_Off]:string [Quill_On Quill_Off]:string HQ QQ 
-@persist [Horn_On Horn_Off Quill_On Quill_Off]:string QuillPitch HornPitch QuillLv HornLv HQ QQ [H1 H2 Q1 Q2]:entity HornVol QuillVol Fade
+@persist [Horn_On Horn_Off Quill_On Quill_Off]:string QuillPitch HornPitch QuillLv HornLv HQ QQ E:entity HornVol QuillVol
 @trigger Horn Quill
 @model models/nathan/k_series/k5la.mdl
 #@model models/nathan/p_series/p3.mdl
@@ -23,6 +23,10 @@
 # The default horn in this E2 is the two-stage sandcast K5L from my workshop    #
 # addon Trans' Train Sounds. Consider this a plug for that! The Scott's Train   #
 # Sounds pack also has some great quillable horns.                              #
+#                                                                               #
+# IMPORTANT NOTE - The soundLevel function only works on the FC&N Trainbuild    #
+# servers, it's a function coded there specifically. You'll have to use other   #
+# horn sound systems on other servers.                                          #
 #                                                                               #
 #   Inputs:                                                                     #
 #       Horn - If "1", sounds the horn.                                         #
@@ -50,93 +54,51 @@ if(first()|duped()){
     # Horn settings
     Horn_On = "trans_train_sounds/horns/bcr_budd_k5l.wav" #Sound path for horn loop
     Horn_Off = "trans_train_sounds/horns/bcr_budd_k5l_end.wav" #Sound path for horn end
-    HornPitch = 100 #Pitch tweak for horn (use to match pitch with quill to your liking)
+    HornPitch = 97 #Pitch tweak for horn (use to match pitch with quill to your liking)
     HornVol = 1 #Horn volume (max 1 = 100%)
     HornLv = 110 #Horn level (decibels)
     
-    # Horn quill settings
+    # Quill settings
     Quill_On = "trans_train_sounds/horns/bcr_budd_k5l_quill.wav" #Sound path for quill loop
     Quill_Off = "trans_train_sounds/horns/bcr_budd_k5l_quill_end.wav" #Sound path for quill end
-    QuillPitch = 100 #Pitch tweak for quill (use to match pitch with the main horn sound to your liking)
+    QuillPitch = 97 #Pitch tweak for quill (use to match pitch with the main horn sound to your liking)
     QuillVol = 1 #Quill volume (max 1 = 100%)
     QuillLv = 100 #Quill level (decibels)
     
-    # Horn model settings can be found below line 134.
-    # To change horn type, uncomment ONE @model line at the top of the E2.
-    
-# HORN CODE #
-    
-    # Don't touch any of this, it won't work if you do.
-    H1 = entity()
-    H2 = holoCreate(0,entity():pos())
-    Q1 = holoCreate(1,entity():pos())
-    Q2 = holoCreate(2,entity():pos())
-    holoAlpha(0,0)
-    holoAlpha(1,0)
-    holoAlpha(2,0)
-    holoParent(0,H1)
-    holoParent(1,H1)
-    holoParent(2,H1)
-    HQ = QQ = BQ = Fade = 0
+    # Add horn model settings here. To change horn type, uncomment ONE @model line at the top of the E2.    
+    E=entity()
+    E:setColor(50,50,50)
+    E:setBodygroup(2,1)
+    E:setBodygroup(3,1)
+    #E:setSubmaterial()
+  
 }
+ 
+# SOUND CODE #
 
 if(Horn & !HQ){
     HQ = 1
-    H1:soundPlay(1,0,Horn_On)
-    H2:soundPlay(2,0,Horn_On)
-    soundLevel(1,HornLv)
-    soundLevel(2,HornLv)
-    soundPitch(1,HornPitch)
-    soundPitch(2,HornPitch)
-    soundVolume(1,HornVol)
-    soundVolume(2,HornVol)
+    soundPlay(0,0,Horn_On)
+    soundLevel(0,HornLv)
+    soundVolume(0,HornVol)
 }elseif(!Horn & HQ){
     HQ = 0
-    if(Fade){
-    soundStop(1,0)
-    soundStop(2,0)
-    }else{
-        H1:soundPlay(1,0,Horn_Off)
-        H2:soundPlay(2,0,Horn_Off)
-        soundLevel(1,HornLv)
-        soundLevel(2,HornLv)
-        soundPitch(1,HornPitch)
-        soundPitch(2,HornPitch)
-        soundVolume(1,HornVol)
-        soundVolume(2,HornVol)
-    }
+    soundPlay(0,0,Horn_Off)
+    soundLevel(0,HornLv)
+    soundVolume(0,HornVol)
 }
 
 if(Quill & !QQ){
     QQ = 1
-    Q1:soundPlay(3,0,Quill_On)
-    Q2:soundPlay(4,0,Quill_On)
-    soundLevel(3,QuillLv)
-    soundLevel(4,QuillLv)
-    soundPitch(3,QuillPitch)
-    soundPitch(4,QuillPitch)
-    soundVolume(3,QuillVol)
-    soundVolume(4,QuillVol)
+    soundPlay(1,0,Quill_On)
+    soundLevel(1,QuillLv)
+    soundVolume(1,QuillVol)
 }elseif(!Quill & QQ){
     QQ = 0
-    if(Fade){
-        soundStop(3,0)
-        soundStop(4,0)
-    }else{
-        Q1:soundPlay(3,0,Quill_Off)
-        Q2:soundPlay(4,0,Quill_Off)
-        soundLevel(3,QuillLv)
-        soundLevel(4,QuillLv)
-        soundPitch(3,QuillPitch)
-        soundPitch(4,QuillPitch)
-        soundVolume(3,QuillVol)
-        soundVolume(4,QuillVol)
-    }
+    soundPlay(1,0,Quill_Off)
+    soundLevel(1,QuillLv)
+    soundVolume(1,QuillVol)
 }
 
-# HORN MODEL SETTINGS #
-
-H1:setColor(50,50,50)
-H1:setSubMaterial(2,"models/proppertextures/acrylic_white") # White bell throats (K5LA)
-H1:setBodygroup(2,1) # Bell 2 reversal (K5LA)
-H1:setBodygroup(3,1) # Bell 3 reversal (K5LA)
+soundPitch(0,HornPitch)
+soundPitch(1,QuillPitch)
