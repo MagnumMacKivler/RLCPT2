@@ -1,0 +1,123 @@
+@name magspack2/monk/StratoSplite
+@inputs On
+@persist E:entity Speed T Version:string
+@model models/anytrains/props/detail/beacon.mdl
+
+if(first() | duped()){
+    
+    # Made by Monkatraz
+    # From: https://github.com/MagnumMacKivler/RLCPT2
+    # V1.0
+    
+    # StratoSplite: Simple Stratolite E2 using Spritecore. Requires nothing else but an "On" input.
+    # Requires Spritecore: https://steamcommunity.com/sharedfiles/filedetails/?id=811333794
+    
+    # Instructions:
+    # 1. Place down.
+    # 2. Setup config, such as the Speed and BaseColor.
+    # 3. Wire On to something.
+    # 4. You're done.
+    
+    Speed = 1 # 1 is standard. Higher is slower.
+    BaseColor = vec(255,255,255)
+    
+    # CONFIG DONE
+    
+    E = entity()
+    E:setColor(BaseColor)
+    # versioning
+    Version = "1.0"
+    setName("StratoSplite V1.0")
+    #ifdef httpClk()
+        httpRequest("https://raw.githubusercontent.com/MagnumMacKivler/RLCPT2/master/magspack2/mp2_versions.txt")
+        runOnHTTP(1)
+    #endif
+    
+    # thank u mr.magnum
+    function number supersine(Min, Max, Theta){
+        local Sin = sin(Theta)
+        return Min + (Sin+1)*(Max-Min)/2
+    }
+    
+    for(N=1,4){
+        local Mod = mod(N,2) == 0
+        spriteSpawn(N,"sprites/light_glow01")
+        local Flip = N > 2 ? -1 : 1
+        local Pos = Mod ? vec(5.25*Flip,0,5.25) : vec(0,5.25*Flip,5.25)
+        spriteSetPos(N,E:toWorld(Pos))
+        spriteSetScale(N,0.5)
+        spriteSetAlpha(N,0)
+        spriteSetColor(N,vec(255,150,0))
+        spriteEnable(N,1)
+        
+        holoCreate(N)
+        Pos = Mod ? vec(3.25*Flip,0,5.25) : vec(0,3.25*Flip,5.25)
+        holoPos(N,E:toWorld(Pos))
+        local Ang = Mod ? ang(90,0,0) : ang(0,0,90)
+        holoAng(N,E:toWorld(Ang))
+        holoMaterial(N,"models/debug/debugwhite")
+        holoModel(N,"cylinder")
+        holoScale(N,vec(0.32,0.32,0.01))
+        holoDisableShading(N,1)
+        holoColor(N,vec(255,200,200))
+        holoAlpha(N,0)
+        holoParent(N,E)
+    }
+}
+if(On){ 
+    if(~On){ for(N=1,4){ spriteEnable(N,1) } }
+    interval(50) 
+}
+elseif(~On & !On){ 
+    stoptimer("interval") 
+    for(N=1,4){ spriteEnable(N,0), holoAlpha(N,0) }
+}
+
+if(On & clk()){
+    local L1 = clamp(supersine(-2,1,T)*255,0,255)
+    local L2 = clamp(supersine(-2,1,T+90)*255,0,255)
+    local L3 = clamp(supersine(-2,1,T+(90*2))*255,0,255)
+    local L4 = clamp(supersine(-2,1,T+(90*3))*255,0,255)
+    spriteSetAlpha(1,L1)
+    spriteSetAlpha(2,L2)
+    spriteSetAlpha(3,L3)
+    spriteSetAlpha(4,L4)
+    holoAlpha(1,L1)
+    holoAlpha(2,L2)
+    holoAlpha(3,L3)
+    holoAlpha(4,L4)
+    
+    T += 18/(Speed)
+    if(T > 360){T -= 360}
+}
+
+# versioning
+#ifdef httpClk()
+    if(httpClk()){
+        local Table = table()
+        local ItemName = "StratoSplite"
+        local FileData = httpData()
+        local Items = FileData:explode("item:")
+        local TestForLength = ItemName:length()
+        for(N=2,Items:count()){
+            local Item = Items[N,string]
+            if(Item:left(TestForLength)==ItemName){ #This your item!
+                local Lines = Item:explode("\n")
+                for(M=2,Lines:count()){
+                    if(Lines[M,string]!=""){
+                        local LineText = Lines[M,string]:explode(":")
+                        Table[LineText[1,string],string] = LineText[2,string]
+                    }
+                }
+                break
+            }
+        }
+        if(Table:count() != 0){
+            local MP2Version = Table["version",string]:explode(".")
+            local Version = Version:explode(".")
+            local Major = MP2Version[1,string]:toNumber() > Version[1,string]:toNumber()
+            local Minor = MP2Version[2,string]:toNumber() > Version[2,string]:toNumber() & !(MP2Version[1,string]:toNumber() < Version[1,string]:toNumber())
+            if(Major | Minor){ setName("StratoSplite V1.0\nUpdate Available: V"+Table["version",string]) }
+        }
+    }
+#endif
