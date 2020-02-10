@@ -15,4 +15,6 @@ changelog:None
 
 item:HeadSplight
 version:1.0
-changelog:None
+
+item:StratoSplite
+version:1.0
