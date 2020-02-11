@@ -1,0 +1,53 @@
+@name Electronic Horn Lever Holo
+@inputs Horn
+@outputs 
+@persist E:entity L:entity Q HandleMat:string
+@trigger 
+@model models/sprops/rectangles_thin/size_1/rect_3x3x1_5.mdl
+
+# Pretty self explanatory. Place, wire Horn, parent, and enjoy.
+# TCL <3
+
+if(first()|duped()){
+    
+HandleMat = "models/proppertextures/plastic_black" #Material for the actual handle.
+
+E = entity()
+E:setMaterial("models/proppertextures/enamel_black")
+
+holoCreate(0)
+holoParent(0,E)
+holoModel(0,"models/sprops/cylinders/size_1/cylinder_1_5x3.mdl")
+holoPos(0,E:toWorld(vec(0,0,0)))
+holoScale(0,vec(0.4,0.4,2))
+holoMaterial(0,"models/proppertextures/aluminum")
+holoClipEnabled(0,1,1)
+holoClip(0,1,vec(0,0,0),vec(0,0,1),0)
+L=holoEntity(0)
+
+holoCreate(1)
+holoParent(1,L)
+holoModel(1,"models/sprops/geometry/sphere_3.mdl")
+holoPos(1,L:toWorld(vec(0,0,3)))
+holoScale(1,vec(0.5))
+holoMaterial(1,HandleMat)
+
+holoCreate(2)
+holoParent(2,E)
+holoModel(2,"models/sprops/misc/domes/size_0/dome_3x1_5.mdl")
+holoPos(2,E:toWorld(vec(0,0,0)))
+holoScale(2,vec(0.75))
+holoMaterial(2,"models/proppertextures/aluminum")
+
+}
+
+if(Horn & !Q){
+    Q = 1
+    holoAng(0,E:toWorld(ang(20,0,0))) 
+    soundPlay(0,0.5,"trans_train_sounds/buttons/mom_lever1_pull.wav")
+}elseif(!Horn & Q){
+    Q = 0
+    holoAng(0,E:toWorld(ang(0,0,0)))
+    soundPlay(0,0.5,"trans_train_sounds/buttons/mom_lever1_rel.wav")
+}
+

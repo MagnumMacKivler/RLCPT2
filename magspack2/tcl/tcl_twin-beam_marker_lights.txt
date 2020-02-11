@@ -1,0 +1,103 @@
+@name TCL Twin-Beam Marker Lights
+@inputs On Switch
+@outputs 
+@persist E:entity [Color1 Color2]:vector
+@trigger 
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Canadian Twin-Beam Tail Lights E2!                 #
+#                                                                               #
+# This E2 simulates the twin-beam "class lights" found on Canadian rail         #
+# equipment, such as coaches and cabooses, and even some locomotives.           #
+#                                                                               #
+# Setup Tips:                                                                   #
+#   - These lights are usually found on both sides of the ends of a railcar.    #
+#   - The two beams can be oriented either vertically (as found on VIA coaches) #
+#     or horizontally (cabooses and other equipment).                           #
+#   - Both sides should be independently controllable. Your control panel       #
+#     should consist of three toggled Wire Buttons - both On inputs to a main   #
+#     power button, and the individual Switch inputs to their own buttons.      #
+#                                                                               #
+# Operation:                                                                    #
+#   In normal operation, the red lights should be illuminated at the tail end,  #
+#   as you'd expect. However, when a train is stopped at a station or clear of  #
+#   the main in a siding, the side facing the main track is switched to green.  #
+#   This shows any other movements approaching from the rear that your train    #
+#   is indeed clear of the main track and therefore safe to pass.               #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first()|duped()){
+
+Color1 = vec(200,0,0)
+Color2 = vec(100,200,100)
+
+E=entity()
+E:setAlpha(0)
+
+#lens 1
+holoCreate(1)
+holoParent(1,E)
+holoModel(1,"models/props_c17/clock01.mdl")
+holoPos(1,E:toWorld(vec(-3,0,1)))
+holoAng(1,E:toWorld(ang(0,0,0)))
+holoColor(1,Color1)
+holoScale(1,vec(0.375,0.375,0.5))
+
+#lens 2
+holoCreate(2)
+holoParent(2,E)
+holoModel(2,"models/props_c17/clock01.mdl")
+holoPos(2,E:toWorld(vec(3,0,1)))
+holoAng(2,E:toWorld(ang(0,0,0)))
+holoColor(2,Color2)
+holoScale(2,vec(0.375,0.375,0.5))
+
+spriteEnable(3,1)
+spriteSpawn(3,"sprites/light_glow01")
+spriteSetParent(3,E)
+spriteSetScale(3,0.5)
+
+#base
+holoCreate(4)
+holoParent(4,E)
+holoModel(4,"models/gsgtrainprops/parts/headlights/headlight_base_twinbeam_large.mdl")
+holoPos(4,E:toWorld(vec(0,0,2)))
+holoAng(4,E:toWorld(ang(0,0,0)))
+holoScale(4,vec(0.6))
+holoMaterial(4,"models/proppertextures/cabmetal_gray")
+
+holoCreate(5)
+holoParent(5,E)
+holoModel(5,"models/gsgtrainprops/parts/headlights/headlight_base_twinbeam_large.mdl")
+holoPos(5,E:toWorld(vec(0,0,1.9)))
+holoAng(5,E:toWorld(ang(0,0,0)))
+holoScale(5,vec(0.62,0.63,0.6))
+holoMaterial(5,"models/proppertextures/rubber")
+
+}
+
+if(On){
+    if(Switch){
+        holoMaterial(1,"bobsters_trains/light_colorable_off")
+        holoMaterial(2,"bobsters_trains/light_colorable_on")
+        spriteSetColor(3,Color2)
+        spriteSetPos(3,E:toWorld(vec(3,0,3)))
+        spriteSetAlpha(3,255)
+    }elseif(!Switch){
+        holoMaterial(1,"bobsters_trains/light_colorable_on")
+        holoMaterial(2,"bobsters_trains/light_colorable_off")
+        spriteSetColor(3,Color1)
+        spriteSetPos(3,E:toWorld(vec(-3,0,3)))
+        spriteSetAlpha(3,255)
+    }
+}elseif(!On){
+    holoMaterial(1,"bobsters_trains/light_colorable_off")
+    holoMaterial(2,"bobsters_trains/light_colorable_off")
+    spriteSetAlpha(3,0)
+}

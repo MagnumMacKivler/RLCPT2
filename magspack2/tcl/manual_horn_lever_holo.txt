@@ -1,0 +1,59 @@
+@name Manual Horn Lever Holo
+@inputs Horn Quill
+@outputs 
+@persist E:entity Horntype
+@trigger 
+@model models/sprops/rectangles_thin/size_1/rect_3x3x1_5.mdl
+
+# Pretty self explanatory. Place, wire Horn and Quill, parent, and enjoy.
+# TCL <3
+
+if(first()|duped()){
+
+Horntype = 0 # Horn type - 0 for standard mount, 1 for flat surface mount.
+HandleMat = "models/proppertextures/plastic_black" #Material for the actual handle.
+
+E = entity()
+E:setMaterial("models/proppertextures/enamel_black")
+
+holoCreate(0)
+holoParent(0,E)
+soundPlay(0,0,"gsgtrainsounds/misc/desktop/horn_air_loop.wav")
+
+}
+if(Horntype==0){
+    holoModel(0,"models/magtrainslocos/cstands/bl2/hornlever.mdl")
+    holoPos(0,E:toWorld(vec(0,0,0.7)))
+    holoScale(0,vec(1))
+    holoEntity(0):setSubMaterial(1,"models/proppertextures/aluminum")
+    holoEntity(0):setSubMaterial(2,HandleMat)
+    if(Horn){
+        holoAng(0,E:toWorld(ang(-70,0,0)))
+        soundVolume(0,0.3)
+    }elseif(Quill){
+        holoAng(0,E:toWorld(ang(-80,0,0)))  
+        soundVolume(0,0.1) 
+    }
+    else{
+        holoAng(0,E:toWorld(ang(-90,0,0)))
+        soundVolume(0,0)
+    }
+}
+if(Horntype==1){
+    holoModel(0,"models/jazzie/trains/locomotives/emd/cab/control_stand_sd-gp9-18-20_horn_lever.mdl")
+    holoPos(0,E:toWorld(vec(0,0,0)))
+    holoScale(0,vec(0.9))
+    holoEntity(0):setSubMaterial(1,"models/proppertextures/aluminum")
+    holoEntity(0):setSubMaterial(2,HandleMat)
+    if(Horn){
+        holoAng(0,E:toWorld(ang(0,90,20)))
+        soundVolume(0,0.3)
+    }elseif(Quill){
+        holoAng(0,E:toWorld(ang(0,90,10)))   
+        soundVolume(0,0.1) 
+    }
+    else{
+        holoAng(0,E:toWorld(ang(0,90,0)))
+        soundVolume(0,0)
+    }
+}
