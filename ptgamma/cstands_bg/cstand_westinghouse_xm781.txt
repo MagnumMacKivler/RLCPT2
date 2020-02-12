@@ -26,17 +26,13 @@ if(first()){
     #The "Active" and "RemoteControl" inputs are only necessary if the locomotive is equipped with Remote Control capability; "Active" goes to the Pod Controller, "RemoteControl" to a separate toggled button.
     #The "UsingRearSeat" input  is only necessary if the locomotive features Dual Cabs or Dual Control Stands.
     
-    #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     
-    #Literally only No.6 (Option 4) brake systems work with this stand
-    
-    #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
     #include "ptgamma/controls/standard"
     
-    AirBrakeMode = 4 
+    AirBrakeMode = 4 #Literally only No.6 (Option 4) brake systems work with this stand
     #0 - Simple Self-Lapping (Easy)
     #1 - Simple Manual Lapping (Medium)
     #2 - 26L Self-Lapping (Medium-Hard)
@@ -44,7 +40,7 @@ if(first()){
     #4 - No. 6 (6SL/6BL/6DS/6ET) Manual Lapping (Hard)
     #24RL, No. 6, and 26L are the hardest, but also the most rewarding!
     
-    LocoBrakeMode = 0 #0 for Self Lapping, 1 for Manual Lapping
+    LocoBrakeMode = 1 #0 for Self Lapping, 1 for Manual Lapping
     
     InitialReduction = 6 #If using 24RL or 26L brake modes, the train brake will automatically drop this much pressure in First Service or Initial Reduction positions.
     FeedPressure = 90 #Feed Valve pressure in PSI. 70 was the standard until the 1950s, 90 is the standard for freight. 110 is the passenger standard, 120 is sometimes used by mountain railroads.
@@ -52,14 +48,14 @@ if(first()){
     NotchedThrottle = 1 #0 for Continuous Throttle, 1 for Notched Throttle
     NumThrottleNotches = 8 #Number of Throttle Notches, not counting idle (If Used).
     
-    HasDynamics = 0 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
+    HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
     
     NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
-    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
+    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
-    HornType = 0 #0 for Lever, 1 for Cord. This model has no lever.
+    HornType = 1 #0 for Lever, 1 for Cord. This model has no lever.
     
     CordExtendLength = 4 #How far from anchor point is the horn valve at the top?
     DongleHeight = 0.125 #Fraction of total cord length to place Dongle at

@@ -470,7 +470,7 @@ if(clk("clk")){
                 break
             case 4, #Service
                 if(SetEqualRes>FSP){
-                    SetEqualRes-0.5
+                    SetEqualRes-=0.5
                     if(SetEqualRes<FSP){SetEqualRes=FSP}
                 }
                 break
@@ -843,7 +843,7 @@ if(clk("clk")){
             TBB = select(SetBrakeNotch+1,0,2,4,7,10,0,11)
             break
         case 2, #26L
-            TBB = select(SetBrakeNotch+1,0,adc(0,FeedPressure-InitialReduction,6,FeedPressure-InitialReduction-SetEqualRes)+2,10,0,0,0,11)
+            TBB = select(SetBrakeNotch+1,0,adc(0,FeedPressure-InitialReduction - FeedPressure*64/90,6,FeedPressure-InitialReduction-SetEqualRes)+2,10,0,0,0,11)
             break
         case 1, #SML
             TBB = select(SetBrakeNotch+1,0,5,10,0,0,0,11)
