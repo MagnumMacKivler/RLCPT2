@@ -1,0 +1,153 @@
+@name TCL Tri-Beam MLW-ALCo Class Splights
+@inputs SwitchPos
+@outputs 
+@persist E:entity 
+@trigger 
+@model models/gsgtrainprops/parts/auxlights/class_light_gmdd.mdl
+    
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to the TCL Tri-Beam Class Splight System! This E2 uses   	#
+# a new sprite- and submaterial- based lighting system (developed with help     #
+# from Monkatraz) to simulate the tri-beam class lights found on mid- to        #
+# late-era North American diesel locomotives.                                   #
+#                                                                               #
+# This version is the MLW/ALCo arrangement, using fresnel lenses directly       #
+# attached to the carbody with gaskets around them.                             #
+#                                                                               #
+# This accessory is designed to be used in tandem with TCL Advanced Class Light #
+# Controller V2.                                                                #
+#                                                                               #
+# Setup instructions:                                                           #
+#   1)  Spawn this E2 on the ground and rotate it into the orientation you want #
+#       it to be placed on your locomotive.                                     #
+#   2)  Use the Precision Move tool (or Physgun) to position the E2 and parent  #
+#       it to your locomotive. Repeat this process for each class light.        #
+#   3)  Wire the SwitchPos input to the output of the same name on your Class   #
+#       Light Controller, or any other wire device that outputs from 0 to 3.    #
+#   4)  Cycle through a few times to test, make sure you've parented everything #
+#       and enjoy!                                                              #
+#                                                                               #
+# SUPER thanks to Monkatraz for help with development and optimization!         #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first() | dupefinished()){ 
+
+    E=entity()
+    E:setAlpha(0)
+    
+    #generate holos
+    
+    #red lens
+    holoCreate(1)
+    holoParent(1,E)
+    holoModel(1,"models/props_c17/clock01.mdl")
+    holoMaterial(1,"models/gsgtrainprops/auxlights/lens_glass_red")
+    holoScale(1,vec(0.375,0.375,0.5))
+    holoAng(1,E:toWorld(ang(0,90,90)))
+    holoPos(1,E:toWorld(vec(-0.8,-6,0)))
+    holoColor(1,vec(200,0,0))
+    #gasket
+    holoCreate(2)
+    holoParent(2,E)
+    holoModel(2,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(2,"models/proppertextures/rubber")
+    holoScale(2,vec(0.48))
+    holoAng(2,E:toWorld(ang(0,90,0)))
+    holoPos(2,E:toWorld(vec(0,-6,0)))
+    
+    #green lens
+    holoCreate(3)
+    holoParent(3,E)
+    holoModel(3,"models/props_c17/clock01.mdl")
+    holoMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+    holoScale(3,vec(0.375,0.375,0.5))
+    holoAng(3,E:toWorld(ang(0,90,90)))
+    holoPos(3,E:toWorld(vec(-0.8,0,0)))
+    holoColor(3,vec(125,255,125))
+    #gasket
+    holoCreate(4)
+    holoParent(4,E)
+    holoModel(4,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(4,"models/proppertextures/rubber")
+    holoScale(4,vec(0.48))
+    holoAng(4,E:toWorld(ang(0,90,0)))
+    holoPos(4,E:toWorld(vec(0,0,0)))
+    
+    #white lens
+    holoCreate(5)
+    holoParent(5,E)
+    holoModel(5,"models/props_c17/clock01.mdl")
+    holoMaterial(5,"models/gsgtrainprops/auxlights/lens_glass")
+    holoScale(5,vec(0.375,0.375,0.5))
+    holoAng(5,E:toWorld(ang(0,90,90)))
+    holoPos(5,E:toWorld(vec(-0.8,6,0)))
+    holoColor(5,vec(200))
+    #gasket
+    holoCreate(6)
+    holoParent(6,E)
+    holoModel(6,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(6,"models/proppertextures/rubber")
+    holoScale(6,vec(0.48))
+    holoAng(6,E:toWorld(ang(0,90,0)))
+    holoPos(6,E:toWorld(vec(0,6,0)))
+        
+}
+
+spriteEnable(0,1)
+spriteSpawn(0,"sprites/light_glow01")
+spriteSetParent(0,E)
+spriteSetScale(0,0.5)
+
+if(SwitchPos){
+    if(SwitchPos==1){
+        #white
+        spriteSetColor(0,vec(200))
+        spriteSetPos(0,E:toWorld(vec(1,6,0)))
+        spriteSetAlpha(0,255)
+        holoMaterial(1,"models/gsgtrainprops/auxlights/lens_glass_red")
+        holoMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+        holoMaterial(5,"models/debug/debugwhite")
+        holoDisableShading(1,0)
+        holoDisableShading(3,0)
+        holoDisableShading(5,1)
+    }
+    if(SwitchPos==2){
+        #red
+        spriteSetColor(0,vec(200,0,0))
+        spriteSetPos(0,E:toWorld(vec(1,-6,0)))
+        spriteSetAlpha(0,255)
+        holoMaterial(1,"models/debug/debugwhite")
+        holoMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+        holoMaterial(5,"models/gsgtrainprops/auxlights/lens_glass")
+        holoDisableShading(1,1)
+        holoDisableShading(3,0)
+        holoDisableShading(5,0)
+    }
+    if(SwitchPos==3){
+        #green
+        spriteSetColor(0,vec(100,200,100))
+        spriteSetPos(0,E:toWorld(vec(1,0,0)))
+        spriteSetAlpha(0,255)
+        holoMaterial(1,"models/gsgtrainprops/auxlights/lens_glass_red")
+        holoMaterial(3,"models/debug/debugwhite")
+        holoMaterial(5,"models/gsgtrainprops/auxlights/lens_glass")
+        holoDisableShading(1,0)
+        holoDisableShading(3,1)
+        holoDisableShading(5,0)
+    }
+}
+elseif(!SwitchPos){
+    spriteSetAlpha(0,0)
+    holoMaterial(1,"models/gsgtrainprops/auxlights/lens_glass_red")
+    holoMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+    holoMaterial(5,"models/gsgtrainprops/auxlights/lens_glass")
+    holoDisableShading(1,0)
+    holoDisableShading(3,0)
+    holoDisableShading(5,0)
+}

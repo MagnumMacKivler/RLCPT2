@@ -1,4 +1,4 @@
-@name TCL Advanced Tri-Beam Class Light
+@name TCL Tri-Beam GMDD Class Splights
 @inputs SwitchPos
 @outputs 
 @persist E:entity 
@@ -8,10 +8,13 @@
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
 #                                                                               #
-# Hello and welcome to the TCL Advanced Tri-Beam Class Light E2! This E2 uses   #
+# Hello and welcome to the TCL Tri-Beam Class Splight System! This E2 uses   	#
 # a new sprite- and submaterial- based lighting system (developed with help     #
 # from Monkatraz) to simulate the tri-beam class lights found on mid- to        #
 # late-era North American diesel locomotives.                                   #
+#                                                                               #
+# This version is the standard horizontal tri-beam arrangement, as found on     #
+# GMDD London built locomotives and most CN/CP rebuilds.                        #
 #                                                                               #
 # This accessory is designed to be used in tandem with TCL Advanced Class Light #
 # Controller V2.                                                                #
@@ -21,13 +24,9 @@
 #       it to be placed on your locomotive.                                     #
 #   2)  Use the Precision Move tool (or Physgun) to position the E2 and parent  #
 #       it to your locomotive. Repeat this process for each class light.        #
-#   3)  Choose whether or not you want to keep the silver base plate - GMDD     #
-#       London builds and most CP/CN rebuilds had them. ALCos and MLWs had      #
-#       the same orientation of lights, but with lenses mounted directly to     #
-#       the carbody with gaskets rather than mounted on a separate plate.       #
-#   4)  Wire the SwitchPos input to the output of the same name on your Class   #
+#   3)  Wire the SwitchPos input to the output of the same name on your Class   #
 #       Light Controller, or any other wire device that outputs from 0 to 3.    #
-#   5)  Cycle through a few times to test, make sure you've parented everything #
+#   4)  Cycle through a few times to test, make sure you've parented everything #
 #       and enjoy!                                                              #
 #                                                                               #
 # SUPER thanks to Monkatraz for help with development and optimization!         #
@@ -37,60 +36,53 @@
 #         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
 #-------------------------------------------------------------------------------#
 
-Baseplate=0 #Change to 1 to make the baseplate invisible and draw gaskets around the lenses (ALCo/MLW style)
-
 #####
 
 if(first() | dupefinished()){ 
 
 E=entity()
 
-if(Baseplate){
-        E:setSubMaterial(0,"models/proppertextures/invisible")
-        holoCreate(2)
-        holoParent(2,E)
-        holoModel(2,"models/sprops/geometry/t_fdisc_12.mdl")
-        holoMaterial(2,"models/proppertextures/rubber")
-        holoScale(2,vec(0.48))
-        holoAng(2,E:toWorld(ang(0,90,0)))
-        holoPos(2,E:toWorld(vec(0,0,0)))
-        holoCreate(3)
-        holoParent(3,E)
-        holoModel(3,"models/sprops/geometry/t_fdisc_12.mdl")
-        holoMaterial(3,"models/proppertextures/rubber")
-        holoScale(3,vec(0.48))
-        holoAng(3,E:toWorld(ang(0,90,0)))
-        holoPos(3,E:toWorld(vec(0,-6,0)))
-        holoCreate(4)
-        holoParent(4,E)
-        holoModel(4,"models/sprops/geometry/t_fdisc_12.mdl")
-        holoMaterial(4,"models/proppertextures/rubber")
-        holoScale(4,vec(0.48))
-        holoAng(4,E:toWorld(ang(0,90,0)))
-        holoPos(4,E:toWorld(vec(0,6,0)))
-    }
-    elseif(!Baseplate){
-        E:setSubMaterial(0,"models/gsgtrainprops/auxlights/light_class")
-    }
+    holoCreate(2)
+    holoParent(2,E)
+    holoModel(2,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(2,"models/proppertextures/rubber")
+    holoScale(2,vec(0.44))
+    holoAng(2,E:toWorld(ang(0,90,0)))
+    holoPos(2,E:toWorld(vec(0,6,0)))
+    holoCreate(3)
+    holoParent(3,E)
+    holoModel(3,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(3,"models/proppertextures/rubber")
+    holoScale(3,vec(0.44))
+    holoAng(3,E:toWorld(ang(0,90,0)))
+    holoPos(3,E:toWorld(vec(0,0,0)))
+    holoCreate(4)
+    holoParent(4,E)
+    holoModel(4,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(4,"models/proppertextures/rubber")
+    holoScale(4,vec(0.44))
+    holoAng(4,E:toWorld(ang(0,90,0)))
+    holoPos(4,E:toWorld(vec(0,-6,0)))
+	
 }
 
-spriteEnable(0,1)
-spriteSpawn(0,"sprites/light_glow01")
-spriteSetParent(0,E)
-spriteSetScale(0,0.5)
+    spriteEnable(0,1)
+    spriteSpawn(0,"sprites/light_glow01")
+    spriteSetParent(0,E)
+    spriteSetScale(0,0.5)
 
-holoCreate(1)
-holoParent(1,E)
-holoModel(1,"models/gsgtrainprops/parts/auxlights/class_light_gmdd.mdl")
-holoEntity(1):setSubMaterial(1,"models/proppertextures/invisible")
-holoDisableShading(1,1)
+    holoCreate(1)
+    holoParent(1,E)
+    holoModel(1,"models/gsgtrainprops/parts/auxlights/class_light_gmdd.mdl")
+    holoEntity(1):setSubMaterial(1,"models/proppertextures/invisible")
+    holoDisableShading(1,1)
 
 if(SwitchPos){
     if(SwitchPos==1){
         spriteSetColor(0,vec(200))
         spriteSetPos(0,E:toWorld(vec(1,6,0)))
         spriteSetAlpha(0,255)
-        holoEntity(1):setColor(vec(200))
+        holoColor(1,vec(200))
         holoEntity(1):setSubMaterial(2,"models/proppertextures/invisible")
         holoEntity(1):setSubMaterial(3,"models/proppertextures/invisible")
         holoEntity(1):setSubMaterial(4,"models/debug/debugwhite")
@@ -102,7 +94,7 @@ if(SwitchPos){
         spriteSetColor(0,vec(200,0,0))
         spriteSetPos(0,E:toWorld(vec(1,-6,0)))
         spriteSetAlpha(0,255)
-        holoEntity(1):setColor(vec(200,0,0))
+        holoColor(1,vec(200,0,0))
         holoEntity(1):setSubMaterial(2,"models/proppertextures/invisible")
         holoEntity(1):setSubMaterial(3,"models/debug/debugwhite")
         holoEntity(1):setSubMaterial(4,"models/proppertextures/invisible")
@@ -114,7 +106,7 @@ if(SwitchPos){
         spriteSetColor(0,vec(100,200,100))
         spriteSetPos(0,E:toWorld(vec(1,0,0)))
         spriteSetAlpha(0,255)
-        holoEntity(1):setColor(vec(50,100,50))
+        holoColor(1,vec(125,255,125))
         holoEntity(1):setSubMaterial(2,"models/debug/debugwhite")
         holoEntity(1):setSubMaterial(3,"models/proppertextures/invisible")
         holoEntity(1):setSubMaterial(4,"models/proppertextures/invisible")

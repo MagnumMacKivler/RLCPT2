@@ -1,6 +1,6 @@
-@name TCL Advanced Class Light Controller V2
+@name TCL Tri-Beam Class Splight Controller
 @inputs Pod:entity NextWeapon PrevWeapon ThirdPerson
-@outputs RGB:vector TB_Wht:vector TB_Red:vector TB_Grn:vector SwitchPos
+@outputs RGB:vector [TB_Wht TB_Red TB_Grn]:vector SwitchPos
 @persist E:entity Driver:entity Position Unlock SwitchUp:string SwitchDown:string
 @persist [Colour1 Colour2 Colour3]:vector
 @trigger NextWeapon PrevWeapon
@@ -9,41 +9,30 @@
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
 #                                                                               #
-# Hello and welcome to TCL's Advanced Class Light Controller!                   #
+# Hello and welcome to TCL's Advanced Class Splight Controller! This type of    #
+# rotary switch can be found in pretty much any mid- to late-era diesel that    #
+# has tri-beam (white/red/green) class lights.                                  #
 #                                                                               #
-# This E2 was hacked together from code from the Headlight Controller E2, with  #
-# the output split amongst four colour-changing RGB values for class lights.    #
+# This controller E2 is designed to work in tandem with the TCL Advanced        #
+# Tri-Beam Class Splight system.                                                #
 #                                                                               #
-# This type of rotary class light switch can be found in pretty much any        #
-# mid- to late-era Canadian diesel that has tri-beam class lights.              #
+# Setup:                                                                        #
+#   1)  Spawn and position this E2 somewhere accessible from your engineer's    #
+#       seat. ** It must be visible from the seat to be used. **                #
+#   2)  Spawn, position and parent your Class Splight E2s - see their code for  #
+#       any special instructions.                                               #
+#   3)  Wire all inputs on this E2 to their respective outputs on your Pod.     #
+#   4)  Wire the SwitchPos output to your Class Splight E2s.                    #
+#   5)  Cycle through the positions by aiming at the E2 and rolling your mouse  #
+#       wheel up and down.                                                      #
+#   6)  Make sure you parent everything, and enjoy!                             #
 #                                                                               #
-# This version can also work in tandem with the TCL Advanced Tri-Beam Class     #
-# Light E2. For setup of that system, see that E2.                              #
-#                                                                               #
-# Setup Instructions for Wire Lights (legacy method)                            #
-#   1)  Spawn and position your class lights on your locomotive. This E2 is     #
-#       very versatile, capable of controlling pretty much any tri-beam class   #
-#       light arrangement you can throw at it.                                  #
-#   2)  Spawn Wire Lights (with NO boxes checked - important!) over the lenses  #
-#       of your class light props.                                              #
-#   3)  Wire the TB_Wht, TB_Red and TB_Grn vector outputs to each respective    #
-#       Light. The separate "RGB" output can be used for in-cab indicators, or  #
-#       can be linked to the class light inputs in LOCOS.                       #
-#   4)  Wire all four inputs on the switch E2 to the respective outputs of      #
-#       your Pod Controller.                                                    #
-#   5)  Use the grid on the back of the E2 to position the switch wherever you  #
-#       like in your cab.                                                       #
-#   6)  Use whichever method you like to make the Wire Lights invisible.        #
-#   7)  Don't forget to test and parent everything when you're done!            #
-#                                                                               #
-# Setup Tips:                                                                   #
-#     - When placing your class lights, you can use Model Manipulator to swap   #
-#       the Wire Light's model to the prop you want to use, saving possible     #
-#       headaches with lining it up on top of the prop itself. Note that your   #
-#       mileage may vary with this technique.                                   #
-#     - Not sure where to place your class light switches? Older Canadian       #
-#       locomotives usually have a small extension built onto the left of the   #
-#       control stand, directly adjacent to the brake controls, to house them.  #
+#   Tip- Not sure where to place your class light switches? Older Canadian      #
+#   locomotives usually have a small extension built onto the left of the       #
+#   control stand, directly adjacent to the brake controls, where the light     #
+#   controls can be found. More modern locomotives with desktop stands have     #
+#   them positioned overhead airliner style, or on the front face of the        #
+#   console underneath the Engine Run/Gen Field/Fuel Pump triple switches.      #
 #                                                                               #
 # SUPER thanks to Monkatraz for help with development and optimization!         #
 #                                                                               #
@@ -58,14 +47,14 @@ if(first() | dupefinished()){
 SwitchUp = "trans_train_sounds/buttons/toggle_switch1_on.wav"
 SwitchDown = "trans_train_sounds/buttons/toggle_switch1_off.wav"
 
-#Colours
+#Colours (note - will not change the colours of Advanced Class Light E2s)
 Colour1 = vec(200)
 Colour2 = vec(200,0,0)
 Colour3 = vec(100,200,100)
 
 E=entity()
 E:setBodygroup(2,1)
-E:setMaterial("models/proppertextures/plastic_white")
+E:setMaterial("models/proppertextures/plastic_black")
 
 #Holo Base
 
@@ -151,3 +140,20 @@ if(Position==3){
     TB_Wht = TB_Red = vec(0)
     SwitchPos = 3
 }
+
+## Setup Instructions for Wire Lights (legacy method) ##
+#
+#   1)  Spawn and position your class lights on your locomotive. This E2 is
+#       very versatile, capable of controlling pretty much any tri-beam class
+#       light arrangement you can throw at it.
+#   2)  Spawn Wire Lights (with NO boxes checked - important!) over the lenses
+#       of your class light props.
+#   3)  Wire the TB_Wht, TB_Red and TB_Grn vector outputs to each respective
+#       Light. The separate "RGB" output can be used for in-cab indicators, or
+#       can be linked to the class light inputs in LOCOS.
+#   4)  Wire all four inputs on the switch E2 to the respective outputs of
+#       your Pod Controller.
+#   5)  Use the grid on the back of the E2 to position the switch wherever you
+#       like in your cab.
+#   6)  Use whichever method you like to make the Wire Lights invisible.
+#   7)  Don't forget to test and parent everything when you're done!

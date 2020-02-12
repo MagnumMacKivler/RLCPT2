@@ -1,7 +1,7 @@
 @name TCL 3 in 1 Quillable Horn and Bell
 @inputs Horn Quill Bell
 @outputs [Horn_On Horn_Off]:string [Quill_On Quill_Off]:string [Bell_On Bell_Off]:string HQ QQ BQ
-@persist [Horn_On Horn_Off Quill_On Quill_Off Bell_On Bell_Off]:string BellPitch QuillPitch HornPitch HQ QQ BQ [H1 H2 Q1 Q2 B1 B2]:entity HornVol QuillVol BellVol Fade
+@persist [Horn_On Horn_Off Quill_On Quill_Off Bell_On Bell_Off]:string BellPitch QuillPitch HornPitch HQ QQ BQ [H1 H2 Q1 Q2 B1 B2]:entity HornVol QuillVol BellVol
 @trigger Horn Quill Bell
 
 #-------------------------------------------------------------------------------#
@@ -58,11 +58,8 @@ if(first()|duped()){
     Bell_Off = "trans_train_sounds/bells/gmdd_bronze_bell_end.wav"
     BellPitch = 100
     BellVol = 0.5
-
-    # Fade is left over from Magnum's E2. I dunno what it does, so I left it alone.
-    Fade = 0
     
-# Experienced users only beyond this point, please.
+## Experienced users only beyond this point ##
     
     # Don't touch any of this, it won't work if you do.
     H1 = entity()
@@ -88,67 +85,42 @@ if(Horn & !HQ){
     HQ = 1
     H1:soundPlay(1,0,Horn_On)
     H2:soundPlay(2,0,Horn_On)
-    soundPitch(1,HornPitch)
-    soundPitch(2,HornPitch)
-    soundVolume(1,HornVol)
-    soundVolume(2,HornVol)
 }elseif(!Horn & HQ){
     HQ = 0
-    if(Fade){
-        soundStop(1,0)
-        soundStop(2,0)
-    }else{
-        H1:soundPlay(1,0,Horn_Off)
-        H2:soundPlay(2,0,Horn_Off)
-        soundPitch(1,HornPitch)
-        soundPitch(2,HornPitch)
-        soundVolume(1,HornVol)
-        soundVolume(2,HornVol)
-    }
+    H1:soundPlay(1,0,Horn_Off)
+    H2:soundPlay(2,0,Horn_Off)
 }
 
 if(Quill & !QQ){
     QQ = 1
     Q1:soundPlay(3,0,Quill_On)
     Q2:soundPlay(4,0,Quill_On)
-    soundPitch(3,QuillPitch)
-    soundPitch(4,QuillPitch)
-    soundVolume(3,QuillVol)
-    soundVolume(4,QuillVol)
 }elseif(!Quill & QQ){
     QQ = 0
-    if(Fade){
-        soundStop(3,0)
-        soundStop(4,0)
-    }else{
-        Q1:soundPlay(3,0,Quill_Off)
-        Q2:soundPlay(4,0,Quill_Off)
-        soundPitch(3,QuillPitch)
-        soundPitch(4,QuillPitch)
-        soundVolume(3,QuillVol)
-        soundVolume(4,QuillVol)
-    }
+    Q1:soundPlay(3,0,Quill_Off)
+    Q2:soundPlay(4,0,Quill_Off)
 }
 
 if(Bell & !BQ){
     BQ = 1
     B1:soundPlay(5,0,Bell_On)
     B2:soundPlay(6,0,Bell_On)
-    soundPitch(5,BellPitch)
-    soundPitch(6,BellPitch)
-    soundVolume(5,BellVol)
-    soundVolume(6,BellVol)
 }elseif(!Bell & BQ){
     BQ = 0
-    if(Fade){
-        soundStop(5,0)
-        soundStop(6,0)
-    }else{
-        B1:soundPlay(5,0,Bell_Off)
-        B2:soundPlay(6,0,Bell_Off)
-        soundPitch(5,BellPitch)
-        soundPitch(6,BellPitch)
-        soundVolume(5,BellVol)
-        soundVolume(6,BellVol)
-    }
+    B1:soundPlay(5,0,Bell_Off)
+    B2:soundPlay(6,0,Bell_Off)
 }
+
+soundVolume(1,HornVol)
+soundVolume(2,HornVol)
+soundVolume(3,QuillVol)
+soundVolume(4,QuillVol)
+soundVolume(5,BellVol)
+soundVolume(6,BellVol)
+
+soundPitch(1,HornPitch)
+soundPitch(2,HornPitch)
+soundPitch(3,QuillPitch)
+soundPitch(4,QuillPitch)
+soundPitch(5,BellPitch)
+soundPitch(6,BellPitch)
