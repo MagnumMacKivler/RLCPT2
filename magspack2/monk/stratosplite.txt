@@ -1,13 +1,13 @@
 @name magspack2/monk/StratoSplite
 @inputs On
-@persist E:entity Speed T Version:string
+@persist E:entity Speed T
 @model models/anytrains/props/detail/beacon.mdl
 
 if(first() | duped()){
     
     # Made by Monkatraz
     # From: https://github.com/MagnumMacKivler/RLCPT2
-    # V1.0
+    # V1.1 | Changes: Removed update checking ironically
     
     # StratoSplite: Simple Stratolite E2 using Spritecore. Requires nothing else but an "On" input.
     # Requires Spritecore: https://steamcommunity.com/sharedfiles/filedetails/?id=811333794
@@ -24,14 +24,8 @@ if(first() | duped()){
     # CONFIG DONE
     
     E = entity()
+    setName("StratoSplite V1.1")
     E:setColor(BaseColor)
-    # versioning
-    Version = "1.0"
-    setName("StratoSplite V1.0")
-    #ifdef httpClk()
-        httpRequest("https://raw.githubusercontent.com/MagnumMacKivler/RLCPT2/master/magspack2/mp2_versions.txt")
-        runOnHTTP(1)
-    #endif
     
     # thank u mr.magnum
     function number supersine(Min, Max, Theta){
@@ -90,34 +84,3 @@ if(On & clk()){
     T += 18/(Speed)
     if(T > 360){T -= 360}
 }
-
-# versioning
-#ifdef httpClk()
-    if(httpClk()){
-        local Table = table()
-        local ItemName = "StratoSplite"
-        local FileData = httpData()
-        local Items = FileData:explode("item:")
-        local TestForLength = ItemName:length()
-        for(N=2,Items:count()){
-            local Item = Items[N,string]
-            if(Item:left(TestForLength)==ItemName){ #This your item!
-                local Lines = Item:explode("\n")
-                for(M=2,Lines:count()){
-                    if(Lines[M,string]!=""){
-                        local LineText = Lines[M,string]:explode(":")
-                        Table[LineText[1,string],string] = LineText[2,string]
-                    }
-                }
-                break
-            }
-        }
-        if(Table:count() != 0){
-            local MP2Version = Table["version",string]:explode(".")
-            local Version = Version:explode(".")
-            local Major = MP2Version[1,string]:toNumber() > Version[1,string]:toNumber()
-            local Minor = MP2Version[2,string]:toNumber() > Version[2,string]:toNumber() & !(MP2Version[1,string]:toNumber() < Version[1,string]:toNumber())
-            if(Major | Minor){ setName("StratoSplite V1.0\nUpdate Available: V"+Table["version",string]) }
-        }
-    }
-#endif

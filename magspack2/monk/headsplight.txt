@@ -1,7 +1,7 @@
 @name magspack2/monk/HeadSplight
 @inputs On RGB:vector Lamp:entity
 @persist DefaultRGB:vector HeadLightColor:vector RGBBoost NearScale FarScale NearSprite:string FarSprite:string
-@persist Version:string E:entity NoModel TrueRGB:vector Lights:array LampPos:vector LampAng:angle LightSub LightOnMat:string NearSprites:array FarSprites:array LampWirelink:wirelink LampCache:entity
+@persist E:entity NoModel TrueRGB:vector Lights:array LampPos:vector LampAng:angle LightSub LightOnMat:string NearSprites:array FarSprites:array LampWirelink:wirelink LampCache:entity
 @model models/gsgtrainprops/parts/headlights/headlight_twinbeam_plate.mdl
 #@model models/gsgtrainprops/parts/headlights/headlight_twinbeam_large.mdl
 #@model models/gsgtrainprops/parts/headlights/headlight_singlebeam_plate.mdl
@@ -19,7 +19,7 @@ if(first() | duped()){
     
     # Made by Monkatraz
     # From: https://github.com/MagnumMacKivler/RLCPT2
-    # V1.0
+    # V1.1 | Changes: Knocked out the update checker ironically
     
     # HeadSplight: Effectively a generic wire light replacement that supports automatic lamp attachment. Comes with much less FPS cost than a wire light.
     # This supports bodygroups and submaterials - when you change the bodygroups, reset the chip.
@@ -52,10 +52,6 @@ if(first() | duped()){
     
     # CONFIG DONE
     # INIT
-    
-    Version = "1.0"
-    #include "magspack2/includes/updatelib"
-    startRequest()
     
     E = entity()
     setName("HeadSplight V1.0")
@@ -261,11 +257,3 @@ tickLight()
 if(changed(->Lamp) & ->Lamp){ reset() } # wiring lamp after chip start
 if(clk("parent")){ Lamp:parentTo(E) }
 if((changed(!->Lamp) & !->Lamp) | last()){ LampCache:deparent(), LampCache:setAlpha(255), LampCache = noentity() }
-if(updateClk()){
-    local Table = getUpdateTable("HeadSplight")
-    local MP2Version = Table["version",string]:explode(".")
-    local Version = Version:explode(".")
-    local Major = MP2Version[1,string]:toNumber() > Version[1,string]:toNumber()
-    local Minor = MP2Version[2,string]:toNumber() > Version[2,string]:toNumber() & !(MP2Version[1,string]:toNumber() < Version[1,string]:toNumber())
-    if(Major | Minor){ setName("HeadSplight V1.0\nUpdate Available: V"+Table["version",string]) }
-}
