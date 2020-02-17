@@ -1,0 +1,268 @@
+@name magspack2/includes/rattlecan2_text_definitions
+@persist Text2DFonts:table Text3DExtra:table TextKerning:table
+
+# Text3D
+    
+Text3DExtra[".",string] = "prd"
+Text3DExtra[",",string] = "com"
+Text3DExtra[":",string] = "colon"
+Text3DExtra[";",string] = "scolon"
+Text3DExtra["?",string] = "qmark"
+Text3DExtra["!",string] = "xmark"
+Text3DExtra["\"",string] = "quote"
+Text3DExtra["~",string] = "tilde"
+Text3DExtra["<",string] = "lessthan"
+Text3DExtra[">",string] = "greaterthan"
+Text3DExtra["_",string] = "underscore"
+Text3DExtra["@",string] = "atsign"
+Text3DExtra["#",string] = "pdsign"
+Text3DExtra["$",string] = "dlsign"
+Text3DExtra["%",string] = "pcnt"
+Text3DExtra["^",string] = "crt"
+Text3DExtra["&",string] = "and"
+Text3DExtra["'",string] = "apost"
+Text3DExtra["(",string] = "lpar"
+Text3DExtra[")",string] = "rpar"
+Text3DExtra["[",string] = "lbracket"
+Text3DExtra["]",string] = "rbracket"
+Text3DExtra["{",string] = "lcbracket"
+Text3DExtra["}",string] = "rcbracket"
+Text3DExtra["|",string] = "bar"
+Text3DExtra["+",string] = "plu"
+Text3DExtra["-",string] = "min"
+Text3DExtra["*",string] = "ast"
+Text3DExtra["/",string] = "div"
+Text3DExtra["=",string] = "equal"
+
+TextKerning[".",number] = 6
+TextKerning["-",number] = 6
+TextKerning[",",number] = 6
+TextKerning[":",number] = 6
+TextKerning[";",number] = 6
+TextKerning["!",number] = 6
+TextKerning["\"",number] = 8
+TextKerning["@",number] = 14
+TextKerning["%",number] = 16
+TextKerning["'",number] = 6
+TextKerning["(",number] = 8
+TextKerning[")",number] = 8
+TextKerning["[",number] = 8
+TextKerning["]",number] = 8
+TextKerning["{",number] = 8
+TextKerning["}",number] = 8
+TextKerning["=",number] = 14
+
+TextKerning["E",number] = 10
+TextKerning["F",number] = 10
+TextKerning["I",number] = 7
+TextKerning["J",number] = 8
+TextKerning["L",number] = 10
+TextKerning["P",number] = 10
+TextKerning["S",number] = 10
+TextKerning["W",number] = 16
+
+TextKerning["1",number] = 10
+TextKerning["c",number] = 9
+TextKerning["d",number] = 10
+TextKerning["e",number] = 9
+TextKerning["f",number] = 8
+TextKerning["g",number] = 10
+TextKerning["i",number] = 6
+TextKerning["j",number] = 7
+TextKerning["l",number] = 6
+TextKerning["m",number] = 14
+TextKerning["o",number] = 9
+TextKerning["p",number] = 10
+TextKerning["q",number] = 10
+TextKerning["r",number] = 9
+TextKerning["s",number] = 10
+TextKerning["t",number] = 8
+TextKerning["u",number] = 10
+TextKerning["v",number] = 10
+TextKerning["w",number] = 14
+TextKerning["y",number] = 10
+TextKerning["z",number] = 9
+
+TextKerning[" ",number] = 8
+   
+# text2d
+    
+# Text2DFonts
+#   Font = text2DGenerateDefaultFont(Filepath:string)
+#   Font["Capitals",number] = number # if 1, it capitalizes input, if -1, it lowercases input
+#   Font["TexCapitals",number] = number # if 1, it kerns as if capitals, if -1, it kerns as if lower
+#   Font["a",string] = filepath:string
+#   Font["A",string] = filepath:string
+#   ...
+
+# fonts
+# spold - done
+# spolddrop - done
+# rrnumber1 - done
+# rrnumber2 - done
+# rrnumber3 - done
+# eag - done
+# jersey_interstate - done
+# dot - done
+# m3henry - done
+# northernatlantic - done
+# northernatlantic_old - done
+# smq - done
+# sylfaen - done
+# futura - done
+# futura_bold - done
+# nssteam
+# railroad_roman_1916 - done
+# staatsspoorwegen
+# univers - done
+
+Text2DFonts = table()
+
+function table text2DGenerateFont(Filepath:string,Characters:string){
+    local Font = table()
+    foreach(K,Char:string=Characters:explode("")){
+        Font[Char,string] = Filepath + Char
+    }
+    return Font
+}
+
+local Font = table() # we'll continously reuse the same table so we aren't leaving tables everywhere
+
+#univers
+Font:clear()
+Font = text2DGenerateFont("fonts/univers/","1234567890abcdx")
+Font["Capitals",number] = -1 # lowercase
+Font["TexCapitals",number] = 1 # uppercase
+Font["-",string] = "fonts/univers/dash"
+Text2DFonts["univers",table] = Font:clone()
+
+#railroad_roman_1916
+Font:clear()
+Font = text2DGenerateFont("fonts/railroad_roman_1916/","1234567890abcdefghijklmnopqrstuvwxyz")
+Font["Capitals",number] = -1 # lowercase
+Font["TexCapitals",number] = 1 # uppercase
+Font["&",string] = "fonts/univers/and"
+Text2DFonts["railroad_roman_1916",table] = Font:clone()
+
+#m3henry
+Font:clear()
+Font = text2DGenerateFont("m3henry/font/numberplate/","1234567890abcdefghijklmnopqrstuvwxyz")
+Font["Capitals",number] = -1
+Font["TexCapitals",number] = 1
+Text2DFonts["m3henry",table] = Font:clone()
+
+#eag
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/eag/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["eag",table] = Font:clone()
+
+#rrnumber1
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/rrnumber1/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["rrnumber1",table] = Font:clone() 
+
+#rrnumber2
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/rrnumber2/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["rrnumber2",table] = Font:clone()
+
+#rrnumber5
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/rrnumber5/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["rrnumber5",table] = Font:clone()
+
+#spold
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/spold/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["spold",table] = Font:clone()
+
+#spolddrop
+Font:clear()
+Font = text2DGenerateFont("models/monkcabdetailpack/numbers/spold/drop","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["spolddrop",table] = Font:clone()
+
+#jersey_interstate
+Font:clear()
+Font = text2DGenerateFont("pains textures/numbers/jersey_intersate/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["jersey_interstate",table] = Font:clone()
+
+#dot
+Font:clear()
+Font = text2DGenerateFont("models/proppertextures/dot_num_","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["dot",table] = Font:clone()
+
+#northernatlantic
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/northernatlantic/numbers/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["northernatlantic",table] = Font:clone()
+
+#northernatlantic_old
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/northernatlantic/numbers_old/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["northernatlantic_old",table] = Font:clone()
+
+#smq
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/smq/numbers/","1234567890-abcdfrs")
+Font["Capitals",number] = -1
+Font["TexCapitals",number] = 1
+Text2DFonts["smq",table] = Font:clone()
+
+#futura
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/generic/numbers_futura/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["futura",table] = Font:clone()
+
+#futura_bold
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/generic/numbers_futura_bold/","1234567890")
+Font["Capitals",number] = 0
+Font["TexCapitals",number] = 0
+Text2DFonts["futura_bold",table] = Font:clone()
+
+#sylfaen
+Font:clear()
+Font = text2DGenerateFont("railwaylogos/generic/font_sylfaen/","1234567890abcdefghijklmnopqrstuvwxyz-")
+Font["Capitals",number] = -1
+Font["TexCapitals",number] = 1
+Text2DFonts["sylfaen",table] = Font:clone()
+
+#nssteam
+Font:clear()
+Font = text2DGenerateFont("fonts/ns/steam/","1234567890abcdnsx")
+Font["Capitals",number] = -1
+Font["TexCapitals",number] = 1
+Font["-",string] = "fonts/univers/dash"
+Font["m",string] = "fonts/univers/no" # bit hidden
+Text2DFonts["nssteam",table] = Font:clone()
+
+#staatsspoorwegen
+Font:clear()
+Font = text2DGenerateFont("fonts/staatsspoorwegen/","1234567890abcdx")
+Font["Capitals",number] = -1
+Font["TexCapitals",number] = 1
+Font["-",string] = "fonts/univers/dash"
+Font["m",string] = "fonts/univers/no" # bit hidden
+Text2DFonts["staatsspoorwegen",table] = Font:clone()
