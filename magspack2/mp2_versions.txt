@@ -14,7 +14,7 @@ version_config:0.10.0
 changelog:None
 
 item:HeadSplight
-version:1.0
+version:1.1
 
 item:StratoSplite
-version:1.0
+version:1.1
