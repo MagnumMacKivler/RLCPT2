@@ -8,10 +8,10 @@ version_config:0.12.0
 changelog:None
 
 item:Rattlecan 2
-version:0.10.0
+version:0.10.1
 version_name:Lightning Stripe
 version_config:0.10.0
-changelog:None
+changelog:Fixed annoyances/bugs and made materialing/coloring objects work a lot better
 
 item:HeadSplight
 version:1.1

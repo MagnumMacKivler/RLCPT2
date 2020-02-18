@@ -1,7 +1,7 @@
 @name magspack2/monk/RATTLECAN 2
 @inputs Base:entity
 @outputs RunningNumber:string OutputHolos:array Scheme:table Ops
-@persist [START_SCHEME PREFIX CUBE_MODEL PLANE_MODEL]:string SOUNDS IGNORE_COLOR:vector AUTOSAVE_INTERVAL DISABLE_MULTIPLE_RATTLECAN_HANDLING BASE_CONSTANTLY_SCAN # config
+@persist [START_SCHEME PREFIX CUBE_MODEL PLANE_MODEL]:string SOUNDS AUTOSAVE_INTERVAL DISABLE_MULTIPLE_RATTLECAN_HANDLING BASE_CONSTANTLY_SCAN # config
 @persist [RCMode VERSION VERSION_NAME VERSION_CONFIG RunningNumberForced]:string [E O]:entity CurName:array NotReady InEdit Rattlecans:gtable MultipleRattlecans # state
 @persist [LoadFile NewLoadFile]:string SchemeLoaded SavingFile AutosaveNum # loading and saving
 @persist [RenderQueue RenderKeys RenderKeysObjects]:table RenderStep RenderStage RenderKeysDone RenderObjectsPrepared RenderObjectsPrepareType RenderObjectsOrder:array # rendering
@@ -22,7 +22,7 @@ if(NotReady){exit()}
 
 if(clk("start")){
     
-    # V0.10.0 Beta Release: "Lightning Stripe"
+    # V0.10.1 Beta Release: "Lightning Stripe"
     # Made by Monkatraz | Discord: Monkatraz#7929
     # If you find a bug you can reproduce, please DM me on Discord.
     # Wiki: https://github.com/MagnumMacKivler/RLCPT2/wiki/RATTLECAN2
@@ -34,9 +34,17 @@ if(clk("start")){
     DISABLE_MULTIPLE_RATTLECAN_HANDLING = 0 # if 1, RC2 won't care about other Rattlecan chips being out
     BASE_CONSTANTLY_SCAN = 1 # Scan constantly for new bodygroups and submaterials? You have to refresh the scheme otherwise.
     
-    IGNORE_COLOR = vec(101,135,255) # Color that is ignored when doing autoset colors. Set this to your PA color, usually.
     CUBE_MODEL = "models/sprops/cuboids/height12/size_1/cube_12x12x12.mdl"
     PLANE_MODEL = "models/sprops/rectangles_thin/size_3/rect_24x24x1_5.mdl"
+    
+    # Changelog for V0.10.1
+    # Made custom bodygroups on sections work correctly
+    # Made the E2 name "Beta" instead of "Alpha"
+    # Made it so that when you're holding the E2 input can't be disabled (prevents input disabling when rotating the chip)
+    # Key R is now detected correctly
+    # Changed how coloring/materialing objects work so that doing it with the toolgun is now instant
+    # Coloring with toolgun also pulls the Alpha now
+    # Made clips constantly check if you're looking at them so the preview is less confusing
     
     # INIT
     
@@ -54,7 +62,6 @@ if(clk("start")){
     # consider turning [x y z] vectors automatically into [x,y,z] vars with certain commands
     # .undo
     # PTH pulls submaterials and bodygroups
-    # make alpha color autoscanned
     # make edit file saving cleaner, and add make .op request a save
     # considering making tovector return something that isn't -1 for invalid vectors
     # .destroy
@@ -79,14 +86,14 @@ if(clk("start")){
     E:setColor(vec(0,255,0))
     O = owner()
     
-    VERSION = "0.10.0"
+    VERSION = "0.10.1"
     VERSION_NAME = "Lightning Stripe"
     VERSION_CONFIG = "0.10.0"
     
     RCMode = "LOAD"
     RunningNumberForced = ""
     InEdit = 0
-    CurName = array("RATTLECAN 2 ["+RCMode+"]","[ALPHA] V" + VERSION + ": \"" + VERSION_NAME + "\"","[NO SCHEME LOADED]")
+    CurName = array("RATTLECAN 2 ["+RCMode+"]","[BETA] V" + VERSION + ": \"" + VERSION_NAME + "\"","[NO SCHEME LOADED]")
     
     RunningNumber = "0000"
     OutputHolos = array()
@@ -141,7 +148,7 @@ if(clk("start")){
     runOnChat(1)
     runOnFile(1)
     runOnLast(1)
-    runOnKeys(O,1,array("e"))
+    runOnKeys(O,1,array("e","r","mouse_left"))
     propSpawnUndo(0)
     
     # VERSIONING
@@ -574,19 +581,6 @@ if(clk("start")){
                     local Ang = round(Base:toLocal(Prop:angles()),3)
                     Object["POS",vector] = Pos
                     Object["ANG",angle] = Ang
-                    # materials and colors
-                    local Material = Prop:getMaterial()
-                    if(Material != "models/wireframe"){
-                        Object["MATERIAL",string] = Material
-                        holoMaterial(n(ID),Material)
-                        Prop:setMaterial("models/wireframe")
-                    }
-                    local Color = Prop:getColor()
-                    if(Color != vec(254) & Color != IGNORE_COLOR){
-                        Object["COLOR",vector] = Color
-                        holoColor(n(ID),Color)
-                        Prop:setColor(vec(254))
-                    }
                     # mirror handling
                     #if(hasMirror(ID) & (LastPos != Pos | LastAng != Ang)){ addTask(1,"mirrorApply",array(ID,Object["MIRROR",string])) }
                     updateMirror(ID) # some performance cost doing this
@@ -852,6 +846,7 @@ if(clk("start")){
             case "HOVER",
                 if(!SchemeEdit["CLIP_PREVIEW",number]){ # already previewed?
                     local Prop = getProp(ID)
+                    if(O:aimEntity() != Prop){ return } # have to do this here because of the repeating function stuff
                     local Clips = clipGetAssigned(SelectedObject)
                     local Valid = get(SelectedObject)["TYPE",string]:validFrom(array("section","holo","decal"))
                     local AlreadyClipped = Scheme["CLIPS_ASSIGNED",table][SelectedObject,table]:exists(ID)
@@ -876,6 +871,7 @@ if(clk("start")){
                     }elseif(Valid & !AlreadyClipped & Clips:count() >= ClipsAvailable){ # can't preview, too many clips
                         Prop:setColor(vec(255,0,0))
                     }
+                    addTask(1,"clip",array(ID,"HOVER"),250) # effectively repeating the hover function because of how the preview works
                 }
             break
             case "UNHOVER",
@@ -1191,7 +1187,6 @@ if(clk("start")){
                     EditTable["ID",number] = Prop:id()
                     SchemeEdit["holo",table][ID,table] = EditTable
                     EditorComponents[Prop:id(),string] = ID
-                    Prop:setColor(vec(254)) # bit of a trick to catch full white when coloring
                     Prop:setMaterial("models/wireframe")
                     noCollideAll(Prop,1)
                     holoParent(Index,Prop)
@@ -1305,7 +1300,6 @@ if(clk("start")){
                     EditTable["ID",number] = Prop:id()
                     SchemeEdit["decal",table][ID,table] = EditTable
                     EditorComponents[Prop:id(),string] = ID
-                    Prop:setColor(vec(254)) # bit of a trick to catch full white when coloring
                     Prop:setMaterial("models/wireframe")
                     noCollideAll(Prop,1)
                     holoParent(Index,Prop)
@@ -1561,7 +1555,6 @@ if(clk("start")){
                         EditTable["ID",number] = Prop:id()
                         SchemeEdit[Type,table][ID,table] = EditTable
                         EditorComponents[Prop:id(),string] = ID
-                        Prop:setColor(vec(254)) # bit of a trick to catch full white when coloring
                         Prop:setMaterial("models/wireframe")
                         noCollideAll(Prop,1)
                         holoParent(Index,Prop)
@@ -1691,17 +1684,6 @@ if(clk("start")){
                     local Ang = round(Base:toLocal(Prop:angles()),3)
                     Text2D["POS",vector] = Pos
                     Text2D["ANG",angle] = Ang
-                    # materials and colors
-                    local Material = Prop:getMaterial()
-                    if(Material != "models/wireframe"){
-                        Prop:setMaterial("models/wireframe")
-                    }
-                    local Color = Prop:getColor()
-                    if(Color != vec(254) & Color != IGNORE_COLOR){
-                        Text2D["COLOR",vector] = Color
-                        Prop:setColor(vec(254))
-                        text2d(ID,"REFRESH")
-                    }
                     # mirror handling
                     if(hasMirror(ID) & (LastPos != Pos | LastAng != Ang)){ addTask(1,"mirrorApply",array(ID,Text2D["MIRROR",string])) }
                 }else{ # prop deleted
@@ -1778,19 +1760,6 @@ if(clk("start")){
                     local Ang = round(Base:toLocal(Prop:angles()),3)
                     Text3D["POS",vector] = Pos
                     Text3D["ANG",angle] = Ang
-                    # materials and colors
-                    local Material = Prop:getMaterial()
-                    if(Material != "models/wireframe"){
-                        Text3D["MATERIAL",string] = Material
-                        Prop:setMaterial("models/wireframe")
-                        text3d(ID,"REFRESH")
-                    }
-                    local Color = Prop:getColor()
-                    if(Color != vec(254) & Color != IGNORE_COLOR){
-                        Text3D["COLOR",vector] = Color
-                        Prop:setColor(vec(254))
-                        text3d(ID,"REFRESH")
-                    }
                     # mirror handling
                     if(hasMirror(ID) & (LastPos != Pos | LastAng != Ang)){ addTask(1,"mirrorApply",array(ID,Text3D["MIRROR",string])) }
                 }else{ # prop deleted
@@ -1970,7 +1939,9 @@ if(clk("start")){
     function setBodygroupSections(Args:array){
         local Bodygroup = Args[1,vector2]
         foreach(K,V:table=get("section")){
-            holoBodygroup(n(K),Bodygroup:x(),Bodygroup:y())
+            if(!V["BODYGROUPS",table]:exists(Bodygroup:x():toString())){
+                holoBodygroup(n(K),Bodygroup:x(),Bodygroup:y())
+            }
         }
     }
     function sectionsSetBodygroups(){
@@ -2015,6 +1986,7 @@ if(clk("start")){
                     holoAng(IDN,Base:angles())
                     holoParent(IDN,Base)
                     clipsApply(ID)
+                    setBodygroups(ID)
                     Base:rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode == "RENDER" ? 0 : 100)
                     SectionStep = 1
                     if(RCMode != "RENDER"){ addTask(1,"section",array(ID,"RENDER")) } # render out second step if not in render
@@ -2447,7 +2419,7 @@ if(clk("start")){
                     holoAlpha(1,0) # if we're looking at a section, its a certainty to hide the editor holo
                 }
             }else{
-                if(LastHoveredEnt != AimEnt){
+                if((LastHoveredEnt != AimEnt)){
                     local Object = get(EditorComponents[AimEnt,string])
                     addTask(1,Object["TYPE",string],array(EditorComponents[AimEnt,string],"HOVER"),20) # hovers take slightly longer than unhovers (race condition)
                 }
@@ -3109,51 +3081,84 @@ if(clk("start")){
 }
 
 # key block
-elseif(keyClk()){
-    if(RCMode == "EDIT" & !O:isTyping() & O:weapon():type() == "weapon_crowbar"){
-        Key_E = Key_E ? Key_E : O:keyPressed("e") # can only turn on, not off
-        editControlLoop(array(0)) # shouldn't hurt anything? hopefully?
-    }
-    if(RCMode == "OPERATION" & O:keyPressed("e") & O:aimEntity() == E){
-        InputDisabled = !InputDisabled
-        rcprint("info",InputDisabled ? "Input disabled." : "Input enabled.")
-        E:setColor(InputDisabled ? vec(0,255,255) : vec(0,255,0))
-        E:rcPlay("use",1,"buttons/button7.wav")
-    }
-    # prop to holo is entirely handled here
-    if(RCMode == "PTH" & !O:isTyping() & O:weapon():type() == "weapon_crowbar"){
+elseif(keyClk(O) == 1){ # only positive presses
+    if(!O:isTyping() & !O:keyPressed("q")){ # negate typing and spawn menu
+        local UsingWeapon = O:weapon():type() == "weapon_crowbar"
         local AimEnt = O:aimEntity()
-        local Key_E = O:keyPressed("e")
-        local Key_R = O:keyPressed("r")
-        
-        if(Key_R){
-            foreach(K,V:vector4=PTHOriginalColors){
-                entity(K):setColor(V)
-            }
-            PTHOriginalColors:clear()
-            PTHProps:clear()
-            O:rcPlay("pth",1,"garrysmod/content_downloaded.wav",60)
+        local Key = keyClkPressed()
+        if(RCMode == "EDIT" & UsingWeapon & Key == "e"){
+            Key_E = 1
+            editControlLoop(array(0)) # shouldn't hurt anything? hopefully?
         }
-        
-        if(Key_E & AimEnt:isValid() & AimEnt:type() == "prop_physics" & AimEnt != Base){
-            local AlreadyAdded = 0
-            foreach(K,V:entity=PTHProps){
-                if(V == AimEnt){ 
-                    AlreadyAdded = 1
-                    PTHProps:remove(K)
-                    break 
+        if(RCMode == "EDIT" & Key == "mouse_left" & EditorComponents:exists(AimEnt:id()) & O:weapon():type() == "gmod_tool" & AimEnt != Base){ # coloring/materialing objects
+            if(O:tool():validFrom(array("colour","material","submaterial"))){
+                local ID = EditorComponents[AimEnt:id(),string]
+                local Object = get(ID)
+                switch(O:tool()){
+                    case "colour",
+                        local Color = AimEnt:getColor()
+                        local Alpha = AimEnt:getAlpha()
+                        Object["COLOR",vector] = Color
+                        Object["ALPHA",number] = Alpha
+                        AimEnt:setColor(vec(255))
+                        AimEnt:setAlpha(255)
+                        switch(Object["TYPE",string]){
+                            case "decal", case "holo", holoColor(n(ID),Color), holoAlpha(n(ID),Alpha) break
+                            case "text2d", text2d(ID,"REFRESH") break
+                            case "text3d", text3d(ID,"REFRESH") break
+                        }
+                    break
+                    case "material", case "submaterial",
+                        local Material = AimEnt:getMaterial()
+                        AimEnt:setMaterial("models/wireframe")
+                        switch(Object["TYPE",string]){
+                            case "decal", case "holo", holoMaterial(n(ID),Material), Object["MATERIAL",string] = Material break
+                            case "text3d", Object["MATERIAL",string] = Material, text3d(ID,"REFRESH") break
+                        }
+                    break
                 }
             }
-            if(AlreadyAdded){
-                AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",90)
-                AimEnt:setColor(PTHOriginalColors[AimEnt:id(),vector4])
-                PTHOriginalColors:remove(AimEnt:id())
+        }
+        if(RCMode == "OPERATION" & Key == "e" & AimEnt == E & !E:isPlayerHolding()){
+            InputDisabled = !InputDisabled
+            rcprint("info",InputDisabled ? "Input disabled." : "Input enabled.")
+            E:setColor(InputDisabled ? vec(0,255,255) : vec(0,255,0))
+            E:rcPlay("use",1,"buttons/button7.wav")
+        }
+        # prop to holo is entirely handled here
+        if(RCMode == "PTH" & UsingWeapon){
+            local Key_E = Key == "e"
+            local Key_R = Key == "r"
+            
+            if(Key_R){
+                foreach(K,V:vector4=PTHOriginalColors){
+                    entity(K):setColor(V)
+                }
+                PTHOriginalColors:clear()
+                PTHProps:clear()
+                O:rcPlay("pth",1,"garrysmod/content_downloaded.wav",60)
             }
-            if(!AlreadyAdded){
-                AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",100)
-                PTHProps:pushEntity(AimEnt)
-                PTHOriginalColors[AimEnt:id(),vector4] = AimEnt:getColor4()
-                AimEnt:setColor(vec4(0,255,0,200))
+            
+            if(Key_E & AimEnt:isValid() & AimEnt:type() == "prop_physics" & AimEnt != Base){
+                local AlreadyAdded = 0
+                foreach(K,V:entity=PTHProps){
+                    if(V == AimEnt){ 
+                        AlreadyAdded = 1
+                        PTHProps:remove(K)
+                        break 
+                    }
+                }
+                if(AlreadyAdded){
+                    AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",90)
+                    AimEnt:setColor(PTHOriginalColors[AimEnt:id(),vector4])
+                    PTHOriginalColors:remove(AimEnt:id())
+                }
+                if(!AlreadyAdded){
+                    AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",100)
+                    PTHProps:pushEntity(AimEnt)
+                    PTHOriginalColors[AimEnt:id(),vector4] = AimEnt:getColor4()
+                    AimEnt:setColor(vec4(0,255,0,200))
+                }
             }
         }
     }
