@@ -1,0 +1,46 @@
+@name TCL Random Sound System MLT
+@inputs Pod:entity MPH
+@outputs Timer
+@persist [S1 S2 S3 S4 S5 S6 S7]:string Timer Sound:string
+@trigger none
+
+#Maple Leaf Tracks style random sounds.
+#Wire Pod and MPH, parent and enjoy.
+#Warning: Severe levels of immersion and/or MSTS nostalgia may result from prolonged use.
+#TCL <3
+
+if(first()|dupefinished()){
+
+S1 = "gsgtrainsounds/wheels/wheels_random1.wav"
+S2 = "gsgtrainsounds/wheels/wheels_random2.wav"
+S3 = "gsgtrainsounds/wheels/wheels_random3.wav"
+S4 = "gsgtrainsounds/wheels/wheels_random4.wav"
+S5 = "gsgtrainsounds/wheels/wheels_random5.wav"
+S6 = "gsgtrainsounds/wheels/wheels_random6.wav"
+S7 = "gsgtrainsounds/wheels/wheels_random7.wav"
+
+soundVolume(0,0.8)
+
+Timer=1
+
+}
+
+interval(1000)
+
+if(MPH>=10){
+    
+Timer--
+    
+entity():setColor(0,255,0)
+
+if(Timer<=0){
+    Sound=select(randint(0,6),S1,S2,S3,S4,S5,S6,S7)
+    Pod:soundPlay(0,0,Sound)
+    Timer=randint(8,15)
+}
+
+}else{
+
+entity():setColor(255,255,255)
+
+}

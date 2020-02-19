@@ -1,0 +1,39 @@
+@name TCL Random Sound System R8TS
+@inputs Pod:entity MPH
+@outputs Timer
+@persist [Sound1 Sound2 Sound3]:string Timer Sound:string
+@trigger none
+
+#Run8 Train Simulator random flange squeals.
+#Wire Pod and MPH, parent and enjoy.
+#TCL <3
+
+if(first()|dupefinished()){
+
+Sound1 = "trans_train_sounds/misc/run8_flangenoise1.wav"
+Sound2 = "trans_train_sounds/misc/run8_flangenoise2.wav"
+Sound3 = "trans_train_sounds/misc/run8_flangenoise3.wav"
+
+Timer=1
+
+}
+
+interval(1000)
+
+if(MPH>=10){
+    
+Timer--
+    
+entity():setColor(0,255,0)
+
+if(Timer<=0){
+    Sound=select(randint(0,2),Sound1,Sound2,Sound3)
+    Pod:soundPlay(0,0,Sound)
+    Timer=randint(8,15)
+}
+
+}else{
+
+entity():setColor(255,255,255)
+
+}
