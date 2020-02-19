@@ -1,0 +1,92 @@
+@name magspack2/tcl/TCL Digital Ring Speedo EGP Deluxe
+@inputs EGP:wirelink MPH
+@persist MPHR:string MPHD:string
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Canadian Digital Speedometer EGP!                  #
+#                                                                               #
+# This EGP simulates the "ring" style speedometer commonly found in Canadian    #
+# locomotives, with an added digital readout for operational simplicity. Now    #
+# featuring a sub-10mph decimal readout because why the hell not! Also got rid  #
+# of the big clunky model that just made everything difficult.                  #
+#                                                                               #
+# Requires Trans' Train Stuff on the Workshop to function properly, otherwise   #
+# you'll just see random shapes on a blank screen.                              #
+#                                                                               #
+# Installation Instructions:                                                    #
+# 1) Spawn this E2 somewhere accessible for wiring.                             #
+# 2) Spawn an EGP screen.                                                       #
+# 3) Wire the EGP wirelink to the screen, and wire MPH from your RLC            #
+#    chip to the E2's MPH input.                                                #
+# 4) Place the screen in your cab wherever you like.                            #
+# 5) You're done! Don't forget to parent the E2 and screen to your engine!      #
+#                                                                               #
+# Tip- You can use Model Manipulator (or Set Model in the context menu) to      #
+#      change your screen's model to any square object. Beware however that     #
+#      Wire screen rendering isn't consistent - it could end up on any side of  #
+#      a given object. Note that Sprops plates do function perfectly.           #
+#                                                                               #
+# This E2 was heavily inspired by the LOCOS system.                             #
+#                                                                               #
+# Happy Railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+#LED ring
+EGP:egpWedge(1,vec2(256),vec2(256))
+EGP:egpColor(1,vec(255,200,0))
+EGP:egpAngle(1,225.6)
+EGP:egpSize(1,-1-round(MPH)*272/100)
+EGP:egpOrder(1,1)
+
+#always-on 0 LED
+EGP:egpCircle(2,vec2(92,426),vec2(5))
+EGP:egpColor(2,vec(255,200,0))
+EGP:egpOrder(2,2)
+
+#speedometer base layer
+EGP:egpBox(3,vec2(256),vec2(512))
+EGP:egpMaterial(3,"trans_train_stuff/cabstuff/cdnspeedo/egp_baselayer")
+EGP:egpOrder(3,3)
+
+#speedometer lit feature layer (MPH readings, green LEDs, red "power" LED)
+EGP:egpBox(4,vec2(256),vec2(512))
+EGP:egpMaterial(4,"trans_train_stuff/cabstuff/cdnspeedo/egp_numberlayer")
+EGP:egpOrder(4,4)
+
+#digital readout
+
+#math shit
+MPHR=round(MPH):toString()
+MPHD=MPH:toString()
+
+#large numbers
+EGP:egpText(5,"0",vec2(223,240))
+EGP:egpFont(5,"Lucida Console",60)
+EGP:egpColor(5,vec(255,200,0))
+
+#small numbers (sub-10mph decimal)
+EGP:egpText(6,".0",vec2(256,263))
+EGP:egpFont(6,"Lucida Console",30)
+EGP:egpColor(6,vec(255,200,0))
+
+if(MPH>0){
+    if(MPH<99){
+        if(MPH>9.9){
+            EGP:egpSetText(5,MPHR)
+            EGP:egpSetText(6,"")
+        }elseif(MPH<=9.9){
+            EGP:egpSetText(5,MPHD[1])
+            EGP:egpSetText(6,"."+MPHD[3])
+        }
+    }elseif(MPH>=99){
+        EGP:egpSetText(5,"XX")
+        EGP:egpSetText(6,"")
+    }
+}else{
+        EGP:egpSetText(5,"0")
+        EGP:egpSetText(6,".0")
+}
