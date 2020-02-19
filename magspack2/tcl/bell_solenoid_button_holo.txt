@@ -1,4 +1,4 @@
-@name magspack2/tcl/Bell Solenoid Button Holo
+@name Bell Solenoid Button Holo
 @inputs BellToggle
 @outputs Bell
 @persist ButtonType BellType ButtonMaterial:string Bell E:entity Q

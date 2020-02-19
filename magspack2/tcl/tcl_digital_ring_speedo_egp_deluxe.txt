@@ -1,4 +1,4 @@
-@name magspack2/tcl/TCL Digital Ring Speedo EGP Deluxe
+@name TCL Digital Ring Speedo EGP Deluxe
 @inputs EGP:wirelink MPH
 @persist MPHR:string MPHD:string
 
