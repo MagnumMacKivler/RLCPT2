@@ -4,7 +4,7 @@
 @persist [START_SCHEME PREFIX CUBE_MODEL PLANE_MODEL]:string SOUNDS AUTOSAVE_INTERVAL DISABLE_MULTIPLE_RATTLECAN_HANDLING BASE_CONSTANTLY_SCAN # config
 @persist [RCMode VERSION VERSION_NAME VERSION_CONFIG RunningNumberForced]:string [E O]:entity CurName:array NotReady InEdit Rattlecans:gtable MultipleRattlecans # state
 @persist [LoadFile NewLoadFile]:string SchemeLoaded SavingFile AutosaveNum # loading and saving
-@persist [RenderQueue RenderKeys RenderKeysObjects]:table RenderStep RenderStage RenderKeysDone RenderObjectsPrepared RenderObjectsPrepareType RenderObjectsOrder:array # rendering
+@persist [RenderQueue RenderKeys RenderKeysObjects]:table RenderStep RenderStage RenderKeysDone RenderObjectsPrepared RenderObjectsPrepareType RenderObjectsOrder:array RenderCancel # rendering
 @persist [GetLast SchemeEdit EditorComponents]:table [SelectedObject RefreshSpecific]:string LastHoveredEnt LastAimPos:vector WasHit EditRunningLoop ClipsAvailable RefreshObjects:array Key_E # edit
 @persist [ClipHolos SectionLastSubs SectionLastBodygroups]:array TextStep SectionNumMaterials SectionStep SectionValidStep # module edit
 @persist [PTHProps PTHOriginalColors]:array # prop to holo
@@ -22,7 +22,7 @@ if(NotReady){exit()}
 
 if(clk("start")){
     
-    # V0.11.0 Beta Release: "War Bonnet"
+    # V0.11.1 Beta Release: "War Bonnet"
     # Made by Monkatraz | Discord: Monkatraz#7929
     # If you find a bug you can reproduce, please DM me on Discord.
     # Wiki: https://github.com/MagnumMacKivler/RLCPT2/wiki/RATTLECAN-2
@@ -37,20 +37,24 @@ if(clk("start")){
     CUBE_MODEL = "models/sprops/cuboids/height12/size_1/cube_12x12x12.mdl"
     PLANE_MODEL = "models/sprops/rectangles_thin/size_3/rect_24x24x1_5.mdl"
     
-    # Changelog for Beta V0.11.0 "War Bonnet"
-    # Fixed wiki link because 1. Github auto renamed it and 2. I'm stupid sorry about
-    # Experimentally added section mirroring (May have introduced a lot of bugs!)
-    # Added a safety to the task system that may or may not prevent some script errors
-    # Setting a running number now actually refreshes it
-    # Probably fixed the last of the clip preview bugs
-    # Slowed down the editor clock rate because it didn't need to be that fast
-    # Fixed green editor holo position when you had an offset
-    # Fixed putting spaces in places where it expected commas causing malformed objects (I think)
+    # Changelog for Beta V0.11.1 "War Bonnet"
+    # You can now switch between EDIT and OPERATION while the scheme is rendering
+    # Added a warning for when you likely adv. duped your contraption while in EDIT mode
+    # Fixed a script error related to selected objects
+    # Added render cancelling to the backend
+    # Fixed issues with saving/loading when scheme was rendering
+    # Added a safety to Object Prep. that should hopefully prevent some script errors
+    # Made it so that the last filename is stored in the scheme
+    # Added a warning for when you recieve a duped version of Rattlecan 2 that your duped scheme is not saved
+    # AutosaveNum only increases if the save was successful
+    # Fixed automatic "nn_[filename]" scheme names
+    # Changed some of the update checker print messages
+    # Fixed .create decal [material] not working
     
     # Known Issues:
     # Clip previews are not constantly checked
     # Chip may randomly tick quota, appears to be only in edit mode
-    # Occasional missing object during Render Preparation, as well as a unknown safety-caught task
+    # Occasional missing object during Render Preparation
     # Chip runs a bit hot sometimes
     # In EDIT mode, mirrored sections may not line up perfectly (may be unsolvable), however the issue is entirely visual and goes away in OPERATION
     
@@ -58,14 +62,13 @@ if(clk("start")){
     
     # who knows when
     # add russian font
-    # automatic dupe warnings
     # pa mirror warnings
     # rotating scheme
     # position undo
     
     # V1.0.0 "Pin Stripe"
+    # finish wiki
     # automatic nan discovery and retification
-    # render cancelling
     # nicer sub list and bodygroup listing
     # consider turning [x y z] | [x, y, z] vectors automatically into [x,y,z] vars with certain commands
     # .undo
@@ -77,7 +80,13 @@ if(clk("start")){
     # allow multiple rattlecan command handling to be forced (.force) ?
     # rattlecan renderer (separate E2)
     # clip mirroring ?
-    
+    # .bend for decals
+    # add config auto-updater (can update a scheme progressively)
+    # maybe make mirrors automatically apply a clip to section
+    # add CLIP_VIRTUAL
+    #   object virtual clip = array(clip pos, clip axis)
+    # add "clipCount(ID)" to take into account virtual clips
+
     # passes
     # performance pass 2 (may not be actually required)
     # clean up scheme get calls
@@ -89,7 +98,7 @@ if(clk("start")){
     E:setColor(vec(0,255,0))
     O = owner()
     
-    VERSION = "0.11.0"
+    VERSION = "0.11.1"
     VERSION_NAME = "War Bonnet"
     VERSION_CONFIG = "0.10.0"
     
@@ -151,7 +160,7 @@ if(clk("start")){
     runOnChat(1)
     runOnFile(1)
     runOnLast(1)
-    runOnKeys(O,1,array("e","r","mouse_left"))
+    runOnKeys(O,1,array("e","r","mouse_left","mouse_right"))
     propSpawnUndo(0)
     
     # VERSIONING
@@ -414,8 +423,12 @@ if(clk("start")){
     if(Scheme:count() != 0){
         DupeLoaded = 1
         rcprint("info","Sucessfully started. Loading stored scheme from dupe.")
+        LoadFile = Scheme["MISC",table]["filename",string]
         SchemeLoaded = 1
         addTask(1,"schemeRender")
+        # checking if dupe file exists
+        runOnList(1)
+        fileList(">e2shared/rattlecan2/")
     }
     if(fileCanLoad() & !DupeLoaded){
         addTask(1,"schemeLoad",array(START_SCHEME))
@@ -517,7 +530,9 @@ if(clk("start")){
     function objectSelect(ID:string){
         if(SelectedObject != ""){
             local Old = get(SelectedObject)
-            Old["TYPE",string](Old["ID",string],"UNSELECT")
+            if(Old["TYPE",string]){ # safety for invalid selectedobject (may have been deleted)
+               Old["TYPE",string](Old["ID",string],"UNSELECT")
+            }else{ print(_HUD_PRINTCONSOLE,"[RATTLECAN 2] Averted running \"UNSELECT\" on missing object!") }
         }
         SelectedObject = ID
     }
@@ -1388,7 +1403,7 @@ if(clk("start")){
                 Decal["SCALE",vector2] = vec2(1)
                 Decal["COLOR",vector] = vec(255)
                 Decal["ALPHA",number] = 255
-                Decal["MATERIAL",string] = ""
+                Decal["MATERIAL",string] = Tokens[3,string]
                 Decal["MIRROR",string] = ""
                 Decal["OFFSET",vector] = vec(0)
                 Scheme["OBJECTS",table]["decal",table][ID,table] = Decal
@@ -2197,11 +2212,12 @@ if(clk("start")){
     function number save(Filename:string,Autosave){
         if(Filename != ""){
             if(fileCanWrite() & SchemeLoaded){
-                if(Scheme["MISC",table]["NAME",string]:explode("_")[1,string] == "nn"){
-                    Scheme["MISC",table]["NAME",string] = "nn_" + Filename # default scheme name if we have no name
+                if(Scheme["MISC",table]["name",string]:explode("_")[1,string] == "nn"){
+                    Scheme["MISC",table]["name",string] = "nn_" + Filename # default scheme name if we have no name
                 }
                 local SaveString = Autosave ? ">e2shared/rattlecan2/autosave/" + Filename + ".txt" : ">e2shared/rattlecan2/" + Filename + ".txt",
                 fileWrite(SaveString, vonEncode(Scheme))
+                if(!Autosave){ Scheme["MISC",table]["filename",string] = Filename }
                 return 1
             }else{
                 return 0
@@ -2209,6 +2225,7 @@ if(clk("start")){
         }else{
             if(fileCanWrite() & SchemeLoaded){
                 fileWrite(">e2shared/rattlecan2/" + LoadFile + ".txt", vonEncode(Scheme))
+                Scheme["MISC",table]["filename",string] = Filename
                 return 1
             }else{
                 return 0
@@ -2219,7 +2236,7 @@ if(clk("start")){
     function number autosave(){
         if(AutosaveNum == 11){ AutosaveNum = 1 }
         local Success = save(LoadFile + "_" + AutosaveNum,1)
-        AutosaveNum++
+        if(Success){ AutosaveNum++ }
         return Success
     }
     
@@ -2276,7 +2293,23 @@ if(clk("start")){
         EditorComponents:clear()
     }
     
+    function schemeCancelReset(){ RenderCancel = 0 }
+    function schemeRenderCancel(){ # cancels rendering the scheme, and then restarts it
+        RCMode = "RENDER_RESTART"
+        rcName(1,"RATTLECAN 2 | [RESTARTING RENDER]")
+        rcName(3,"RESTARTING")
+        schemeDestroy()
+        soundStop("renderidle")
+        Base:rcPlay("renderdone",1,"npc/roller/mine/rmine_blip1.wav")
+        RefreshSpecific = ""
+        RefreshObjects = array()
+        RenderStage = 1
+        addTask(1,"schemeCancelReset",900)
+        RenderCancel = 1
+    }
+    
     function schemeRender(Stage){
+        if(RenderCancel){ return }
         if(RCMode != "RENDER"){
             if(SOUNDS){
                 soundPlay("renderidle",0,"ambient/levels/labs/equipment_printer_loop1.wav") 
@@ -2353,7 +2386,14 @@ if(clk("start")){
                         local NumObjects = Objects:count()
                         local ID = Objects[RenderStep,string]
                         local Object = ObjectTable[ID,table]
-                        Object["TYPE",string](ID,"PREPARE")
+                        if(Object["TYPE",string] != ""){
+                            Object["TYPE",string](ID,"PREPARE")
+                        }else{
+                            rcprint("error","Caught bad object! Restarting... | RenderStep = " + RenderStep + " | RenderObjectsPrepareType = " + RenderObjectsPrepareType)
+                            schemeRenderCancel()
+                            addTask(1,"schemeRender",1000)
+                            return
+                        }
                         RenderStep++
                         if(RenderStep > NumObjects){
                             if(RenderObjectsPrepareType == RenderObjectsOrder:count() | IsSpecific){ # we iterate through the table until we go through every type, thats how we go in order
@@ -2469,11 +2509,12 @@ if(clk("start")){
         local Misc = Scheme["MISC",table]
         Misc["basecolor",vector] = vec(255)
         Misc["name",string] = "nn_none"
+        Misc["filename",string] = ""
         Misc["version",string] = VERSION_CONFIG
         Misc["runningnumber",string] = "0000"
         Misc["rn_random",number] = 0
         Misc["rn_range",string] = "0000-1000"
-        
+
         schemeRender()
     }
     
@@ -2613,6 +2654,7 @@ if(clk("start")){
     
     function startEdit(){
         EditRunningLoop = 1
+        SelectedObject = ""
         editSaveLoop(array(1))
         editControlLoop(array(1))
         startTaskLoop("AUTOSAVE","autosave",AUTOSAVE_INTERVAL*1000)
@@ -2631,6 +2673,7 @@ if(clk("start")){
     
     function stopEdit(){
         EditRunningLoop = 0
+        SelectedObject = ""
         stopTaskLoop("AUTOSAVE")
         stopTaskLoop("sectionmirrorscan")
         holoDelete(2)
@@ -2793,31 +2836,32 @@ if(clk("start")){
             case "edit",
                 if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
                 if(RCMode == "EDIT"){ rcprint("warning","Already in \"EDIT\" mode!"), break }
-                if(RCMode == "RENDER"){ rcprint("warning","Wait for render to finish before switching modes!"), break }
-                if(RCMode != "OPERATION"){ rcprint("warning", "Can't switch to \"EDIT\" right now!") break }
+                if(RCMode == "RENDER" & !InEdit){ schemeRenderCancel() }
+                elseif(RCMode != "OPERATION"){ rcprint("warning", "Can't switch to \"EDIT\" right now!") break }
                 RCMode = "EDIT"
                 InEdit = 1
                 rcName(1,"RATTLECAN 2 | [EDIT]")
                 rcprint("info","Loading editor...")
-                addTask(1,"schemeRender")
+                addTask(1,"schemeRender",1000)
             break
             case "op",
             case "oper",
             case "operation",
                 if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
                 if(RCMode  == "OPERATION"){ rcprint("warning","Already in \"OPERATION\" mode!"), break }
-                if(RCMode == "RENDER"){ rcprint("warning","Wait for render to finish before switching modes!"), break }
-                if(RCMode != "EDIT"){ rcprint("warning", "Can't switch to \"OPERATION\" right now!") break }
+                if(RCMode == "RENDER" & InEdit){ schemeRenderCancel() }
+                elseif(RCMode != "EDIT"){ rcprint("warning", "Can't switch to \"OPERATION\" right now!") break }
                 RCMode = "OPERATION"
                 InEdit = 0
                 rcName(1,"RATTLECAN 2 | [OPERATION]")
                 rcprint("info","Deleting editor components, refreshing scheme...")
                 stopEdit()
-                addTask(1,"schemeRender")
+                addTask(1,"schemeRender",1000)
             break
             case "saveas",
             case "save",
                 if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode == "RENDER"){ rcprint("warning","Wait for render to finish before saving!"), break }
                 if(Tokens[2,string] != ""){
                     if(!InEdit){
                         if(save(Tokens[2,string],0)){
@@ -2844,6 +2888,7 @@ if(clk("start")){
                 }
             break
             case "load",
+                if(RCMode == "RENDER"){ rcprint("warning","Wait for render to finish before loading a new scheme!"), break }
                 if(Tokens[2,string] != ""){
                     if(fileCanLoad()){
                         rcprint("info","Loading file: " + Tokens[2,string])
@@ -3233,14 +3278,22 @@ if(clk("start")){
 # key block
 elseif(keyClk(O) == 1){ # only positive presses
     if(!O:isTyping() & !O:keyPressed("q")){ # negate typing and spawn menu
-        local UsingWeapon = O:weapon():type() == "weapon_crowbar"
+        local WeaponType = O:weapon():type()
+        local UsingCrowbar = WeaponType == "weapon_crowbar"
         local AimEnt = O:aimEntity()
         local Key = keyClkPressed()
-        if(RCMode == "EDIT" & UsingWeapon & Key == "e"){
+        # selecting objects
+        if(RCMode == "EDIT" & UsingCrowbar & Key == "e"){
             Key_E = 1
             editControlLoop(array(0)) # shouldn't hurt anything? hopefully?
         }
-        if(RCMode == "EDIT" & Key == "mouse_left" & EditorComponents:exists(AimEnt:id()) & O:weapon():type() == "gmod_tool" & AimEnt != Base){ # coloring/materialing objects
+        # adv dupe 2 warnings
+        if(RCMode == "EDIT" & Key == "mouse_right" & WeaponType == "gmod_tool" & O:tool() == "advdupe2"){
+            if(AimEnt == Base | AimEnt == E){ rcprint("warning", "You shouldn't save the contraption while in \"EDIT\" mode!") }
+            elseif(O:aimPos():distance(E:pos()) < 450){ rcprint("warning", "Did you just save your contraption? You shouldn't do that in \"EDIT\" mode!") }
+        }
+        # coloring / materialing objects
+        if(RCMode == "EDIT" & Key == "mouse_left" & EditorComponents:exists(AimEnt:id()) & WeaponType == "gmod_tool" & AimEnt != Base){
             if(O:tool():validFrom(array("colour","material","submaterial"))){
                 local ID = EditorComponents[AimEnt:id(),string]
                 local Object = get(ID)
@@ -3269,6 +3322,7 @@ elseif(keyClk(O) == 1){ # only positive presses
                 }
             }
         }
+        # input disabling
         if(RCMode == "OPERATION" & Key == "e" & AimEnt == E & !E:isPlayerHolding()){
             InputDisabled = !InputDisabled
             rcprint("info",InputDisabled ? "Input disabled." : "Input enabled.")
@@ -3276,7 +3330,7 @@ elseif(keyClk(O) == 1){ # only positive presses
             E:rcPlay("use",1,"buttons/button7.wav")
         }
         # prop to holo is entirely handled here
-        if(RCMode == "PTH" & UsingWeapon){
+        if(RCMode == "PTH" & UsingCrowbar){
             local Key_E = Key == "e"
             local Key_R = Key == "r"
             
@@ -3316,7 +3370,13 @@ elseif(keyClk(O) == 1){ # only positive presses
 elseif(sentCommandClk()){
     addTask(2,"handleCommand",array(O:lastSaid()))
 }
-
+elseif(fileListClk()){
+    local Files = fileReadList()
+    local Filename = Scheme["MISC",table]["filename",string] + ".txt"
+    if(!Filename:validFrom(Files)){
+        rcprint("warning","Dupe loaded file \"" + Filename + "\" wasn't found in your saves folder! You should probably save it.")
+    }
+}
 elseif(fileClk()){
     if(RCMode == "LOAD"){
         local Status = fileStatus()
@@ -3377,22 +3437,22 @@ if(httpClk()){
             local Minor = SplitNew[3,number] > SplitOld[3,number]
             
             if(SuperMajor){ 
-                rcprint("info","SUPER MAJOR update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChangelog:")
+                rcprint("info","SUPER MAJOR update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
                 E:rcPlay("updatesound",5,"ambient/music/country_rock_am_radio_loop.wav",150)
                 E:rcPlay("updatesound2",5,"ambient/music/country_rock_am_radio_loop.wav",150)
                 E:rcPlay("updatesoundsupermajor",5,"misc/boring_applause_1.wav")
             }elseif(Major){ 
-                rcprint("info","Major update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChangelog:")
+                rcprint("info","Major update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
                 E:rcPlay("updatesound",5,"misc/happy_birthday_tf_25.wav",125)
                 E:rcPlay("updatesoundsupermajor",5,"misc/clap_single_2.wav")
             }elseif(Minor){ 
-                rcprint("info","Minor update available. New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChangelog:")
+                rcprint("info","Minor update available. New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
                 E:rcPlay("updatesound",2,"misc/happy_birthday_tf_16.wav")
             }
             
             printColor(vec(255),Changelog)
             
-            if(BreaksConfigs){ rcprint("warning","This update is not compatible with previous configurations!") }
+            if(BreaksConfigs){ rcprint("warning","This update is not compatible with your current scheme!") }
         }else{ print(_HUD_PRINTCONSOLE,"[RATTLECAN] Current version is up to date.") }
     }else{
         rcprint("warning","Could not find the version info online.")
