@@ -8,10 +8,10 @@ version_config:0.12.0
 changelog:None
 
 item:Rattlecan 2
-version:0.11.1
+version:0.11.2
 version_name:War Bonnet
 version_config:0.10.0
-changelog:Lots of bugfixes, some warnings added, switching between editor and operation when rendering is now allowed
+changelog:Even more bugfixes, some script errors negated, more reliable dupe loading
 
 item:HeadSplight
 version:1.1
