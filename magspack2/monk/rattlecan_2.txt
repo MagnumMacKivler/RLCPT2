@@ -2,7 +2,7 @@
 @inputs Base:entity
 @outputs RunningNumber:string OutputHolos:array Scheme:table Ops
 @persist [START_SCHEME PREFIX CUBE_MODEL PLANE_MODEL]:string SOUNDS AUTOSAVE_INTERVAL DISABLE_MULTIPLE_RATTLECAN_HANDLING BASE_CONSTANTLY_SCAN # config
-@persist [RCMode VERSION VERSION_NAME VERSION_CONFIG RunningNumberForced]:string [E O]:entity CurName:array NotReady InEdit Rattlecans:gtable MultipleRattlecans # state
+@persist [RCMode VERSION VERSION_NAME VERSION_CONFIG RunningNumberForced]:string [E O]:entity CurName:array NotReady InEdit Rattlecans:gtable MultipleRattlecans SchemeDupe:string # state
 @persist [LoadFile NewLoadFile]:string SchemeLoaded SavingFile AutosaveNum # loading and saving
 @persist [RenderQueue RenderKeys RenderKeysObjects]:table RenderStep RenderStage RenderKeysDone RenderObjectsPrepared RenderObjectsPrepareType RenderObjectsOrder:array RenderCancel # rendering
 @persist [GetLast SchemeEdit EditorComponents]:table [SelectedObject RefreshSpecific]:string LastHoveredEnt LastAimPos:vector WasHit EditRunningLoop ClipsAvailable RefreshObjects:array Key_E # edit
@@ -22,7 +22,7 @@ if(NotReady){exit()}
 
 if(clk("start")){
     
-    # V0.11.1 Beta Release: "War Bonnet"
+    # V0.11.2 Beta Release: "War Bonnet"
     # Made by Monkatraz | Discord: Monkatraz#7929
     # If you find a bug you can reproduce, please DM me on Discord.
     # Wiki: https://github.com/MagnumMacKivler/RLCPT2/wiki/RATTLECAN-2
@@ -37,26 +37,24 @@ if(clk("start")){
     CUBE_MODEL = "models/sprops/cuboids/height12/size_1/cube_12x12x12.mdl"
     PLANE_MODEL = "models/sprops/rectangles_thin/size_3/rect_24x24x1_5.mdl"
     
-    # Changelog for Beta V0.11.1 "War Bonnet"
-    # You can now switch between EDIT and OPERATION while the scheme is rendering
-    # Added a warning for when you likely adv. duped your contraption while in EDIT mode
-    # Fixed a script error related to selected objects
-    # Added render cancelling to the backend
-    # Fixed issues with saving/loading when scheme was rendering
-    # Added a safety to Object Prep. that should hopefully prevent some script errors
-    # Made it so that the last filename is stored in the scheme
-    # Added a warning for when you recieve a duped version of Rattlecan 2 that your duped scheme is not saved
-    # AutosaveNum only increases if the save was successful
-    # Fixed automatic "nn_[filename]" scheme names
-    # Changed some of the update checker print messages
-    # Fixed .create decal [material] not working
+    # Changelog for Beta V0.11.2 "War Bonnet"
+    # Changed how Rattlecan retrieves the scheme from duped contraptions to hopefully improve reliability
+    # Changed the print messages to show which Rattlecan (when you have multiple out) is printing to chat
+    # Fixed RenderCancel not being reset in the start block
+    # Fix a issue with repeated render cancels
+    # Fixed PTH mode not copying alpha correctly
+    # Fixed an issue with the section mirror clip loop
+    # Fixed a variety of issues caused by EDIT mode switching issues
+    # Added a safety to clip application so that the scheme will reset if a prop was deleted
+    # Fixed "Invaid name." typo with variable creation
+    # Changed some print messages with the script error safeties
+    # Made currently selected object handling less annoying with certain refreshes
     
     # Known Issues:
     # Clip previews are not constantly checked
-    # Chip may randomly tick quota, appears to be only in edit mode
-    # Occasional missing object during Render Preparation
-    # Chip runs a bit hot sometimes
-    # In EDIT mode, mirrored sections may not line up perfectly (may be unsolvable), however the issue is entirely visual and goes away in OPERATION
+    # Mirrored sections may not line up nicely if they're suppossed to (hard to fix)
+    # Pressing E with multiple rattlecans out queues the E press for the other rattlecans
+    # Occasionally object props and holos don't spawn when created/duplicated
     
     # INIT
     
@@ -86,6 +84,10 @@ if(clk("start")){
     # add CLIP_VIRTUAL
     #   object virtual clip = array(clip pos, clip axis)
     # add "clipCount(ID)" to take into account virtual clips
+    # make multiplerattlecans also accept looking at an editor component
+    # migrate autosave feature
+    # make bodygroup support x,y along with x y
+    # changing offset of a holo doesn't work right sometimes (holo position is also offset)
 
     # passes
     # performance pass 2 (may not be actually required)
@@ -98,9 +100,11 @@ if(clk("start")){
     E:setColor(vec(0,255,0))
     O = owner()
     
-    VERSION = "0.11.1"
+    VERSION = "0.11.2"
     VERSION_NAME = "War Bonnet"
     VERSION_CONFIG = "0.10.0"
+    
+    Scheme = table()
     
     RCMode = "LOAD"
     RunningNumberForced = ""
@@ -126,6 +130,7 @@ if(clk("start")){
     RenderObjectsPrepared = 0
     RenderObjectsPrepareType = 1
     RenderObjectsOrder = array("mirror","clip","section","holo","decal","text2d","text3d")
+    RenderCancel = 0
     
     GetLast = table()
     SchemeEdit = table()
@@ -195,10 +200,11 @@ if(clk("start")){
     rcName(0,"")
     
     function rcprint(Type:string,MSG:string){
+        local StartString = MultipleRattlecans ? "[RATTLECAN 2:" + (RunningNumber != "0000" ? RunningNumber : E:id():toString()) + " " : "[RATTLECAN 2" 
         switch(Type){
-            case "info", printColor(vec(0,255,0),"[RATTLECAN 2] ",vec(255),MSG) break
-            case "warning", printColor(vec(255,255,0),"[RATTLECAN 2 | WARNING] ",vec(255),MSG) break
-            case "error", printColor(vec(255,0,0),"[RATTLECAN 2 | ERROR] ",vec(255),MSG) break
+            case "info", printColor(vec(0,255,0),StartString + "] ",vec(255),MSG) break
+            case "warning", printColor(vec(255,255,0),StartString + "| WARNING] ",vec(255),MSG) break
+            case "error", printColor(vec(255,0,0),StartString + "| ERROR] ",vec(255),MSG) break
         }
     }
     
@@ -419,16 +425,21 @@ if(clk("start")){
     startTaskLoop("OWNER_CHECK","ownerCheck",10000)
     function ownerCheck(){ O = owner() }
     
-    local DupeLoaded = 0
-    if(Scheme:count() != 0){
-        DupeLoaded = 1
-        rcprint("info","Sucessfully started. Loading stored scheme from dupe.")
-        LoadFile = Scheme["MISC",table]["filename",string]
+    function dupeLoad(){
+        Scheme = vonDecodeTable(SchemeDupe)
         SchemeLoaded = 1
+        LoadFile = Scheme["MISC",table]["filename",string]
+        rcprint("info","Sucessfully started. Loading stored scheme from dupe.")
         addTask(1,"schemeRender")
         # checking if dupe file exists
         runOnList(1)
         fileList(">e2shared/rattlecan2/")
+    }
+    
+    local DupeLoaded = 0
+    if(SchemeDupe != ""){
+        DupeLoaded = 1
+        addTask(1,"dupeLoad",1000)
     }
     if(fileCanLoad() & !DupeLoaded){
         addTask(1,"schemeLoad",array(START_SCHEME))
@@ -790,6 +801,12 @@ if(clk("start")){
             local N=1
             foreach(K,V:number=clipGetAssigned(ID)){
                 local Prop = getProp(K)
+                if(!Prop:isValidPhysics()){
+                    rcprint("error","Bad clip entity! Restarting render...")
+                    addTask(1,"schemeRenderCancel")
+                    addTask(1,"schemeRender",2000)
+                    return
+                }
                 local Sign = V
                 local HoloID = n(Override ? Override : ID)
                 holoClipEnabled(HoloID,N,1)
@@ -2083,7 +2100,7 @@ if(clk("start")){
     function sectionMirror(Args:array){ sectionMirror(Args[1,string],Args[2,string]) }
     
     function sectionMirrorLoop(){
-        if(RCMode != "EDIT"){ return }
+        if(!EditRunningLoop){ return }
         local MirrorSections = table()
         foreach(K,V:table=get("section")){
             if(hasMirror(K)){
@@ -2215,8 +2232,10 @@ if(clk("start")){
                 if(Scheme["MISC",table]["name",string]:explode("_")[1,string] == "nn"){
                     Scheme["MISC",table]["name",string] = "nn_" + Filename # default scheme name if we have no name
                 }
-                local SaveString = Autosave ? ">e2shared/rattlecan2/autosave/" + Filename + ".txt" : ">e2shared/rattlecan2/" + Filename + ".txt",
-                fileWrite(SaveString, vonEncode(Scheme))
+                local SaveString = Autosave ? ">e2shared/rattlecan2/autosave/" + Filename + ".txt" : ">e2shared/rattlecan2/" + Filename + ".txt"
+                local SchemeString = vonEncode(Scheme)
+                SchemeDupe = SchemeString
+                fileWrite(SaveString, SchemeString)
                 if(!Autosave){ Scheme["MISC",table]["filename",string] = Filename }
                 return 1
             }else{
@@ -2224,7 +2243,9 @@ if(clk("start")){
             }
         }else{
             if(fileCanWrite() & SchemeLoaded){
-                fileWrite(">e2shared/rattlecan2/" + LoadFile + ".txt", vonEncode(Scheme))
+                local SchemeString = vonEncode(Scheme)
+                SchemeDupe = SchemeString
+                fileWrite(">e2shared/rattlecan2/" + LoadFile + ".txt", SchemeString)
                 Scheme["MISC",table]["filename",string] = Filename
                 return 1
             }else{
@@ -2270,19 +2291,27 @@ if(clk("start")){
     
     # object determines when Step advances, allows an object to take multiple steps if it likes
     
+    # dummy functions
+    function stopEdit(){}
+    function startEdit(){}
+    
     function schemeFinish(){
         RCMode = InEdit ? "EDIT" : "OPERATION"
         rcName(1,"RATTLECAN 2 | ["+RCMode+"]")
         rcName(3,Scheme["MISC",table]["name",string])
-        if(InEdit){ addTask(1,"startEdit",250) }
+        if(InEdit){ startEdit() }
         soundStop("renderidle")
         Base:rcPlay("renderdone",1,"npc/roller/remote_yes.wav")
         RefreshSpecific = ""
         RefreshObjects = array()
         RenderStage = 1
         stats(0)
-        #object specific
+        # object specific
         sectionsSetBodygroups()
+        # dupe, we'll update the dupe file every time we finish rendering something in operation mode
+        if(RCMode == "OPERATION"){
+            SchemeDupe = vonEncode(Scheme)
+        }
     }
     
     function schemeDestroy(){
@@ -2295,6 +2324,7 @@ if(clk("start")){
     
     function schemeCancelReset(){ RenderCancel = 0 }
     function schemeRenderCancel(){ # cancels rendering the scheme, and then restarts it
+        if(RenderCancel){ return }
         RCMode = "RENDER_RESTART"
         rcName(1,"RATTLECAN 2 | [RESTARTING RENDER]")
         rcName(3,"RESTARTING")
@@ -2321,9 +2351,7 @@ if(clk("start")){
             rcName(1,"RATTLECAN 2 | [RENDER]")
         }
         if(RenderStage == 1){ # we use this tick to let tasks die down, and get some editor components started
-            if(InEdit){
-                addTask(1,"stopEdit")
-            }
+            if(InEdit){ stopEdit() }
             RenderStage = Stage ? Stage : 2
             
             # reset renderer
@@ -2346,6 +2374,7 @@ if(clk("start")){
                 }
             }
             EditorComponents[Base:id(),number] = 1 # just for simplicity
+            SelectedObject = ""
             
             generateRunningNumber()
             Base:setColor(Scheme["MISC",table]["basecolor",vector])
@@ -2389,7 +2418,7 @@ if(clk("start")){
                         if(Object["TYPE",string] != ""){
                             Object["TYPE",string](ID,"PREPARE")
                         }else{
-                            rcprint("error","Caught bad object! Restarting... | RenderStep = " + RenderStep + " | RenderObjectsPrepareType = " + RenderObjectsPrepareType)
+                            rcprint("error","Caught bad object! This is likely a Wiremod bug and is safe to ignore. Restarting... | RenderStep = " + RenderStep + " | RenderObjectsPrepareType = " + RenderObjectsPrepareType)
                             schemeRenderCancel()
                             addTask(1,"schemeRender",1000)
                             return
@@ -2540,7 +2569,7 @@ if(clk("start")){
             Step++
             Step = Step > Objects:count() ? 1 : Step
             addTask(2,"editSaveLoop",array(Step),10000/max(Objects:count(),20)) # always 10 seconds unless a low amount of objects
-        }else{
+        }else{ # rapid saving section, saves the scheme at the end of the loop
             local Step = Args[1,number]
             local Objects = get(array("holo","decal","text2d","text3d","clip","mirror"))
             local ObjectIDs = Objects:keys()
@@ -2654,7 +2683,6 @@ if(clk("start")){
     
     function startEdit(){
         EditRunningLoop = 1
-        SelectedObject = ""
         editSaveLoop(array(1))
         editControlLoop(array(1))
         startTaskLoop("AUTOSAVE","autosave",AUTOSAVE_INTERVAL*1000)
@@ -2673,7 +2701,6 @@ if(clk("start")){
     
     function stopEdit(){
         EditRunningLoop = 0
-        SelectedObject = ""
         stopTaskLoop("AUTOSAVE")
         stopTaskLoop("sectionmirrorscan")
         holoDelete(2)
@@ -2903,7 +2930,7 @@ if(clk("start")){
                 if(!validEdit()){ break }
                 local Var = Tokens[2,string]:replace("$","")
                 local Data = Tokens:deTokenize(3)
-                if(Data == ""){ rcprint("error","Invaid name."), return }
+                if(Data == ""){ rcprint("error","Invalid name."), return }
                 if(Var == "" | Data == ""){ rcprint("error", "Invalid variable."), break }
                 
                 Scheme["VARS",table][Var,string] = Data
@@ -3024,7 +3051,7 @@ if(clk("start")){
                             Holo["ANG",angle] = Base:toLocal(V:angles())
                             Holo["SCALE",vector] = vec(1)
                             Holo["COLOR",vector] = vec(PTHOriginalColors[V:id(),vector4])
-                            Holo["ALPHA",number] = V:getAlpha()
+                            Holo["ALPHA",number] = PTHOriginalColors[V:id(),vector4]:w()
                             Holo["MATERIAL",string] = V:getMaterial()
                             Holo["MODEL",string] = V:model()
                             Holo["SUBS",table] = table()
