@@ -1,0 +1,161 @@
+@name TCL Simple RLC HUD
+@inputs EGP:wirelink
+@inputs Active RemoteControlSw
+@inputs MPH Reverser
+@inputs Throttle DynamicBrakingPower Load1 TE_LBF
+@inputs EqualRes BrakePipe
+@inputs MainRes Cyl
+@inputs LocoBrakePressure CFM
+@inputs Emergency
+@inputs On1 MU_Master
+@inputs Number:string
+@persist NumberS:string ACTraction RedLine CommOK RemoteControl
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Simple RLC HUD!                                    #
+#                                                                               #
+# This EGP provides a simple, intuitive heads-up display for PT2 locomotives.   #
+#                                                                               #
+# Installation Instructions:                                                    #
+# 1) Spawn this E2 somewhere accessible for wiring.                             #
+# 2) Spawn an EGP HUD device somewhere easily accesible during operation.       #
+# 3) Wire EGP:wirelink to the HUD device.                                       #
+# 4) Wire MPH, Reverser, Throttle and all other PT2 inputs from your RLC chip   #
+#    to the E2.                                                                 #
+# 5a) If your locomotive has A.C. traction or remote control capability, set    #
+#     the values below accordingly.                                             #
+# 5b) Set RedLine to your load meter's short time rating. If your locomotive    #
+#     has A.C. traction, you can leave this alone.                              #
+# 6) You're done! Don't forget to parent the E2 and HUD device to your engine!  #
+#    Press your Use key on the HUD device to show or hide the HUD.              #
+#                                                                               #
+# Tip- You can either set the engine's number below, or wire the Number input.  #
+#                                                                               #
+# Thanks to Monkatraz and Magnum MacKivler for help with development!           #
+#                                                                               #
+# Happy Railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first() | duped()){
+
+NumberS="2400" #Running number. Leave blank if you're wiring an external number.
+
+ACTraction = 0 #Set this to 1 if your locomotive has A.C. traction motors.
+
+RedLine = 1000 #Set this to whatever your load meter's short time rating starts at.
+
+RemoteControl = 0 #Set this to 1 to add a reminder to check your RC switch.
+
+EGP:egpClear()
+
+}
+
+MPHS = round(MPH):toString()
+
+if(Throttle>0){
+    ThrottleS=Throttle+"%"
+}else{
+    ThrottleS="Idle"
+}
+
+EGP:egpBox(1,vec2(85,RemoteControl ? 78 : 72),vec2(150,RemoteControl ? 136 : 124))
+EGP:egpColor(1,vec(0))
+
+#header
+EGP:egpText(2,NumberS+Number,vec2(15,12))
+EGP:egpColor(2,vec(255))
+EGP:egpFont(2,"Lucida Console",20)
+
+#Pod active
+EGP:egpText(3,Active ? "ACTIVE" : "INACTIVE", vec2(17,32))
+EGP:egpColor(3,(Active ? vec(0,255,0) : vec(100)))
+EGP:egpFont(3,"Lucida Console",10)
+
+#MU Master
+EGP:egpText(4,MU_Master ? "M/U LEAD" : "M/U TRAIL", vec2(90,32))
+EGP:egpColor(4,(MU_Master ? vec(0,255,0) : vec(255,0,0)))
+EGP:egpFont(4,"Lucida Console",10)
+
+#1L - speedometer
+EGP:egpText(5,"MPH "+MPHS,vec2(17,50))
+EGP:egpColor(5,vec(255))
+EGP:egpFont(5,"Lucida Console",9)
+
+#1R - reverser
+EGP:egpText(6,select(Reverser+2,"REV","N","FWD"),vec2(90,50))
+EGP:egpColor(6,select(Reverser+2,vec(0,255,0),vec(255),vec(0,255,0)))
+EGP:egpFont(6,"Lucida Console",9)
+
+#2L - throttle/dyn
+if(DynamicBrakingPower){
+    if(DynamicBrakingPower==10){
+        EGP:egpText(7,"DYN SETUP",vec2(17,60))
+        EGP:egpColor(7,vec(255,255,0))
+    }elseif(DynamicBrakingPower>10){
+        EGP:egpText(7,"DYN "+DynamicBrakingPower:toString()+"%",vec2(17,60))
+    }
+}else{
+    EGP:egpText(7,"THR "+ ThrottleS,vec2(17,60))
+    EGP:egpColor(7,Throttle ? vec(0,255,0) : vec(255))
+}
+EGP:egpFont(7,"Lucida Console",9)
+
+#2R - load/TE
+EGP:egpText(8,(ACTraction ? "TE "+round(TE_LBF):toString()+"Klb" : "AMPS "+(round(Load1):toString())),vec2(90,60))
+if(Load1>RedLine){
+    EGP:egpColor(8,vec(255,0,0))
+}else{
+    EGP:egpColor(8,vec(255))
+}
+EGP:egpFont(8,"Lucida Console",9)
+
+#3L - EqualRes
+EGP:egpText(9,"EQ  "+round(EqualRes):toString(),vec2(17,80))
+EGP:egpColor(9,vec(255))
+EGP:egpFont(9,"Lucida Console",9)
+
+#3R - BrakePipe
+EGP:egpText(10,"BP  "+round(BrakePipe):toString(),vec2(90,80))
+EGP:egpColor(10,vec(255))
+EGP:egpFont(10,"Lucida Console",9)
+
+#4L - MainRes
+EGP:egpText(11,"MR  "+round(MainRes):toString(),vec2(17,90))
+EGP:egpColor(11,vec(255,0,0))
+EGP:egpFont(11,"Lucida Console",9)
+
+#4R - Cyl
+EGP:egpText(12,"BC  "+round(Cyl):toString(),vec2(90,90))
+EGP:egpColor(12,vec(255,0,0))
+EGP:egpFont(12,"Lucida Console",9)
+
+#5L - LocoBrakePressure
+EGP:egpText(13,"IND "+round(LocoBrakePressure):toString(),vec2(17,100))
+EGP:egpColor(13,LocoBrakePressure ? vec(255,255,0) : vec(255))
+EGP:egpFont(13,"Lucida Console",9)
+
+#5R - CFM
+EGP:egpText(14,"CFM "+round(CFM):toString(),vec2(90,100))
+EGP:egpColor(14,CFM ? vec(255,255,0) : vec(255))
+EGP:egpFont(14,"Lucida Console",9)
+
+#6 - Emergency
+EGP:egpText(15,"EMERGENCY STOP",vec2(17,120))
+EGP:egpColor(15,Emergency ? vec(255,0,0) : vec(100))
+EGP:egpFont(15,"Lucida Console",10)
+
+#7 - Remote Control Comms (beltpack mode)
+if(RemoteControl){
+    if(RemoteControlSw & On1){
+        CommOK=1
+    }else{
+        CommOK=0
+    }
+    EGP:egpText(16,"R/C COMM "+(CommOK ? "OK" : "ERROR"),vec2(17,132))
+    EGP:egpColor(16,CommOK ? vec(0,255,0) : vec(255,0,0))
+    EGP:egpFont(16,"Lucida Console",10)
+}else{}
