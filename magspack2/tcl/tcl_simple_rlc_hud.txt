@@ -1,7 +1,7 @@
 @name TCL Simple RLC HUD
 @inputs EGP:wirelink
-@inputs Active RemoteControlSw
-@inputs MPH Reverser
+@inputs Active RemoteControlSw IsolationSw
+@inputs MPH Reverser SelectorNotch
 @inputs Throttle DynamicBrakingPower Load1 TE_LBF
 @inputs EqualRes BrakePipe
 @inputs MainRes Cyl
@@ -9,7 +9,7 @@
 @inputs Emergency
 @inputs On1 MU_Master
 @inputs Number:string
-@persist NumberS:string ACTraction RedLine CommOK RemoteControl
+@persist Header:string ACTraction RedLine CommOK RemoteControl ShowSelector
 
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
@@ -23,7 +23,8 @@
 # 2) Spawn an EGP HUD device somewhere easily accesible during operation.       #
 # 3) Wire EGP:wirelink to the HUD device.                                       #
 # 4) Wire MPH, Reverser, Throttle and all other PT2 inputs from your RLC chip   #
-#    to the E2.                                                                 #
+#    to the E2. Wire IsolationSw (and RemoteControlSw if applicable) to their   #
+#    respective switches.                                                       #
 # 5a) If your locomotive has A.C. traction or remote control capability, set    #
 #     the values below accordingly.                                             #
 # 5b) Set RedLine to your load meter's short time rating. If your locomotive    #
@@ -42,7 +43,7 @@
 
 if(first() | duped()){
 
-NumberS="2400" #Running number. Leave blank if you're wiring an external number.
+Header="0000" #Running number. Leave blank if you're wiring an external number.
 
 ACTraction = 0 #Set this to 1 if your locomotive has A.C. traction motors.
 
@@ -50,34 +51,40 @@ RedLine = 1000 #Set this to whatever your load meter's short time rating starts 
 
 RemoteControl = 0 #Set this to 1 to add a reminder to check your RC switch.
 
+ShowSelector = 0 #Set this to 1 if your locomotive has a selector.
+
 EGP:egpClear()
 
 }
 
 MPHS = round(MPH):toString()
 
-if(Throttle>0){
-    ThrottleS=Throttle+"%"
-}else{
-    ThrottleS="Idle"
-}
-
 EGP:egpBox(1,vec2(85,RemoteControl ? 78 : 72),vec2(150,RemoteControl ? 136 : 124))
 EGP:egpColor(1,vec(0))
 
 #header
-EGP:egpText(2,NumberS+Number,vec2(15,12))
+EGP:egpText(2,Header+Number,vec2(15,12))
 EGP:egpColor(2,vec(255))
 EGP:egpFont(2,"Lucida Console",20)
 
-#Pod active
-EGP:egpText(3,Active ? "ACTIVE" : "INACTIVE", vec2(17,32))
-EGP:egpColor(3,(Active ? vec(0,255,0) : vec(100)))
+#Pod active/isolation switch checker
+if(IsolationSw){
+    EGP:egpText(3,Active ? "ACTIVE" : "INACTIVE", vec2(17,32))
+    EGP:egpColor(3,(Active ? vec(0,255,0) : vec(200)))
+}else{
+    EGP:egpText(3,"ISO OFF", vec2(17,32))
+    EGP:egpColor(3,vec(255,0,0))
+}
 EGP:egpFont(3,"Lucida Console",10)
 
 #MU Master
-EGP:egpText(4,MU_Master ? "M/U LEAD" : "M/U TRAIL", vec2(90,32))
-EGP:egpColor(4,(MU_Master ? vec(0,255,0) : vec(255,0,0)))
+if(!On1){
+    EGP:egpText(4,"ENG OFF", vec2(90,32))
+    EGP:egpColor(4,vec(255,0,0))
+}else{
+    EGP:egpText(4,MU_Master ? "M/U LEAD" : "ENG RUN", vec2(90,32))
+    EGP:egpColor(4,(MU_Master ? vec(0,255,0) : vec(255)))
+}
 EGP:egpFont(4,"Lucida Console",10)
 
 #1L - speedometer
@@ -85,77 +92,93 @@ EGP:egpText(5,"MPH "+MPHS,vec2(17,50))
 EGP:egpColor(5,vec(255))
 EGP:egpFont(5,"Lucida Console",9)
 
-#1R - reverser
-EGP:egpText(6,select(Reverser+2,"REV","N","FWD"),vec2(90,50))
+#1M - reverser
+EGP:egpText(6,select(Reverser+2,"REV","NEU","FWD"),vec2(90,50))
 EGP:egpColor(6,select(Reverser+2,vec(0,255,0),vec(255),vec(0,255,0)))
 EGP:egpFont(6,"Lucida Console",9)
+
+#1R - selector
+if(ShowSelector){
+    if(SelectorNotch>0){
+        EGP:egpText(7,"RUN "+SelectorNotch:toString(),vec2(115,50))
+        EGP:egpColor(7,vec(0,255,0))
+    }else{
+        EGP:egpText(7,DynamicBrakingPower ? "D/B" : "OFF",vec2(115,50))
+        EGP:egpColor(7,DynamicBrakingPower ? vec(255,255,0) : vec(255))
+    }
+    EGP:egpFont(7,"Lucida Console",9)
+}
 
 #2L - throttle/dyn
 if(DynamicBrakingPower){
     if(DynamicBrakingPower==10){
-        EGP:egpText(7,"DYN SETUP",vec2(17,60))
-        EGP:egpColor(7,vec(255,255,0))
+        EGP:egpText(8,"D/B SETUP",vec2(17,60))
+        EGP:egpColor(8,vec(255,255,0))
     }elseif(DynamicBrakingPower>10){
-        EGP:egpText(7,"DYN "+DynamicBrakingPower:toString()+"%",vec2(17,60))
+        EGP:egpText(8,"D/B "+DynamicBrakingPower:toString()+"%",vec2(17,60))
     }
 }else{
-    EGP:egpText(7,"THR "+ ThrottleS,vec2(17,60))
-    EGP:egpColor(7,Throttle ? vec(0,255,0) : vec(255))
-}
-EGP:egpFont(7,"Lucida Console",9)
-
-#2R - load/TE
-EGP:egpText(8,(ACTraction ? "TE "+round(TE_LBF):toString()+"Klb" : "AMPS "+(round(Load1):toString())),vec2(90,60))
-if(Load1>RedLine){
-    EGP:egpColor(8,vec(255,0,0))
-}else{
-    EGP:egpColor(8,vec(255))
+    if(Throttle>0){
+        EGP:egpText(8,"PWR "+round(Throttle)+"%",vec2(17,60))
+    }else{
+        EGP:egpText(8,"IDLE",vec2(17,60))
+    }
+    EGP:egpColor(8,Throttle ? vec(0,255,0) : vec(255))
 }
 EGP:egpFont(8,"Lucida Console",9)
 
-#3L - EqualRes
-EGP:egpText(9,"EQ  "+round(EqualRes):toString(),vec2(17,80))
-EGP:egpColor(9,vec(255))
+#2R - load/TE
+EGP:egpText(9,(ACTraction ? "TE "+round(TE_LBF):toString()+"Klb" : "AMPS "+(round(Load1):toString())),vec2(90,60))
+if(Load1>RedLine){
+    EGP:egpColor(9,vec(255,0,0))
+}else{
+    EGP:egpColor(9,vec(255))
+}
 EGP:egpFont(9,"Lucida Console",9)
 
-#3R - BrakePipe
-EGP:egpText(10,"BP  "+round(BrakePipe):toString(),vec2(90,80))
+#3L - EqualRes
+EGP:egpText(10,"EQ  "+round(EqualRes):toString(),vec2(17,80))
 EGP:egpColor(10,vec(255))
 EGP:egpFont(10,"Lucida Console",9)
 
-#4L - MainRes
-EGP:egpText(11,"MR  "+round(MainRes):toString(),vec2(17,90))
-EGP:egpColor(11,vec(255,0,0))
+#3R - BrakePipe
+EGP:egpText(11,"BP  "+round(BrakePipe):toString(),vec2(90,80))
+EGP:egpColor(11,vec(255))
 EGP:egpFont(11,"Lucida Console",9)
 
-#4R - Cyl
-EGP:egpText(12,"BC  "+round(Cyl):toString(),vec2(90,90))
+#4L - MainRes
+EGP:egpText(12,"MR  "+round(MainRes):toString(),vec2(17,90))
 EGP:egpColor(12,vec(255,0,0))
 EGP:egpFont(12,"Lucida Console",9)
 
-#5L - LocoBrakePressure
-EGP:egpText(13,"IND "+round(LocoBrakePressure):toString(),vec2(17,100))
-EGP:egpColor(13,LocoBrakePressure ? vec(255,255,0) : vec(255))
+#4R - Cyl
+EGP:egpText(13,"BC  "+round(Cyl):toString(),vec2(90,90))
+EGP:egpColor(13,vec(255,0,0))
 EGP:egpFont(13,"Lucida Console",9)
 
-#5R - CFM
-EGP:egpText(14,"CFM "+round(CFM):toString(),vec2(90,100))
-EGP:egpColor(14,CFM ? vec(255,255,0) : vec(255))
+#5L - LocoBrakePressure
+EGP:egpText(14,"IND "+round(LocoBrakePressure):toString(),vec2(17,100))
+EGP:egpColor(14,LocoBrakePressure ? vec(255,255,0) : vec(255))
 EGP:egpFont(14,"Lucida Console",9)
 
-#6 - Emergency
-EGP:egpText(15,"EMERGENCY STOP",vec2(17,120))
-EGP:egpColor(15,Emergency ? vec(255,0,0) : vec(100))
-EGP:egpFont(15,"Lucida Console",10)
+#5R - CFM
+EGP:egpText(15,"CFM "+round(CFM):toString(),vec2(90,100))
+EGP:egpColor(15,CFM ? vec(255,255,0) : vec(255))
+EGP:egpFont(15,"Lucida Console",9)
 
-#7 - Remote Control Comms (beltpack mode)
+#6 - Emergency
+EGP:egpText(16,Emergency ? "EMERGENCY STOP" : "SYSTEM NORMAL",vec2(17,120))
+EGP:egpColor(16,Emergency ? vec(255,0,0) : vec(100))
+EGP:egpFont(16,"Lucida Console",10)
+
+#7 - Remote Control Comms (R/C switch checker)
 if(RemoteControl){
     if(RemoteControlSw & On1){
         CommOK=1
     }else{
         CommOK=0
     }
-    EGP:egpText(16,"R/C COMM "+(CommOK ? "OK" : "ERROR"),vec2(17,132))
-    EGP:egpColor(16,CommOK ? vec(0,255,0) : vec(255,0,0))
-    EGP:egpFont(16,"Lucida Console",10)
-}else{}
+    EGP:egpText(17,"R/C COMM "+(CommOK ? "OK" : "ERROR"),vec2(17,132))
+    EGP:egpColor(17,CommOK ? vec(0,255,0) : vec(255,0,0))
+    EGP:egpFont(17,"Lucida Console",10)
+}
