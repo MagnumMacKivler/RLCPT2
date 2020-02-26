@@ -11,6 +11,8 @@
 @inputs Number:string
 @persist Header:string ACTraction RedLine CommOK RemoteControl ShowSelector
 
+#V1.1 - fixed rounding issue for notched dynamics
+
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
 #                                                                               #
@@ -43,11 +45,11 @@
 
 if(first() | duped()){
 
-Header="0000" #Running number. Leave blank if you're wiring an external number.
+Header="4301" #Running number. Leave blank if you're wiring an external number.
 
 ACTraction = 0 #Set this to 1 if your locomotive has A.C. traction motors.
 
-RedLine = 1000 #Set this to whatever your load meter's short time rating starts at.
+RedLine = 1200 #Set this to whatever your load meter's short time rating starts at.
 
 RemoteControl = 0 #Set this to 1 to add a reminder to check your RC switch.
 
@@ -115,7 +117,7 @@ if(DynamicBrakingPower){
         EGP:egpText(8,"D/B SETUP",vec2(17,60))
         EGP:egpColor(8,vec(255,255,0))
     }elseif(DynamicBrakingPower>10){
-        EGP:egpText(8,"D/B "+DynamicBrakingPower:toString()+"%",vec2(17,60))
+        EGP:egpText(8,"D/B "+round(DynamicBrakingPower):toString()+"%",vec2(17,60))
     }
 }else{
     if(Throttle>0){
