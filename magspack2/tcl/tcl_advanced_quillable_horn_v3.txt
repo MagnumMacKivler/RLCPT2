@@ -22,7 +22,7 @@
 # This E2 features Sound Level settings to make horns sound louder, further.    #
 # No longer will your PT2 engine sound overpower your awesome horn!             #
 #                                                                               #
-# The default horn in this E2 is the two-stage sandcast K5L from my workshop    #
+# The default horn in this E2 is the two-stage widefont K5L from my workshop    #
 # addon Trans' Train Sounds. Consider this a plug for that! The Scott's Train   #
 # Sounds pack also has some great quillable horns.                              #
 #                                                                               #
