@@ -11,7 +11,7 @@
 @inputs Number:string
 @persist Header:string ACTraction RedLine CommOK RemoteControl ShowSelector
 
-#V1.1 - fixed rounding issue for notched dynamics
+#V1.2 - fixed a thing with the isolation switch indicator
 
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
@@ -45,11 +45,11 @@
 
 if(first() | duped()){
 
-Header="4301" #Running number. Leave blank if you're wiring an external number.
+Header="5000" #Running number. Leave blank if you're wiring an external number.
 
 ACTraction = 0 #Set this to 1 if your locomotive has A.C. traction motors.
 
-RedLine = 1200 #Set this to whatever your load meter's short time rating starts at.
+RedLine = 1000 #Set this to whatever your load meter's short time rating starts at.
 
 RemoteControl = 0 #Set this to 1 to add a reminder to check your RC switch.
 
@@ -70,7 +70,7 @@ EGP:egpColor(2,vec(255))
 EGP:egpFont(2,"Lucida Console",20)
 
 #Pod active/isolation switch checker
-if(IsolationSw){
+if(IsolationSw & On1){
     EGP:egpText(3,Active ? "ACTIVE" : "INACTIVE", vec2(17,32))
     EGP:egpColor(3,(Active ? vec(0,255,0) : vec(200)))
 }else{

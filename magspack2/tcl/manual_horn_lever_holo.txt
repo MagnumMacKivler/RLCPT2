@@ -1,7 +1,7 @@
 @name Manual Horn Lever Holo
 @inputs Horn Quill
 @outputs 
-@persist E:entity Horntype
+@persist E:entity Horntype HandleMat:string
 @trigger 
 @model models/sprops/rectangles_thin/size_1/rect_3x3x1_5.mdl
 
@@ -10,6 +10,8 @@
 # Pretty self explanatory. Place, wire Horn and Quill, parent, and enjoy.
 
 # Having trouble? Find me on Discord! TransCanadaLimited#8427
+
+# Fixed HandleMat issue. (forgot to persist, oops)
 
 if(first()|duped()){
 
