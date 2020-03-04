@@ -43,8 +43,8 @@ if(first()){
     PullLength = 1 #How many units to pull the cord towards you?
     DownRatio = 0.5 #Pull the dongle (PullLength x DownRatio) units down as well
     
-    HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
-    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition (When you have don't have MU and no dynamics)
+    HasDynamics = 0 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
+    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition (When you have don't have MU and no dynamics)
     
     #Sounds (Don't touch unless you know what you're doing!)
     
