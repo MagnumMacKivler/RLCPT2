@@ -2,7 +2,7 @@
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 ForceSand BrakeCutIn EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier EC_Clamp
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SelectorUp SelectorDown IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
-@persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
+@persist [Lever_ThrottleOn Lever_ThrottleOff Lever_ThrottleNotchUp Lever_ThrottleNotchDown Lever_ThrottleMax Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_ABNotch Lever_ABMove AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
 @persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
@@ -11,6 +11,7 @@
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
 @persist CS:entity LeverBased
 @persist Thetas:table LocoBrakePitch
+@persist ReverserAlphaQ
 @trigger 
 if(duped()){
     reset()
@@ -25,7 +26,6 @@ if(first()){
     #The "HEP_Notch" input is only necessary if the locomotive has HEP.
     #The "Active" and "RemoteControl" inputs are only necessary if the locomotive is equipped with Remote Control capability; "Active" goes to the Pod Controller, "RemoteControl" to a separate toggled button.
     #The "UsingRearSeat" input  is only necessary if the locomotive features Dual Cabs or Dual Control Stands.
-    
     
     #Config
     
@@ -50,7 +50,7 @@ if(first()){
     
     HasDynamics = 1 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
     
-    NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
+    NotchedDynamics = 1 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 0 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
@@ -64,21 +64,25 @@ if(first()){
     
     #Sounds (Don't touch unless you know what you're doing!)
     
-    Lever_Throttle = "monkssounds/ratcheting/ratchet2.wav"
-    Lever_ReverserF = "gsgtrainsounds/misc/reverser_f.wav"      
-    Lever_ReverserN = "gsgtrainsounds/misc/reverser_neutral.wav"
-    Lever_ReverserB = "gsgtrainsounds/misc/reverser_r.wav"
+    Lever_ThrottleOn = "trans_train_sounds/controls/kc92/rs_throttle_idleto1.wav"
+    Lever_ThrottleOff = "trans_train_sounds/controls/kc92/rs_throttle_1toidle.wav"
+    Lever_ThrottleNotchUp = "trans_train_sounds/controls/kc92/rs_throttle_notchup.wav"
+    Lever_ThrottleNotchDown = "trans_train_sounds/controls/kc92/rs_throttle_notchdown.wav"
+    Lever_ThrottleMax = "trans_train_sounds/controls/kc92/rs_throttle_notchupmax.wav"
+    Lever_ReverserF = "trans_train_sounds/controls/kc92/rs_reverser_forward.wav"      
+    Lever_ReverserN = "trans_train_sounds/controls/kc92/rs_reverser_neutral.wav"
+    Lever_ReverserB = "trans_train_sounds/controls/kc92/rs_reverser_reverse.wav"
     
-    Lever_24RL = "gsgtrainsounds/misc/airbrakes/air_16m_move.wav"
-    Lever_26L = "gsgtrainsounds/misc/airbrakes/air_26l_move.wav"
+    Lever_ABNotch = "gsgtrainsounds/misc/airbrakes/air_16m_move.wav"
+    Lever_ABMove = "gsgtrainsounds/misc/airbrakes/air_26l_move.wav"
     
-    AirBrakeApply = "gsgtrainsounds/misc/airbrakes/air_train_apply.wav"
-    AirBrakeRelease = "gsgtrainsounds/misc/airbrakes/air_train_release.wav"
+    AirBrakeApply = "trans_train_sounds/air/6sl_service.wav"
+    AirBrakeRelease = "trans_train_sounds/air/6sl_release.wav"
     AirBrakeDump = "gsgtrainsounds/misc/airbrakes/air_dump.wav"
     
-    LocoBrakeFull = "gsgtrainsounds/misc/airbrakes/air_ind_full.wav"
-    LocoBrakeReleaseSoft = "gsgtrainsounds/misc/airbrakes/air_ind_release2.wav"
-    LocoBrakeReleaseHard = "gsgtrainsounds/misc/airbrakes/air_ind_release1.wav"
+    LocoBrakeFull = "trans_train_sounds/controls/aar/indy_full.wav"
+    LocoBrakeReleaseSoft = "trans_train_sounds/controls/aar/indy_release_soft.wav"
+    LocoBrakeReleaseHard = "trans_train_sounds/controls/aar/indy_release_full.wav"
     
     WarningHiss = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
     
@@ -303,7 +307,11 @@ if(first()){
     timer("clk",100)
 }
 if(MU_Master){
-            
+    #Reverser Show
+    if(!ReverserAlphaQ){
+        ReverserAlphaQ = 1
+        holoAlpha(4,255)
+    }
     #MASTER MODE
     local Driver = noentity()
     local PodDriver = Pod:driver()
@@ -362,6 +370,11 @@ if(MU_Master){
         }
     }
 }else{
+    #Reverser Show
+    if(ReverserAlphaQ){
+        ReverserAlphaQ = 0
+        holoAlpha(4,0)
+    }
     if(DriverQ){
         DriverQ = 0
         runOnKeys(owner(),0)
@@ -403,7 +416,7 @@ if(clk("clk")){
         DecreaseDynamics = KeyDynDn
     }
     
-    #Throttle
+    #[Throttle
     if(!Dynamics){
         if(NotchedThrottle){
             if(IncreaseThrottle & !NQ & (Notch<NumThrottleNotches) & (SetSelector>0)){
@@ -425,6 +438,50 @@ if(clk("clk")){
             SetThrottle = clamp(SetThrottle,0,100)
             Notch = adc(0,100,NumThrottleNotches,SetThrottle)
         }
+    }]#
+    
+    #Throttle (modded behaviour)
+    if(!Dynamics){
+        if(NotchedThrottle){
+            if(IncreaseThrottle & !NQ & (SetSelector>0)){
+                if((Notch<NumThrottleNotches-1) & (Notch>0)){
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,3,Lever_ThrottleNotchUp)
+                }elseif(Notch==NumThrottleNotches-1){
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,3,Lever_ThrottleMax)
+                }elseif(Notch<1){
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,3,Lever_ThrottleOn)
+                }
+            }elseif(DecreaseThrottle & !NQ){
+                if(Notch>1){
+                NQ = 1
+                Notch--
+                soundStop(1)
+                Pod:soundPlay(1,3,Lever_ThrottleNotchDown)
+                }elseif(Notch==1){
+                NQ = 1
+                Notch--
+                soundStop(1)
+                Pod:soundPlay(1,3,Lever_ThrottleOff)
+                }
+            }elseif(!IncreaseThrottle & !DecreaseThrottle & NQ){
+                NQ = 0
+                #soundStop(1)
+            }
+            SetThrottle = dac(0,100,NumThrottleNotches,Notch)
+        }else{
+            SetThrottle += (IncreaseThrottle - DecreaseThrottle)*5
+            SetThrottle = clamp(SetThrottle,0,100)
+            Notch = adc(0,100,NumThrottleNotches,SetThrottle)
+        }
     }
     
     #Hump Control
@@ -438,36 +495,62 @@ if(clk("clk")){
             DynaNotch = 0
             SetDynamics = 10
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_Throttle)
+            Pod:soundPlay(1,3,Lever_ThrottleNotchUp)
         }elseif((SetDynamics==10) & DecreaseDynamics & !DNQ){
             DNQ = 1
             DynaNotch = -1
             SetDynamics = 0
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_Throttle)
+            Pod:soundPlay(1,3,Lever_ThrottleOff)
         }
         
         if(Dynamics & NotchedDynamics){
-            if(IncreaseDynamics & !DNQ & (DynaNotch<NumThrottleNotches)){
-                DNQ = 1
-                DynaNotch++
-                soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_Throttle)
-            }elseif(DecreaseDynamics & !DNQ & (DynaNotch>-1)){
-                DNQ = 1
-                DynaNotch--
-                soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_Throttle)
+            if(IncreaseDynamics & !DNQ){
+                if((DynaNotch<NumThrottleNotches-1)){
+                    DNQ = 1
+                    DynaNotch++
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleNotchUp)
+                }elseif(DynaNotch==NumThrottleNotches-1){
+                    DNQ = 1
+                    DynaNotch++
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleMax)
+                }
+            }elseif(DecreaseDynamics & !DNQ){
+                    if(DynaNotch>0){
+                    DNQ = 1
+                    DynaNotch--
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleNotchDown)
+                }elseif(DynaNotch==0){
+                    NQ = 1
+                    DynaNotch--
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleOff)
+                }
             }
             if(DynaNotch>-1){SetDynamics = dac(10,100,NumThrottleNotches,DynaNotch)}
         }elseif(Dynamics){
             if(IncreaseDynamics & (SetDynamics<100) & !DNQ){
                 SetDynamics++
-                if(SetDynamics>100){SetDynamics=100}
+                if(SetDynamics>99){
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleMax)
+                }
+                if(SetDynamics>100){
+                    SetDynamics=100}
             }elseif(DecreaseDynamics & (SetDynamics>10)){
                 DNQ = 1
                 SetDynamics--
-                if(SetDynamics<10){SetDynamics=10,DNQ=1}
+                if(SetDynamics==11){
+                    soundStop(1)
+                    Pod:soundPlay(1,3,Lever_ThrottleNotchDown)
+                }
+                if(SetDynamics<10){
+                    SetDynamics=10
+                    DNQ=1
+                }
             }
             DynaNotch = adc(10,100,NumThrottleNotches,SetDynamics)
         }
@@ -483,14 +566,14 @@ if(clk("clk")){
             if(!Dynamics & ((SetSelector==0) | ((abs(SetReverser)) & (SetSelector<4)))){
                 SetSelector++
                 soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_Throttle)
+                Pod:soundPlay(1,3,(SetSelector>3 ? Lever_ThrottleMax : Lever_ThrottleNotchUp))
             }
         }elseif(SelectorDown & !SelectorQ){
             SelectorQ = 1
             if(!Dynamics & ((SetSelector==1) | ((abs(SetReverser) & (SetSelector>0))))){
                 SetSelector--
                 soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_Throttle)
+                Pod:soundPlay(1,3,(SetSelector>0 ? Lever_ThrottleNotchDown : Lever_ThrottleOff))
             }
         }elseif(!SelectorUp & !SelectorDown & SelectorQ){
             SelectorQ = 0
@@ -505,12 +588,12 @@ if(clk("clk")){
             RevQ = 1
             SetReverser++
             soundStop(1)
-            Pod:soundPlay(1,0.5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
+            Pod:soundPlay(1,3,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
         }elseif(ReverserB & !RevQ & (SetReverser>-1) & (SetSelector<=1)){
             RevQ = 1
             SetReverser--
             soundStop(1)
-            Pod:soundPlay(1,0.5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
+            Pod:soundPlay(1,3,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
         }elseif(!ReverserF & !ReverserB & RevQ){
             RevQ = 0
         }
@@ -530,10 +613,10 @@ if(clk("clk")){
             ABQ = 1
             SetBrakeNotch++
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeApply)
+                Pod:soundPlay(2,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
@@ -544,10 +627,10 @@ if(clk("clk")){
                 SetBrakeNotch--
             }
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeRelease)
+                Pod:soundPlay(2,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -593,15 +676,15 @@ if(clk("clk")){
             ABQ = 1
             SetBrakeNotch++
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeApply)
+                Pod:soundPlay(2,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }elseif(SetBrakeNotch==2 & (SetEqualRes>(FeedPressure-InitialReduction))){
                 SetEqualRes = FeedPressure-InitialReduction
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeApply)
+                Pod:soundPlay(2,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
@@ -612,10 +695,10 @@ if(clk("clk")){
                 SetBrakeNotch--
             }
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeRelease)
+                Pod:soundPlay(2,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -657,20 +740,20 @@ if(clk("clk")){
                     Lock_26L = 1
                     SetBrakeNotch=1
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_24RL)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                     SetEqualRes = FeedPressure-InitialReduction
                 }elseif((SetBrakeNotch==1) & (SetEqualRes>FSP)){
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_26L)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                 }elseif((SetBrakeNotch==1) & (SetEqualRes==FSP)){
                     SetBrakeNotch=2
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_24RL)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                     Suppression = 1
                 }
                 if(!HissQ & (SetEqualRes>FSP)){
                     HissQ = 1
-                    Pod:soundPlay(2,6,AirBrakeApply)
+                    Pod:soundPlay(2,10,AirBrakeApply)
                     timer("EndHiss",6000)
                 }
             }
@@ -684,31 +767,31 @@ if(clk("clk")){
                 if((SetBrakeNotch==1) & (SetEqualRes==(FeedPressure-InitialReduction))){
                     SetBrakeNotch=0
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_24RL)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                     SetEqualRes = FeedPressure
                     if(!HissQ){
                         HissQ = 1
-                        Pod:soundPlay(2,6,AirBrakeRelease)
+                        Pod:soundPlay(2,10,AirBrakeRelease)
                         timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==1) & (SetEqualRes<FeedPressure)){
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_26L)
+                    Pod:soundPlay(1,3,Lever_ABMove)
                     if(!HissQ & (SetEqualRes<FeedPressure)){
                         HissQ = 1
-                        Pod:soundPlay(2,6,AirBrakeRelease)
+                        Pod:soundPlay(2,10,AirBrakeRelease)
                         timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==2)){
                     Lock_26L = 1
                     SetBrakeNotch=1
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_24RL)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                     Suppression = 0
                 }elseif(SetBrakeNotch==6){
                     SetBrakeNotch=2
                     soundStop(1)
-                    Pod:soundPlay(1,0.5,Lever_24RL)
+                    Pod:soundPlay(1,3,Lever_ABNotch)
                     Suppression = 1
                 }
                 
@@ -733,10 +816,10 @@ if(clk("clk")){
             ABQ = 1
             SetBrakeNotch++
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if((SetBrakeNotch==2) & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeApply)
+                Pod:soundPlay(2,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ & (SetBrakeNotch>0)){
@@ -747,10 +830,10 @@ if(clk("clk")){
                 SetBrakeNotch--
             }
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_24RL)
+            Pod:soundPlay(1,3,Lever_ABNotch)
             if((SetBrakeNotch==0) & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeRelease)
+                Pod:soundPlay(2,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -774,10 +857,10 @@ if(clk("clk")){
         if(IncreaseTrainBrake & !ABQ){
             ABQ = 1
             soundStop(1)
-            Pod:soundPlay(1,0.5,Lever_26L)
+            Pod:soundPlay(1,3,Lever_ABMove)
             if((SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,6,AirBrakeApply)
+                Pod:soundPlay(2,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ){
@@ -785,13 +868,13 @@ if(clk("clk")){
             if(SetBrakeNotch==6){
                 SetBrakeNotch = 0
                 soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_24RL)
+                Pod:soundPlay(1,3,Lever_ABNotch)
             }else{
                 soundStop(1)
-                Pod:soundPlay(1,0.5,Lever_26L)
+                Pod:soundPlay(1,3,Lever_ABMove)
                 if((SetEqualRes<FeedPressure) & !HissQ){
                     HissQ = 1
-                    Pod:soundPlay(2,6,AirBrakeRelease)
+                    Pod:soundPlay(2,10,AirBrakeRelease)
                     timer("EndHiss",6000)
                 }
             }
@@ -823,7 +906,7 @@ if(clk("clk")){
             if(SetLocoBrakePressure==60 & !LHissQ){
                 LHissQ = 1
                 soundStop(1)
-                Pod:soundPlay(1,0.5,LocoBrakeFull)
+                Pod:soundPlay(1,3,LocoBrakeFull)
                 timer("EndHiss",500)
             }
         }elseif(DecreaseLocoBrake & (SetLocoBrakePressure>0)){
@@ -855,7 +938,7 @@ if(clk("clk")){
             SetLocoBrakeNotch++
             if(SetLocoBrakeNotch==2){
                 soundStop(1)
-                Pod:soundPlay(1,0.5,LocoBrakeFull)
+                Pod:soundPlay(1,3,LocoBrakeFull)
                 #BleedPressure = 72
             }
         }elseif(DecreaseLocoBrake & !LBQ & (SetLocoBrakeNotch>0)){
@@ -1287,7 +1370,7 @@ if(LightToggle & ~LightToggle){
 }
 if(BellToggle & ~BellToggle){
     Bell = !Bell
-    CS:soundPlay(0,1,Bell ? "gsgtrainsounds/misc/air_on.wav" : "gsgtrainsounds/misc/air_off.wav")
+    CS:soundPlay(0,3,Bell ? "gsgtrainsounds/misc/air_switch.wav" : "moztrainsounds/us_horns_bells/bell_off.wav")
 }
 if(MiscToggle & ~MiscToggle){
     Misc = !Misc
