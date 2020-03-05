@@ -1,0 +1,113 @@
+@name ptgamma/extras/H1244/realistic_fans_h1244_ph1
+@inputs Loco:entity On1 Throttle
+@outputs Temperature FanStage RoofShutter Shutter
+@persist UseBaseOrHolo FanSpeed Theta
+@trigger 
+
+if(first() | duped()){
+    
+    UseBaseOrHolo = 1 # 1 for setting bodygroups on the base, 0 for setting bodygroups on a created hologram
+    local HoloColor = vec(255) # Color of the created hologram if used.
+    
+    # CONFIG DONE
+    
+    Temperature = 0
+    FanStage = 0
+    FanSpeed = 0
+    Shutter = 0
+    RoofShutter = 0
+    
+    # fan
+    Loco:setSubMaterial(26,"models/proppertextures/invisible")
+    holoCreate(1)
+    holoModel(1,"plane")
+    holoMaterial(1,"models/proppertextures/fan_generic")
+    holoScale(1,vec(6))
+    holoPos(1,Loco:toWorld(vec(0,-180,118)))
+    holoAng(1,Loco:toWorld(ang(0,0,0)))
+    holoParent(1,Loco)
+    
+    if(!UseBaseOrHolo){
+        holoCreate(2)
+        holoPos(2,Loco:pos())
+        holoAng(2,Loco:angles())
+        holoModel(2,"models/monkatraztrainprops/parts/h12-44_shutters.mdl")
+        holoColor(2,HoloColor)
+        holoParent(2,Loco)
+        
+        Loco:setBodygroup(15,5)
+        Loco:setBodygroup(16,2)
+    }
+    
+}
+
+if(On1 | Temperature > 0){ interval(50) }
+
+if(clk()){
+    # Temperature
+    local HeatAdded = On1 ? 0.7 + 1*1.3*(Throttle == 0 ? 10 : Throttle)/100 : 0
+    local HeatRemoved = (2*((FanStage+RoofShutter+Shutter)/8))+((1-(Throttle/100))*0.75)
+    
+    Temperature += ((HeatAdded - HeatRemoved)/10)
+    Temperature = clamp(Temperature,0,100)
+    
+    # Control system logic
+    # roof shutter
+    if(Temperature<10){ 
+        if(RoofShutter == 1){ Loco:soundPlay(2,5,"gsgtrainsounds/misc/shutters_close.wav") }
+        RoofShutter = 0 
+    }
+    elseif(Temperature>25){ # 132 degrees
+        if(RoofShutter == 0){ Loco:soundPlay(2,5,"gsgtrainsounds/misc/shutters_open.wav") }
+        RoofShutter = 1
+    }
+    # fan and shutter turn off
+    if(Temperature<30){
+        if(FanStage == 1){
+            soundStop(1)
+            holoEntity(1):soundPlay(1,5,"gsgtrainsounds/misc/baldwin_radfan_end.wav")
+            soundVolume(1,0.5)
+        }
+        FanStage = 0, Shutter = 0 
+    }
+    
+    if(Temperature>50 & Temperature < 55){ # 166 degrees
+        if(FanStage == 0){
+            holoEntity(1):soundPlay(1,0,"gsgtrainsounds/misc/baldwin_radfan_loop.wav") 
+            soundVolume(1,0.5)
+        }
+        if(FanStage != 1){ soundPitch(1,100,5) }
+        FanStage = 1, Shutter = 1 
+    }
+    elseif(Temperature>60 & Temperature<62.5){ # 168 degrees
+        if(FanStage != 2){ soundPitch(1,110,5) }
+        FanStage = 2, Shutter = 2 
+    }
+    elseif(Temperature>65 & Temperature<67.5){ # 170ish degrees
+        FanStage = 2, Shutter = 3 
+    }
+    elseif(Temperature>70){ # 173 degrees
+        if(FanStage != 3){ soundPitch(1,120,5) }
+        FanStage = 3, Shutter = 4
+    }
+    
+    # FaenIMations
+    
+    if(UseBaseOrHolo){
+        Loco:setBodygroup(15,Shutter)
+        Loco:setBodygroup(16,RoofShutter)
+    }else{
+        holoBodygroup(2,1,Shutter)
+        holoBodygroup(2,2,RoofShutter)
+    }
+    
+    local Speed = select(FanStage+1,0,33,66,100)
+    FanSpeed = clamp(Speed,FanSpeed-1,FanSpeed+1)
+    
+    if(FanSpeed>0){
+        Theta += FanSpeed*1.5
+        if(Theta>360){Theta += -360}
+        holoAng(1,Loco:angles():rotateAroundAxis(Loco:up(),-Theta))
+    }
+    
+}
