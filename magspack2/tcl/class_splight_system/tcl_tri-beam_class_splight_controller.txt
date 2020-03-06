@@ -1,12 +1,11 @@
-@name TCL Tri-Beam Class Splight Controller
+@name magspack2/tcl/class_splight_system/TCL Tri-Beam Class Splight Controller
 @inputs Pod:entity NextWeapon PrevWeapon ThirdPerson
 @outputs RGB:vector SwitchPos
-@persist E:entity Driver:entity Position Unlock SwitchSound:string
+@persist E:entity Driver:entity Position Unlock KeyUnlock SwitchSound:string UnlockKey:string Radius
 @persist Name:string
-@trigger NextWeapon PrevWeapon
-@model models/magtrainslocos/rotaryswitches/headlight_emd.mdl
+@trigger NextWeapon PrevWeapon UnlockKey
 
-#V2.0 - switch now cyclic in both directions, changed model
+#V3.0 - Now using Anyone's new model. Also added key-based unlocking like the Headlight Controller!
 
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
@@ -43,46 +42,31 @@
 #         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
 #-------------------------------------------------------------------------------#
 
-if(first() | dupefinished()){ 
+if(first() | dupefinished()){
     
-SwitchSound = "gsgtrainsounds/misc/switch_rotating.wav"
+SwitchSound = "trans_train_sounds/buttons/headlight_switch.wav"
+
+UnlockKey = "F" #Hold down this key to operate the switch without looking at it.
 
 Name = "Class Lights" #"Front Class", "Rear Right Class", etc
+
+SwitchScale = 1 #Scale of the switch model.
+
+Radius = 2 #Radius your cursor will be detected from.
 
 ####
 
 E=entity()
-E:setBodygroup(2,1)
+if(E:parent():isValid()){
+        E:setMaterial("models/proppertextures/invisible")
+    }
 
-#Holo Base
+holoCreate(0)
+holoParent(0,E)
+holoModel(0,"models/anytrains/props/detail/class_light_switch.mdl")
+holoScale(0,vec(SwitchScale))
 
-holoCreate(1,E:toWorld(vec(0,0,0.1)),vec(0.3),E:toWorld(ang(0,0,0)),vec(255),"plane")
-holoParent(1,E)
-holoMaterial(1,"models/proppertextures/plastic_black")
-
-holoCreate(2,E:toWorld(vec(-0.8,-0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
-holoParent(2,E)
-holoColor(2,vec(100,100,200))
-holoMaterial(2,"models/proppertextures/acrylic")
-
-holoCreate(3,E:toWorld(vec(-0.8,0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
-holoParent(3,E)
-holoColor(3,vec(200))
-holoMaterial(3,"models/proppertextures/acrylic")
-
-holoCreate(4,E:toWorld(vec(0.8,0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
-holoParent(4,E)
-holoColor(4,vec(200,0,0))
-holoMaterial(4,"models/proppertextures/acrylic")
-
-holoCreate(5,E:toWorld(vec(0.8,-0.8,0.2)),vec(0.125),E:toWorld(ang(0,0,0)),vec(255),"plane")
-holoParent(5,E)
-holoColor(5,vec(100,200,100))
-holoMaterial(5,"models/proppertextures/acrylic")
-
-holoCreate(6,E:toWorld(vec(0)),vec(0.3),E:toWorld(ang(180,0,0)),vec(255),"plane")
-holoParent(6,E)
-holoMaterial(6,"models/proppertextures/grid_b")
+timer("clk",100)
 
 }
 
@@ -90,32 +74,31 @@ holoMaterial(6,"models/proppertextures/grid_b")
 
 Driver = Pod:driver()
 if(Driver){
-Unlock = Driver:aimPos():distance(E:pos()) < 2
+Unlock = Driver:aimPos():distance(E:pos()) < Radius
+KeyUnlock = Driver:keyPressed(UnlockKey)
 }
 
-if(Unlock & !ThirdPerson){
-    if(Unlock & !ThirdPerson){
-        if(PrevWeapon){ #Switch Pos Up
-            soundPlay(0,1,SwitchSound)
-            if(Position<3){
-                Position++
-            }elseif(Position==3){
-                Position=0
-            }
-        }elseif(NextWeapon){ #Switch Pos Down
-            soundPlay(0,1,SwitchSound)
-            if(Position>0){
-                Position--
-            }elseif(Position==0){
-                Position=3
-            }
+if(inputClk() & ((Unlock & !ThirdPerson) | KeyUnlock)){
+    if(PrevWeapon){ #Switch Pos Up
+        soundPlay(0,1,SwitchSound)
+        if(Position<3){
+            Position++
+        }elseif(Position==3){
+            Position=0
+        }
+    }elseif(NextWeapon){ #Switch Pos Down
+        soundPlay(0,1,SwitchSound)
+        if(Position>0){
+            Position--
+        }elseif(Position==0){
+            Position=3
         }
     }
 }
 
 #All lights off
 if(Position==0){
-    E:setBodygroup(1,7)
+    holoBodygroup(0,2,0)
     RGB = vec(0)
     SwitchPos = 0
     setName(Name+"\n(Off)")
@@ -123,24 +106,24 @@ if(Position==0){
 
 #Colour 1 (White)
 if(Position==1){
-    E:setBodygroup(1,1)
+    holoBodygroup(0,2,1)
     RGB = vec(200)
     SwitchPos = 1
     setName(Name+"\n(White)")
 }
 
-#Colour 2 (Red)
+#Colour 2 (Green)
 if(Position==2){
-    E:setBodygroup(1,3)
-    RGB = vec(200,0,0)
-    SwitchPos = 2
-    setName(Name+"\n(Red)")
-}
-
-#Colour 3 (Green)
-if(Position==3){
-    E:setBodygroup(1,5)
+    holoBodygroup(0,2,2)
     RGB = vec(100,200,100)
     SwitchPos = 3
     setName(Name+"\n(Green)")
+}
+
+#Colour 3 (Red)
+if(Position==3){
+    holoBodygroup(0,2,3)
+    RGB = vec(200,0,0)
+    SwitchPos = 2
+    setName(Name+"\n(Red)")
 }
