@@ -1,0 +1,60 @@
+@name magspack2/monk/h1244_front_numberboards
+@inputs RunningNumber:string Backlights Numberboard1:entity Numberboard2:entity
+@outputs 
+@persist DefaultNumber:string Font
+@trigger 
+
+if(first() | duped()){
+    
+    # V1.0
+    # Made by Monkatraz
+    
+    # Instructions:
+    # 1. Set up the config below, in any way you want.
+    # 2. Wire Numberboard1 and Numberboard2 to your two front numberboard props. You can find these props in Magnum's pack. (numboard_h1244)
+    # 3. Wire Backlights to a switch. This turns the numberboard lighting on. If you leave it unwired, they're just constantly on.
+    # 4. Done!
+    
+    DefaultNumber = "0000" # If you don't wire RunningNumber, it will use this instead.
+    Font = 1 # 1-6 for the different fonts.
+    
+    # END CONFIG
+    
+    function updateNumberboards(){
+        for(N=1,2){
+            local NB = Numberboard1
+            if(N==2){ NB = Numberboard2 }
+            if(NB == noentity()){ exit() }
+            
+            local ModelType = NB:model() == "models/magtrainslocos/numplates/numboard_h1244_standard_3d.mdl" ? 0 : 1
+            local Type = ModelType == 1 ? NB:getBodygroup(6) == 1 ? 1 : 3 : 2 # 1 = 2 digits, 2 = 3 digits, 3 = 4 digits
+            
+            R = ->RunningNumber ? RunningNumber:explode("") : DefaultNumber:explode("")
+            
+            # set bodygroups based on type
+            switch(Type){
+                case 2,3,
+                    for(N=1,Type == 3 ? 4 : 3){
+                        NB:setBodygroup(N,R[N,string]:toNumber())
+                    }
+                break
+                case 1,
+                    NB:setBodygroup(1,16)
+                    NB:setBodygroup(4,16)
+                    for(N=1,2){
+                        NB:setBodygroup(N+1,R[N,string]:toNumber())
+                    }
+                break
+            }
+            
+            # set font
+            local Lights = ->Backlights ? Backlights : 1
+            local Skin = (((Font-1)*2)+1) - Lights
+            NB:setSkin(Skin)
+        }
+    }
+    if(->Numberboard1 | ->Numberboard2){ updateNumberboards() }
+    
+}
+if(!->Numberboard1 & !->Numberboard2){ exit() }
+if(inputClk()){ updateNumberboards() }
