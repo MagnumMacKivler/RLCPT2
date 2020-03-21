@@ -20,8 +20,8 @@ item:StratoSplite
 version:1.1
 
 item:ConvenientClassicCarspawner
-version:0.94
-version_name:First Contact
+version:0.941
+version_name:Sights Sounds and Styles
 
 item:CPU Blame
 version:1.0
