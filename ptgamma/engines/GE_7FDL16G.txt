@@ -1,7 +1,7 @@
 @name ptgamma/engines/GE_7FDL16G
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
-#For use in mid-production to late-production EMD 40-series "Dash 2" Locomotives (GP40-2, SD40-2).
+#For use in any late GE universal series units and all Dash 7s with the 16 cyl. 
 EngineType = "GE 7FDL16G" #What is the name of the Prime Mover?
 
 Startup_Hi = "gsgtrainsounds/ge7fdl16g/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
