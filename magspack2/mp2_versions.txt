@@ -20,8 +20,8 @@ item:StratoSplite
 version:1.1
 
 item:ConvenientClassicCarspawner
-version:0.941
-version_name:Sights Sounds and Styles
+version:0.942
+version_name:Cleanup Roundup
 
 item:CPU Blame
 version:1.0
