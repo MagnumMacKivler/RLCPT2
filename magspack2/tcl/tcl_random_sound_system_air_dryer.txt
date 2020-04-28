@@ -1,0 +1,36 @@
+@name TCL Random Sound System Air Dryer
+@outputs Timer
+@persist [Sound1 Sound2 Sound3 Sound4 Sound5 Sound6 Sound7 Sound8 Sound9 Sound0 BG]:string Timer Sound:string
+@trigger none
+
+#Universal air dryer for all your locomotive needs.
+
+#TCL <3
+
+if(first()|dupefinished()){
+
+Sound1 = "wam98_sounds/trains/misc/air_hiss1.wav"
+Sound2 = "wam98_sounds/trains/misc/air_hiss2.wav"
+Sound3 = "wam98_sounds/trains/misc/air_hiss3.wav"
+Sound4 = "wam98_sounds/trains/misc/air_hiss4.wav"
+Sound5 = "wam98_sounds/trains/misc/air_hiss5.wav"
+Sound6 = "opencontrol/compressors/wbo/wbo9_loop.wav"
+
+BG = "gsgtrainsounds/misc/airdryer.wav"
+
+Timer=1
+
+soundPlay(1,0,BG)
+
+}
+
+interval(1000)
+
+Sound=select(randint(0,5),Sound1,Sound2,Sound3,Sound4,Sound5,Sound6)
+
+Timer--
+
+if(Timer<=0){
+    soundPlay(0,1.4,Sound)
+    Timer=randint(8,15)
+}

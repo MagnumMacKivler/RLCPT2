@@ -1,0 +1,25 @@
+@name TCL Random Sound System Air Dryer alt
+@outputs Timer
+@persist Timer RandNum:string
+@trigger none
+
+#Universal air dryer for all your locomotive needs.
+
+#TCL <3
+
+if(first()|dupefinished()){
+
+Timer=1
+
+}
+
+interval(1000)
+
+RandNum=randint(10,88):toString()
+
+Timer--
+
+if(Timer<=0){
+    soundPlay(0,0,"opencontrol/airdryer/"+RandNum+".wav")
+    Timer=randint(1,10)
+}

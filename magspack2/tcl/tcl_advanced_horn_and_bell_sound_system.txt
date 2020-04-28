@@ -1,0 +1,171 @@
+@name TCL Advanced Horn and Bell Sound System
+@inputs Horn1 Horn2 Bell [HornProp BellProp]:entity
+@persist [Horn1_On Horn1_Off Horn2_On Horn2_Off Bell_On Bell_Off]:string
+@persist Horn1Pitch Horn2Pitch BellPitch H1Q H2Q BQ
+@persist [E H B HornProp BellProp]:entity
+@persist Horn1Vol Horn2Vol BellVol
+@persist RealistiQuill PlayFromProps
+@persist [HornType BellType]:string
+
+#V1.0
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Horn and Bell Sound System E2!                     #
+#                                                                               #
+# This is based heavily off Magnum's 2-in-1 Horn and Bell E2, but with easier   #
+# setup and some cool features. Featuring Sound Level settings to make your     #
+# warning devices louder and audible much further away. No longer will your     #
+# engine sound overpower the awesome horn you picked! (Note: soundLevel only    #
+# functions on FC&N Trainbuild servers - otherwise this functions as a standard #
+# horn and bell E2.)                                                            #
+#                                                                               #
+# The default horn and bell in this E2 are the two-stage sandcast K5L and GMDD  #
+# bronze bell from my workshop addon, Trans' Train Sounds. Consider this a      #
+# plug for that! The Scott's Train Sounds pack also has some great quillable    #
+# horns and two-part bells.                                                     #
+#                                                                               #
+#   Function Inputs:                                                            #
+#       Horn1 - Sounds the horn using the Horn1 sound.                          #
+#       Horn2 - Sounds the horn using the Horn2 sound. Can be used for two-tone	#
+#               horns, quilling, or left blank.                                 #
+#       Bell - Sounds the bell. (Toggled input recommended.)                    #
+#                                                                               #
+#   Optional Inputs (only required for PlayFromProps functionality):            #
+#       HornProp[ENTITY] - Wire this to the horn prop on your locomotive.       #
+#       BellProp[ENTITY] - Wire this to the bell prop on your locomotive.       #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first()|dupefinished()){
+
+    ### SETUP ###
+    
+    HornType = "AirChime sandcast K5L" #Name of horn type (e.g. "Leslie RS3L", "Nathan K5LA")
+    BellType = "GMDD Bronze Bell" #Name of bell type (e.g. "EMD steel bell", "Graham-White E-Bell")
+
+    # Horn1 sound settings
+    Horn1_On = "trans_train_sounds/horns/bcr_budd_k5l.wav" #Sound path for Horn1 loop
+    Horn1_Off = "trans_train_sounds/horns/bcr_budd_k5l_end.wav" #Sound path for Horn1 end
+    Horn1Pitch = 100 #Pitch tweak
+    Horn1Vol = 1 #1 = 100%
+
+    # Horn2 sound settings
+    Horn2_On = "trans_train_sounds/horns/bcr_budd_k5l_quill.wav" #Sound path for Horn2 loop
+    Horn2_Off = "trans_train_sounds/horns/bcr_budd_k5l_quill_end.wav" #Sound path for Horn2 end
+    Horn2Pitch = 100 #Pitch tweak
+    Horn2Vol = 1 #1 = 100%
+
+    # Bell sound settings
+    Bell_On = "trans_train_sounds/bells/gmdd_bronze_bell.wav" #Sound path for bell loop
+    Bell_Off = "trans_train_sounds/bells/gmdd_bronze_bell_end_noclap.wav" #Sound path for bell end
+    BellPitch = 100 #Pitch tweak
+    BellVol = 1 #1 = 100%
+
+    #RealistiQuill functionality - set to 1 to make quilling slightly more realistic.
+    RealistiQuill = 1
+    
+    #Play from Props functionality - set to 1 to make the sounds play from separate horn and bell entities.
+    PlayFromProps = 1
+
+
+    ### SOUND CODE ###
+
+    E=entity()
+    
+    #ifdef soundLevel(number,number)
+    print("[TCL Adv. Horn and Bell E2] Sound Level Active!")
+    E:soundPlay(3,2,"buttons/bell1.wav")
+    #endif
+    
+    if(PlayFromProps){
+        H=HornProp
+        B=BellProp
+    }else{
+        H=E
+        B=E
+    }
+    
+    soundPitch(0,Horn1Pitch)
+    soundPitch(1,Horn2Pitch)
+    soundPitch(2,BellPitch)
+    
+    setName("TCL Advanced Horn & Bell Sound System\n"+HornType+"\n"+BellType)
+
+}
+
+#Horn
+
+if(Horn1 & !H1Q){
+    H1Q = 1
+    soundStop(0,0)
+    H:soundPlay(0,0,Horn1_On)
+    #ifdef soundLevel(number,number)
+    soundLevel(0,120)
+    #endif
+}elseif(!Horn1 & H1Q){
+    H1Q = 0
+    soundStop(0,0)
+    H:soundPlay(0,0,Horn1_Off)
+    #ifdef soundLevel(number,number)
+    soundLevel(0,120)
+    #endif
+}
+
+if(Horn2 & !H2Q){
+    H2Q = 1
+    soundStop(1,0)
+    H:soundPlay(1,0,Horn2_On)
+    #ifdef soundLevel(number,number)
+    soundLevel(1,120)
+    #endif
+}elseif(!Horn2 & H2Q){
+    H2Q = 0
+    soundStop(1,0)
+    H:soundPlay(1,0,Horn2_Off)
+    #ifdef soundLevel(number,number)
+    soundLevel(1,120)
+    #endif
+}
+
+if(Bell & !BQ){
+    BQ = 1
+    soundStop(2,0)
+    B:soundPlay(2,0,Bell_On)
+    #ifdef soundLevel(number,number)
+    soundLevel(2,80)
+    #endif
+}elseif(!Bell & BQ){
+    BQ = 0
+    soundStop(2,0)
+    B:soundPlay(2,0,Bell_Off)
+    #ifdef soundLevel(number,number)
+    soundLevel(2,80)
+    #endif
+}
+
+#RealistiQuill
+
+if(RealistiQuill){
+    if(Horn1 & !Horn2){ #horn normal
+        soundVolume(0,Horn1Vol) 
+        soundVolume(1,0) 
+    }
+    if(!Horn1 & Horn2){ #quill normal
+        soundVolume(1,Horn2Vol) 
+    }
+    if(Horn1 & Horn2){ #horn over quill
+        soundVolume(0,Horn1Vol)
+        soundVolume(1,0)
+    }
+
+}else{ #normal (old) behaviour
+
+    soundVolume(0,Horn1Vol)
+    soundVolume(1,Horn2Vol)
+    
+}

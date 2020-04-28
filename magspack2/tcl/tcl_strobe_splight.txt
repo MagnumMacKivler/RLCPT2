@@ -1,0 +1,113 @@
+@name magspack2/tcl/TCL Strobe Splight
+@inputs On
+@persist FlashTimer FT Colour:vector E:entity HalfDelay
+
+# V1.0
+
+# by TCL
+
+# This couldn't be more straightforward. Attach to your equipment, setup below, wire On to a toggle and enjoy.
+
+# Having issues? Contact me on Discord! TransCanadaLimited#8427
+# Happy rails <3
+
+if(first()|duped()){
+    
+    ### SETUP ###
+    
+    FlashTimer = 10 # Timer for the flash, in 10ths of a second.
+    Colour = vec(200,200,255) # Colour for the lens.
+    HalfDelay = 0 # Set to 1 to delay the timer by half - useful if you want alternating strobes.
+    
+    ### CODE ###
+    
+    E=entity()
+    
+    if(E:parent():isValid()){
+        E:setAlpha(0)
+    } 
+    
+    #internals
+    holoCreate(1)
+    holoModel(1,"models/gsgtrainprops/parts/auxlights/beacon.mdl")
+    holoPos(1,E:toWorld(vec(0,0,2.1)))
+    holoAng(1,E:angles())
+    holoScale(1,vec(0.3,0.3,0.4))
+    holoParent(1,E)
+    holoMaterial(1,"models/proppertextures/aluminum")
+    
+    #lens
+    holoCreate(2)
+    holoModel(2,"models/anytrains/props/detail/beacon.mdl")
+    holoPos(2,E:toWorld(vec(0,0,-0.5)))
+    holoAng(2,E:angles())
+    holoScale(2,vec(0.4,0.4,0.6))
+    holoColor(2,Colour)
+    holoParent(2,E)
+    holoEntity(2):setSubMaterial(1,"models/proppertextures/invisible")
+    holoEntity(2):setSubMaterial(2,"models/proppertextures/invisible")
+    holoEntity(2):setSubMaterial(3,"models/debug/debugwhite")
+    holoEntity(2):setSubMaterial(4,"models/proppertextures/invisible")
+    holoEntity(2):setSubMaterial(5,"models/proppertextures/invisible")
+    holoEntity(2):setSubMaterial(6,"models/proppertextures/invisible")
+    holoEntity(2):setSubMaterial(7,"models/proppertextures/invisible")
+    
+    #sprite
+    spriteEnable(3,1)
+    spriteSpawn(3,"sprites/light_glow02")
+    spriteSetPos(3,E:toWorld(vec(0,0,3)))
+    spriteSetParent(3,E)
+    spriteSetColor(3,Colour)
+    spriteSetScale(3,1)
+    
+    #base
+    holoCreate(4)
+    holoModel(4,"models/anytrains/props/detail/beacon.mdl")
+    holoPos(4,E:pos())
+    holoAng(4,E:toWorld(ang(0,180,0)))
+    holoScale(4,vec(0.4,0.4,0.4))
+    holoParent(4,E)
+    holoEntity(4):setSubMaterial(3,"models/proppertextures/invisible")
+    holoEntity(4):setSubMaterial(6,"models/proppertextures/invisible")
+    holoEntity(4):setSubMaterial(7,"models/proppertextures/invisible")
+    holoClipEnabled(4,1,1)
+    holoClip(4,vec(0),vec(1,0,0),0)
+    holoCreate(5)
+    holoModel(5,"models/anytrains/props/detail/beacon.mdl")
+    holoPos(5,E:pos())
+    holoAng(5,E:toWorld(ang(0,0,0)))
+    holoScale(5,vec(0.4,0.4,0.4))
+    holoParent(5,E)
+    holoEntity(5):setSubMaterial(3,"models/proppertextures/invisible")
+    holoEntity(5):setSubMaterial(6,"models/proppertextures/invisible")
+    holoEntity(5):setSubMaterial(7,"models/proppertextures/invisible")
+    holoClipEnabled(5,1,1)
+    holoClip(5,vec(0),vec(1,0,0),0)
+    
+}
+
+if(!On){
+    if(HalfDelay){
+        FT = (FlashTimer + round(FlashTimer/2))
+    }elseif(!HalfDelay){
+        FT = FlashTimer
+    }
+    holoDisableShading(2,0)
+    holoAlpha(2,100)
+    spriteSetAlpha(3,0)
+}
+
+if(On){  
+    interval(100)
+    FT--
+    if(FT<1){
+        holoDisableShading(2,1) 
+        holoAlpha(2,254)
+        spriteSetAlpha(3,255)
+        FT = FlashTimer
+    }elseif(FT>=1){
+        holoDisableShading(2,0)
+        holoAlpha(2,100)
+        spriteSetAlpha(3,0)
+    }
+}
