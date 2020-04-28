@@ -1,0 +1,37 @@
+@name Priority's Angled Logo Placer
+@persist A
+
+Logo = "models/logos/companies/alco_logo1a" 
+Position = 0 #Controls Distance between each logo
+Color = 255
+Scale = 1
+Transparency = 255
+X = 0 #Controls X Angle of Logo
+Y = 0 #Controls Y Angle of Logo
+Z = 0 #Controls Z Angle of Logo <--- YOUR MOST LIKE GOING TO USE THIS VARIABLE
+
+A=0
+holoCreate(A)
+holoParent(A, entity())
+holoModel(A, "plane")
+holoPos(A,entity():toWorld(vec(0,Position,0))) 
+holoAng(A, entity():toWorld(ang(-X,-Y,-Z))) 
+holoScale(A, vec(Scale)) 
+holoMaterial(A,Logo) 
+holoColor(A, vec(Color))
+holoAlpha(A,Transparency)
+holoClipEnabled(A,1,1)
+holoClip(A,1, vec(0,0,0), vec(0,1,0), 0)
+
+A++
+holoCreate(A)
+holoParent(A, entity())
+holoModel(A, "plane")
+holoPos(A,entity():toWorld(vec(0,-Position,0))) 
+holoAng(A, entity():toWorld(ang(X,Y,Z))) 
+holoScale(A, vec(Scale)) 
+holoMaterial(A,Logo) 
+holoColor(A, vec(Color))
+holoAlpha(A,Transparency)
+holoClipEnabled(A,1,1)
+holoClip(A,1, vec(0,0,0), vec(0,-1,0), 0)

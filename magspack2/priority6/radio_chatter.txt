@@ -1,0 +1,58 @@
+@name Radio Chatter (edit made by Priority#6)
+@inputs On
+@outputs 
+@persist T Time N
+@trigger 
+@model models/titus's_propper_model_pack_2.4/propper/cabradios/cabradionew.mdl
+
+if(first() | duped()){
+    Time = 30 #The time, in seconds, between sounds. You can change this if you want.
+}
+interval(Time*1000)
+
+if(On){
+    N = randint(1,35)
+
+    Sound = select(N
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 1.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 10.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 11.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 12.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 2.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 3.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 4.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 5.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 6.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 7.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 8.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio chatter 9.wav"
+    ,"usa_locomotive_sounds/radio_chatter/radio static 1.wav"
+    ,"gsgtrainsounds/misc/radio/dispatcher_call.wav"
+    ,"gsgtrainsounds/misc/radio/radio_beep1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn10.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn2.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn3.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn4.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn5.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn6.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn7.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn8.wav"
+    ,"gsgtrainsounds/misc/radio/radio_cn9.wav"
+    ,"gsgtrainsounds/misc/radio/radio_dispatcher1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_release.wav"
+    ,"gsgtrainsounds/misc/radio/radio_set.wav"
+    ,"gsgtrainsounds/misc/radio/radio_standby.wav"
+    ,"gsgtrainsounds/misc/radio/radio_static1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_switching1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_switching2.wav"
+    ,"gsgtrainsounds/misc/radio/radio_switching3.wav"
+    ,"gsgtrainsounds/misc/radio/radio_train1.wav"
+    ,"gsgtrainsounds/misc/radio/radio_yardley.wav"
+   
+)
+
+    entity():soundPlay(0,Time-1,Sound)
+}else{
+    soundStop(0)
+}

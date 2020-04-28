@@ -1,0 +1,95 @@
+@name Pantograph Arc e2 
+@inputs B
+@outputs A
+@persist 
+@trigger 
+
+if(B>=1){
+    
+timer("example",randint(5000,30000) )
+
+if(clk("example") )  {
+    
+    A=255
+   
+Spark = randint(1,30)
+
+Sound = select(Spark
+
+
+    ,"weapons/stunstick/spark1.wav"
+    ,"weapons/stunstick/spark2.wav"
+    ,"weapons/stunstick/spark3.wav"
+    ,"ambient/energy/newspark01.wav"
+    ,"ambient/energy/newspark02.wav"
+    ,"ambient/energy/newspark03.wav"
+    ,"ambient/energy/newspark04.wav"
+    ,"ambient/energy/newspark05.wav"
+    ,"ambient/energy/newspark06.wav"
+    ,"ambient/energy/newspark07.wav"
+    ,"ambient/energy/newspark08.wav"
+    ,"ambient/energy/newspark09.wav"
+    ,"ambient/energy/newspark10.wav"
+    ,"ambient/energy/newspark11.wav"
+    ,"ambient/energy/spark1.wav"
+    ,"ambient/energy/spark2.wav"
+    ,"ambient/energy/spark3.wav"
+    ,"ambient/energy/spark4.wav"
+    ,"ambient/energy/spark5.wav"
+    ,"ambient/energy/spark6.wav"
+    ,"ambient/energy/zap1.wav"
+    ,"ambient/energy/zap2.wav"
+    ,"ambient/energy/zap3.wav"
+    ,"ambient/electrical/light_001.wav"
+    ,"ambient/electrical/light_flicker_002.wav"
+    ,"ambient/electrical/light_flicker_003.wav"
+    ,"electric/transformer_spark_002.wav"
+    ,"electric/transformer_spark_003.wav"
+    ,"electric/spark_001.wav"
+    ,"electric/spark_002.wav"
+    
+)
+    Time = select(Spark
+
+    ,232 ,235 ,270 ,493 ,411 ,204 ,202 ,251 ,253 ,437, 917 ,773 , 969, 782, 346, 70, 452, 520, 364, 392, 671, 447, 425, 2468, 321, 241 ,3762 ,1814
+   
+)
+
+}
+    Z = soundDuration(Sound)
+    soundPlay(0,0,Sound)
+}
+
+if(Spark>=1){
+    Sprite = 1
+}
+
+else{
+    Sprite = 0
+}
+
+
+C = 1
+local E = entity() # can be anything really
+spriteSpawn(C,"sprites/animglow01") # there is a bunch of different spritse - look for the "Sprite" tool in wiremod to see them all
+spriteSetPos(C,E:toWorld(vec(0,0,0)))
+spriteSetScale(C,1)
+spriteSetAlpha(C,255)
+spriteSetColor(C,vec(255))
+spriteSetParent(C,E) # default its parented to the chip but whatev
+spriteEnable(C,Sprite) # you can turn the sprite on and off using this
+
+if(A==255){
+  timer("example2",Time) 
+    
+    if(clk("example2") ) {
+        
+        A=0
+       }
+}
+  
+if(B==0){
+    
+    A=0
+    
+}
