@@ -31,7 +31,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/Laz"
+    #include "ptgamma/controls/standard"
     
     LocoBrakeMode = 0 #0 for Self Lapping, 1 for Manual Lapping
     
