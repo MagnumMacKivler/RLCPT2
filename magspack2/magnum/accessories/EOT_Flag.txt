@@ -1,0 +1,42 @@
+@name EOT Flag
+@inputs 
+@outputs State:string
+@persist [Red White Green BaseColor]:vector C E:entity
+@trigger 
+@model models/sprops/cylinders/size_1/cylinder_1_5x30.mdl
+if(first()|duped()){
+    #Hey look it's the Classification Flag but always red.
+	
+	E = entity()
+    
+    BaseColor = vec(255)
+    
+    White = vec(255,255,255)
+    Red = vec(150,0,0)
+    Green = vec(100,200,100)
+    setName("EOT Flag")
+    
+    E:setColor(BaseColor)
+    E:setMaterial("sprops/textures/sprops_chrome")
+    
+    local A = E:angles()
+    holoCreate(1,E:toWorld(vec(0,1,-80)),vec(0.1875),A,Red,"models/props_fairgrounds/fairgrounds_flagpole01.mdl")
+    #holoCreate(1,E:toWorld(vec(0,0,-8)),vec(0.125),A,vec(255),"models/props_fairgrounds/fairgrounds_flagpole01.mdl")
+    holoParent(1,E)
+    holoClipEnabled(1,1,1)
+    holoClipEnabled(1,2,1)
+    holoClip(1,1,vec(0,0,72),vec(0,0,1),0)
+    holoClip(1,2,vec(0,-1,0),vec(0,-1,0),0)
+    holoAnim(1,"idle")
+    #wtp/cloth_1
+    holoMaterial(1,"models/debug/debugwhite")
+    
+    
+    
+}
+if(dupefinished()){
+    holoAlpha(1,0)
+    E:setColor(BaseColor,0)
+    
+}
+

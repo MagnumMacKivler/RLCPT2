@@ -1,0 +1,35 @@
+@name Movement Box
+@inputs 
+@outputs 
+@persist W:entity BoxSize:vector
+@trigger 
+if(first()){
+    W = entity():isWeldedTo()
+    BoxSize = W:boxSize()
+    holoCreate(0,W:boxCenterW(),BoxSize/96,W:angles(),vec(255,0,0),"models/sprops/cuboids/height96/size_1/cube_96x96x96.mdl")
+    holoAlpha(0,100)
+    holoParent(0,W)
+    
+    holoCreate(1,W:boxCenterW(),BoxSize/96,ang(),vec(0,255,0),"models/sprops/cuboids/height96/size_1/cube_96x96x96.mdl")
+    holoAlpha(1,100)
+    holoParent(1,W)
+}
+interval(20)
+A = W:angles()
+P = A:pitch()
+Y = A:yaw()
+R = A:roll()
+
+BX = BoxSize:x()
+BY = BoxSize:y()
+BZ = BoxSize:z()
+
+MX = abs(BX*cos(Y)) + abs(BY*sin(Y))
+MY = abs(BX*sin(Y)) + abs(BY*cos(Y))
+MZ = BZ
+
+MovSize = vec(MX,MY,MZ)
+#MovSize = W:aabbSize()
+holoScale(1,MovSize/96)
+holoAng(1,ang())
+

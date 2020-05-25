@@ -1,0 +1,116 @@
+@name Magnums Holo Arc Text
+@persist N [Text Mat]:string Length Height Thickness H_Scale Font Color:vector Scale LE E:entity P:vector U:vector F:vector R:vector A:angle AR:array C AUTOPARENT
+@persist StartAngle EndAngle Radius Increment VertOffset AngleOffset RotateChars
+#@model models/sprops/cuboids/height06/size_1/cube_6x6x6.mdl
+if(first()|duped()){
+
+#[
+Welcome to Magnum's HoloText E2!
+This e2 can create hologram text that can have any material or color and can be scaled to fit a certain area.
+]#
+
+#The Text. This is what the sign will display. All alphabetical and numerical characters are accepted as well as ! ? . ' $ / * ^ : - ,
+
+Text = "Sample Text"
+
+AUTOPARENT = 0
+#If this is enabled, the e2 will automatically parent itself to whatever you attach it to. It will also become invisible. Do not use if placing the e2 on the world.
+
+    Length = 9.5
+    Height = 12
+    Thickness = 0.5
+    
+    StartAngle = 15 #Angles are measured counterclockwise from pointing directly up
+    EndAngle = -15
+    Radius = 48 
+    AngleOffset = 0
+    VertOffset = -48 #Vertical Offset
+    
+    RotateChars = 1
+    
+Font = 0
+Mat = ""
+Color = vec(255)
+
+E = entity()
+P = E:pos()
+U = E:up()
+F = E:forward()
+R = E:right()
+A = E:angles():rotateAroundAxis(F,90):rotateAroundAxis(U,-90)
+
+AR = Text:explode("")
+C = AR:count()
+
+if(C>1){
+    Increment = (EndAngle - StartAngle)/(C-1)
+}else{
+    Increment = 0
+}
+N = 1
+timer("CLK",100)
+}
+if(clk("CLK")){
+    Ch = AR[N,string]
+    if(Font==3){Ch = Ch:upper()}
+    if("abcdefghijklmnopqrstuvwxyz":find(Ch)){
+        Char = "models/sprops/misc/alphanum/alphanum_l_"+Ch+".mdl"
+    }elseif("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890":find(Ch)){
+        Char = "models/sprops/misc/alphanum/alphanum_"+Ch+".mdl"
+    }elseif(Ch=="&"){
+        Char = "models/sprops/misc/alphanum/alphanum_and.mdl"
+    }elseif(Ch=="."){
+        Char = "models/sprops/misc/alphanum/alphanum_prd.mdl"
+    }elseif(Ch=="$"){
+        Char = "models/sprops/misc/alphanum/alphanum_dlsign.mdl"
+    }elseif(Ch=="*"){
+        Char = "models/sprops/misc/alphanum/alphanum_star_4.mdl"
+    }elseif(Ch=="^"){
+        Char = "models/sprops/misc/alphanum/alphanum_arrow_a.mdl"
+    }elseif(Ch=="/"){
+        Char = "models/sprops/misc/alphanum/alphanum_div.mdl"
+    }elseif(Ch=="!"){
+        Char = "models/sprops/misc/alphanum/alphanum_xmark.mdl"
+    }elseif(Ch=="?"){
+        Char = "models/sprops/misc/alphanum/alphanum_qmark.mdl"
+    }elseif(Ch=="'"){
+        Char = "models/sprops/misc/alphanum/alphanum_apost.mdl"
+    }elseif(Ch==":"){
+        Char = "models/sprops/misc/alphanum/alphanum_colon.mdl"
+    }elseif(Ch=="-"){
+        Char = "models/sprops/misc/alphanum/alphanum_min.mdl"
+    }elseif(Ch==","){
+        Char = "models/sprops/misc/alphanum/alphanum_com.mdl"
+    }
+    
+    if(Ch!=" "){
+        local M = N-1
+        holoCreate(N,P + Radius*((-F*cos(M*Increment + StartAngle))+(R*sin(M*Increment + StartAngle))) - F*VertOffset,vec(Length/12,Thickness/3,Height/12),A,Color,Char)
+        holoAng(N,A:rotateAroundAxis(U,(RotateChars ? M*Increment : 0) + AngleOffset + StartAngle*RotateChars))
+        holoParent(N,E)
+        holoMaterial(N,Mat)
+        
+    }
+    N++
+    if(N<=C){
+        timer("CLK",100)
+    }elseif(N>C){
+        timer("FINAL",500)
+    }
+}
+if(clk("FINAL")){
+    for(N=1,C){
+        holoBodygroup(N,0,Font)
+    }
+    if(AUTOPARENT){
+        E:setMaterial("models/effects/vol_light001")
+        if(E:isWeldedTo():isValid()){
+            E:parentTo(E:isWeldedTo())
+            #ifdef entity:constraintBreak(entity)
+                E:constraintBreak(E:isWeldedTo())
+            #endif
+                
+        }
+    }
+}
+

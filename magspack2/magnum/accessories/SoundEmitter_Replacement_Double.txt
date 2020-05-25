@@ -1,0 +1,88 @@
+@name SoundEmitter Replacement Double
+@inputs A Pitch
+@outputs SoundOn:string SoundOff:string
+@persist SoundOn:string SoundOff:string Default_Pitch Default_Volume H:entity
+@trigger 
+#@model models/gsgtrainprops/parts/horns/leslie_rs3l.mdl
+if(first() | duped()){
+    
+    #This is basically the SoundEmitter Replacement chip but it plays a second sound when the "A" input is turned off. Useful for Horns and Whistles.
+    
+    SoundOn = "wew/bwhom/a125_247.wav"   #The sound that is played when you blow the horn/whistle
+    SoundOff = "wew/bwhom/a125_247_end.wav"   #The sound that is played when you turn off the horn/whistle
+    Default_Pitch = 100   #The pitch that the sound is played at. 100 is default, 50 is an octave lower and 200 is an octave higher.
+    Default_Volume = 1    #The Default volume the sound it played at. 1 is the maximum, as well as the defualt. Why would you want it any lower?
+    
+    
+    H = holoCreate(0,entity():pos())
+    holoAlpha(0,0)
+    holoParent(0,entity())
+}
+
+if(A & ~A){
+    soundStop(1)
+    soundStop(3)
+    soundPlay(0,0,SoundOn)
+    H:soundPlay(2,0,SoundOn)
+    soundVolume(0,Default_Volume)
+    soundVolume(2,Default_Volume)
+}elseif(!A & ~A){
+    soundStop(0)
+    soundStop(2)
+    soundPlay(1,1,SoundOff)
+    H:soundPlay(3,1,SoundOff)
+    soundVolume(1,Default_Volume)
+    soundVolume(3,Default_Volume)
+}
+for(N=0,3){
+    soundPitch(N,->Pitch ? Pitch*100 : Default_Pitch)
+}
+
+
+#[
+gsgtrainsounds/horns/cnw_rs3l_loop.wav
+gsgtrainsounds/horns/cnw_rs3l_stop.wav
+
+gsgtrainsounds/horns/cr_rs3l_loop2.wav
+gsgtrainsounds/horns/cr_rs3l_stop2.wav
+
+gsgtrainsounds/horns/csx_k5h_loop.wav
+gsgtrainsounds/horns/csx_k5h_end.wav
+
+gsgtrainsounds/horns/csx_k5hll_loop.wav
+gsgtrainsounds/horns/csx_k5hll_end.wav      
+
+gsgtrainsounds/horns/csx_k5l_loop.wav
+gsgtrainsounds/horns/csx_k5l_end.wav
+
+gsgtrainsounds/horns/generic_horn_start.wav
+gsgtrainsounds/horns/generic_horn_end.wav
+
+gsgtrainsounds/horns/k3la_loop.wav
+gsgtrainsounds/horns/k3la_end.wav
+
+gsgtrainsounds/horns/k5h_loop.wav
+gsgtrainsounds/horns/k5h_stop.wav
+
+gsgtrainsounds/horns/k5hll_loop1.wav
+gsgtrainsounds/horns/k5hll_stop1.wav
+
+gsgtrainsounds/horns/rs3k_loop.wav
+gsgtrainsounds/horns/rs3k_stop.wav
+
+gsgtrainsounds/horns/rs3k_loop2.wav
+gsgtrainsounds/horns/rs3k_stop2.wav
+
+gsgtrainsounds/horns/rs3k_loop3.wav
+gsgtrainsounds/horns/rs3k_end3.wav
+
+gsgtrainsounds/horns/s3l_loop.wav
+gsgtrainsounds/horns/s3l_end.wav
+
+gsgtrainsounds/horns/s5t_loop.wav
+gsgtrainsounds/horns/s5t_end.wav
+
+]#
+
+
+

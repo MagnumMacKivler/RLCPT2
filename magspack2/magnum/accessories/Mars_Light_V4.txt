@@ -1,0 +1,159 @@
+@name Mars Light V4
+@inputs On Emergency [Light1 Light2 Lamp]:wirelink
+@outputs [RGB1 RGB2]:vector
+@persist Theta Type RedLens Period E:entity [ColorNormal ColorEmergency ColorBeacon]:vector Horizontal AngleLong AngleShort
+@trigger 
+@model models/gsgtrainprops/parts/auxlights/mars_sb300.mdl
+#@model models/gsgtrainprops/parts/auxlights/pyle_20585_gyralight.mdl
+#@model models/gsgtrainprops/parts/auxlights/pyle_17550_gyralight.mdl
+#@model models/gsgtrainprops/parts/auxlights/beacon.mdl
+#V4.4.1
+
+#Setup Instructions:
+#1- Configure E2 by uncommenting one @model line (Above) and setting the required config below.
+#2- Attach the E2 to the Locomotive in the relevant spot.
+#3- If using Mars/Gyralite, place Headsplight E2s over the lenses of the E2.
+#4- Place a Wire Lamp (With settings of your choice) ON THE GROUND!
+#5- If using Mars/Gyralite, Wire Light1 wirelink to the White Headsplight and Light2 wirelink to the Red Headsplight (If using two white lenses, it doesn't matter which one you pick).
+#6- Wire the Lamp wirelink to the Wire Lamp you spawned on the ground.
+#7- Reload the E2.
+#8- Parent the E2 to the locomotive!
+
+if(first()|dupefinished()){
+    Type = 0 #0 for Mars Figure Eight, 1 for Mars Triple Eight, 2 for Gyralite Circular Oscillation, 3 for Beacon
+    Period = 1 #Period of Oscillation, in seconds.
+    Horizontal = 0 #Rotate Flash Pattern by 90 degrees for Horizontal Light arrangements
+    
+    ColorNormal = vec(255,255,200)
+    ColorEmergency = vec(255,0,0)
+    ColorBeacon = vec(255,93,0)
+    
+    AngleLong = 20 #Angle for long axis of oscillating lights
+    AngleShort = 15 #Angle for short axis of oscillating lights and angle of rotation for Gyralight
+    
+    RedLens = 0 #0 for White Only, 1 for White/Red
+    Baffles = 2 #0 for Vertical, 1 for Horizontal, 2 for None
+    NoMount = 0
+    
+    Color = vec(36)
+    Skin = 0
+    
+    E = entity()
+    
+    E:setColor(Color)
+    E:setSkin(Skin)
+    E:setBodygroup(1,RedLens)
+    E:setBodygroup(2,Baffles)
+    E:setBodygroup(3,NoMount)
+    
+    if(->Lamp){
+        holoCreate(0,E:pos() + (Type==3)*2*E:forward(),vec(1),E:angles())
+        holoParent(0,E)
+        local La = Lamp:entity()
+        La:setPos(E:pos())
+        La:setAng(E:angles())
+        #La["Distance",number] = Distance
+        #La["FOV",number] = FOV
+        #La["Brightness",number] = Brightness
+        
+        
+    }
+    timer("Parent",500)
+    runOnLast(1)
+    Theta = 0
+}
+
+if((On & !Emergency) | (RedLens & Emergency)){
+    
+    local Intensity = 0.25 + (0.75)*clamp(sin(Theta),0,1)
+    RGB1 = Emergency ? vec() : Intensity*ColorNormal
+    RGB2 = Intensity*(RedLens ? ColorEmergency*Emergency : ColorNormal*On)
+    Lamp["RGB",vector] = (Type==3) ? ColorBeacon : (Emergency ? ColorEmergency : ColorNormal)
+    
+    Light1["RGB",vector] = RGB1
+    Light2["RGB",vector] = RGB2
+    Lamp["On",number] = 1
+    
+    
+    if(Type==3){ #Rotary Beacon
+        local U = E:up()
+        holoAng(0,E:angles():rotateAroundAxis(U,Theta))
+    }elseif(Type==2){ #Gyralight
+        local F = E:forward()
+        local R = E:right()
+        
+        holoAng(0,E:angles():rotateAroundAxis(R,AngleShort):rotateAroundAxis(F,Theta))
+    }elseif(Type==1){ #Mars Triple Eight
+        local U = E:up()
+        local R = E:right()
+        
+        if(Horizontal){
+            Y = AngleShort*cos(1.5*Theta)
+            P = AngleLong*sin(0.5*Theta)
+        }else{
+            Y = AngleLong*sin(0.5*Theta)
+            P = AngleShort*cos(1.5*Theta)
+        }
+        holoAng(0,E:angles():rotateAroundAxis(R,P):rotateAroundAxis(U,Y))
+        
+    }else{ #Mars Figure Eight
+        local U = E:up()
+        local R = E:right()
+        
+        if(Horizontal){
+            Y = AngleShort*sin(1*Theta)
+            P = AngleLong*sin(0.5*Theta)
+        }else{
+            Y = AngleLong*sin(0.5*Theta)
+            P = AngleShort*sin(1*Theta)
+        }
+        holoAng(0,E:angles():rotateAroundAxis(R,P):rotateAroundAxis(U,Y))
+    }
+    
+    Theta+=18/Period
+    if(Theta>=720){
+        Theta -=720
+    }
+    
+}else{
+    RGB1 = RGB2 = vec()
+    
+    Lamp["On",number] = 0
+    Light1["RGB",vector] = vec()
+    Light2["RGB",vector] = vec()
+    holoAng(0,E:angles())
+    
+}
+if(clk("Parent")){
+    if(->Light1 & (Type<3)){
+        local L = Light1:entity()
+        L:parentTo(E)
+        L:constraintBreak()
+        L:setMaterial("magtrains/invisible")
+    }
+    if(->Light2 & (Type<3)){
+        local L = Light2:entity()
+        L:parentTo(E)
+        L:constraintBreak()
+        L:setMaterial("magtrains/invisible")
+    }
+    if(->Lamp){
+        local L = Lamp:entity()
+        L:parentTo(holoEntity(0))
+        L:constraintBreak()
+        if(Type==3){
+            L:setAlpha(100)
+            L:setMaterial("magtrains/invisible")
+        }else{
+            L:setAlpha(0)
+            L:setMaterial("")
+        }
+        holoEntity(0):propDraw(0)
+    }
+}
+if(last()){
+    Lamp:entity():deparent()
+}
+if(On | Emergency){
+    timer("clk",50)
+}

@@ -1,0 +1,194 @@
+@name Magnums Advanced Holotext
+@inputs 
+@outputs
+@persist AUTOPARENT Text:string Font Color:vector Shadow ShadowColor:vector Material:string Height Width Thickness Kerning:table Extra:table
+@persist TextArray:array TotalLength
+@trigger 
+#@model models/sprops/cuboids/height06/size_1/cube_6x6x6.mdl
+
+if(first()|dupefinished()){
+    AUTOPARENT = 1
+    
+    Text = "Sample Text"
+    Font = 0 #0 for Verdana, 1 for Impact, 2 for Georgia Italics, 4 for Digital (Incomplete Set)
+    Color = vec(255,255,255)
+    Material = ""
+    
+    Shadow = 0
+    ShadowColor = vec(72)
+    ShadowOffset = vec2(1,-0.5)
+    ShadowScale = vec2(1)
+    
+    Height = 8
+    Width = 8
+    Thickness = 1
+    
+    Extra[".",string] = "prd"
+    Extra[",",string] = "com"
+    Extra[":",string] = "colon"
+    Extra[";",string] = "scolon"
+    Extra["?",string] = "qmark"
+    Extra["!",string] = "xmark"
+    Extra["\"",string] = "quote"
+    Extra["~",string] = "tilde"
+    Extra["<",string] = "lessthan"
+    Extra[">",string] = "greaterthan"
+    Extra["_",string] = "underscore"
+    Extra["@",string] = "atsign"
+    Extra["#",string] = "pdsign"
+    Extra["$",string] = "dlsign"
+    Extra["%",string] = "pcnt"
+    Extra["^",string] = "crt"
+    Extra["&",string] = "and"
+    Extra["'",string] = "apost"
+    Extra["(",string] = "lpar"
+    Extra[")",string] = "rpar"
+    Extra["[",string] = "lbracket"
+    Extra["]",string] = "rbracket"
+    Extra["{",string] = "lcbracket"
+    Extra["}",string] = "rcbracket"
+    Extra["|",string] = "bar"
+    Extra["+",string] = "plu"
+    Extra["-",string] = "min"
+    Extra["*",string] = "ast"
+    Extra["/",string] = "div"
+    Extra["=",string] = "equal"
+    
+    Kerning[".",number] = 6
+    Kerning[",",number] = 6
+    Kerning[":",number] = 6
+    Kerning[";",number] = 6
+    Kerning["!",number] = 6
+    Kerning["\"",number] = 8
+    Kerning["@",number] = 14
+    Kerning["%",number] = 16
+    Kerning["'",number] = 6
+    Kerning["(",number] = 8
+    Kerning[")",number] = 8
+    Kerning["[",number] = 8
+    Kerning["]",number] = 8
+    Kerning["{",number] = 8
+    Kerning["}",number] = 8
+    Kerning["=",number] = 14
+    
+    
+    
+    Kerning["E",number] = 10
+    Kerning["F",number] = 10
+    Kerning["I",number] = 7
+    Kerning["J",number] = 8
+    Kerning["L",number] = 10
+    Kerning["P",number] = 10
+    Kerning["S",number] = 10
+    Kerning["W",number] = 16
+    
+    Kerning["1",number] = 10
+    Kerning["c",number] = 9
+    Kerning["d",number] = 10
+    Kerning["e",number] = 9
+    Kerning["f",number] = 8
+    Kerning["g",number] = 10
+    Kerning["i",number] = 6
+    Kerning["j",number] = 7
+    Kerning["l",number] = 6
+    Kerning["m",number] = 14
+    Kerning["o",number] = 9
+    Kerning["p",number] = 10
+    Kerning["q",number] = 10
+    Kerning["r",number] = 9
+    Kerning["s",number] = 10
+    Kerning["t",number] = 8
+    Kerning["u",number] = 10
+    Kerning["v",number] = 10
+    Kerning["w",number] = 14
+    Kerning["y",number] = 10
+    Kerning["z",number] = 9
+    
+    Kerning[" ",number] = 8
+    
+    E = entity()
+    
+    TextArray = Text:explode("")
+    
+    
+    FontOffset = select(Font+1,0,-1,1)
+    TotalLength = 0
+    for(N=1,TextArray:count()){
+        local Char = TextArray[N,string]
+        if(Kerning:exists(Char)){
+            TotalLength += Kerning[Char,number] + FontOffset
+        }else{
+            TotalLength += 12 + FontOffset
+        }
+    }
+    
+    function number cwidth(C:string){
+        local W = 0
+        if(Kerning:exists(C)){
+            W = Kerning[C,number] + FontOffset
+        }else{
+            W = 12 + FontOffset
+        }
+        return W*(Width/12)
+    }
+    
+    local X = 0
+    local Cnt = 0
+    local Ang = E:toWorld(ang(0,-90,90))
+    
+    for(N=1,TextArray:count()){
+        local Char = TextArray[N,string]
+        local Extension = ""
+        #models/sprops/misc/alphanum/alphanum_prd.mdl
+        if(Extra:exists(Char)){
+            Extension = "models/sprops/misc/alphanum/alphanum_" + Extra[Char,string] + ".mdl"
+        }elseif("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890":find(Char)){
+            Extension = "models/sprops/misc/alphanum/alphanum_" + Char:lower() + ".mdl"
+        }elseif("abcdefghijklmnopqrstuvwxyz":find(Char)){
+            Extension = "models/sprops/misc/alphanum/alphanum_l_" + Char + ".mdl"
+        }elseif(Char==" "){
+            Extension = "cube"
+        }
+        holoCreate(Cnt,E:pos() - X*E:right(),vec(Width,Thickness*4,Height)/12,Ang,Color,Extension)
+        #holoParent(N,E)
+        if(Char==" "){
+            holoAlpha(Cnt,0)
+        }else{
+            holoBodygroup(Cnt,0,Font)
+            holoMaterial(Cnt,Material)
+        }
+        Cnt++
+        
+        if(Shadow){
+            holoCreate(Cnt,E:pos() - (X+(Width*ShadowOffset:x()/12))*E:right() - (Width*ShadowOffset:y()/12)*E:forward(),vec(Width*ShadowScale:x(),Thickness*2,Height*ShadowScale:y())/12,Ang,ShadowColor,Extension)
+            if(Char==" "){
+                holoAlpha(Cnt,0)
+            }else{
+                holoBodygroup(Cnt,0,Font)
+                holoMaterial(Cnt,Material)
+            }
+            Cnt++
+        }
+        
+        X += cwidth(Char)/2 + cwidth(TextArray[N+1,string])/2 + FontOffset
+        
+        
+    }
+    for(N=1,Cnt){
+        holoParent(N,0)
+    }
+    #timer("finish",100)
+    holoPos(0,E:pos() + (Width/12)*(0.5*TotalLength - 6)*E:right())
+    holoParent(0,E )
+    
+    if(AUTOPARENT){
+        local We = E:isWeldedTo()
+        if(We:isValidPhysics()){
+            #ifdef constraintBreak()
+                E:constraintBreak()
+            #endif
+            E:parentTo(We)
+            E:setMaterial("magtrains/invisible")
+        }
+    }
+}

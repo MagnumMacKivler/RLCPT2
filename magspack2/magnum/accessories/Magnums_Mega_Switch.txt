@@ -1,0 +1,178 @@
+@name Magnums Mega Switch
+@inputs [Path1 Path2 Indicator]:wirelink [Path1_Multiple Path2_Multiple]:array Toggle Throw Close ThrowClose
+@outputs State OnThrown OnClosed
+@persist State OnThrown OnClosed HideOtherPath HideAlpha ChangeIndicatorBodygroup BodygroupNum PartClosed PartThrown ChangeIndicatorSkin SkinClosed SkinThrown
+@persist Sound:string ToggleQ SoundQ O:entity Path1Multi Path2Multi
+@trigger 
+@model models/sprops/rectangles_thin/size_1_5/rect_6x6x1_5.mdl
+if(first()|duped()){
+    
+    #V1.0
+    
+    #Welcome to Magnum's Mega Switch, the one-stop shop for all your custom layout switching needs!
+    #Setup instructions:
+    
+    #1- Assemble the switch. A useful suggestion is to make the button and the indicator the same entity, by changing the model of the wire button (Console Command):
+    #For Example: wire_button_model models/trakpak2/groundthrows/throw_4_righthand.mdl makes the button tool spawn tall switch stands!
+    
+    #2- Configure the switch e2 as detailed below. Normally you wire Path1 and Path2 to the Main/Closed and Diverging/Thrown paths, respectively.
+    #If your switch requires multiple parts for one path, set PartXMulti to 1 and use an ADV Entity Marker to put the pieces into an array.
+    #Then simply wire PathX_Multiple instead of PathX.
+    
+    #3- Test it by jiggling the handle a couple of times.
+    
+    #4- If something goes bonkers, type .reset to reset all the switches. This will un-nocollide and make visible all the components as well as reset skins and/or bodygroups.
+    
+    
+    
+    HideOtherPath = 1 #Set to 1 if you're using premade switch models with separate thrown/closed states (Like Trakpak2 switches)
+    HideAlpha = 100 #Set to what alpha value to "hide" it?
+
+    Path1Multi = 0 #Set to 1 if the respective switch path is made of multiple props instead of only one
+    Path2Multi = 1 #(Use an ADV Entity Marker to select all the pieces, and wire Path1_Multiple and/or Path2_Multiple to that)
+    
+    ChangeIndicatorBodygroup = 1 #Set to 1 if your switch stand has a bodygroup for thrown/closed state (Like Trakpak2 switch stands)
+    BodygroupNum = 1 #Bodygroup Number to change (usually 1)
+    PartClosed = 0 #Body parts to switch between for thrown/closed state
+    PartThrown = 1
+    
+    ChangeIndicatorSkin = 0 #Set to 1 if your switch stand has a skin for thrown/closed state
+    SkinClosed = 0 #Skins to switch between for thrown/closed state
+    SkinThrown = 1
+    
+    Sound = "buttons/lever6.wav" #Sound to play when the switch is thrown
+    
+    State = 0
+    ToggleQ = SoundQ = 0
+    OnThrown = OnClosed = 0
+    runOnChat(1)
+    O = owner()
+}
+if(Toggle & !ToggleQ){
+    ToggleQ = 1
+    State = !State
+}elseif(!Toggle & ToggleQ){
+    ToggleQ = 0
+}elseif(~ThrowClose){
+    State = ThrowClose
+}elseif(bXor(Throw,Close)){
+    State = !Close
+}
+if(State & !SoundQ){ #Throw
+    SoundQ = 1
+    soundPlay(0,2,Sound)
+    #Main
+    if(Path1Multi){
+        #print("PINGAS")
+        foreach(K,V:entity=Path1_Multiple){
+            noCollideAll(V,1)
+            if(HideOtherPath){
+                V:setAlpha(HideAlpha)
+                
+            }
+        }
+        
+    }else{
+        local P1 = Path1:entity()
+        noCollideAll(P1,1)
+        if(HideOtherPath){
+            P1:setAlpha(HideAlpha)
+        }
+    }
+    #Diverging
+    if(Path2Multi){
+        foreach(K,V:entity=Path2_Multiple){
+            noCollideAll(V,0)
+            if(HideOtherPath){
+                V:setAlpha(255)
+            }
+        }
+        
+    }else{
+        local P2 = Path2:entity()
+        noCollideAll(P2,0)
+        if(HideOtherPath){
+            P2:setAlpha(255)
+        }
+    }
+    #Indicator
+    local I = Indicator:entity()
+    if(ChangeIndicatorBodygroup){
+        I:setBodygroup(BodygroupNum,PartThrown)
+    }
+    if(ChangeIndicatorSkin){
+        I:setSkin(SkinThrown)
+    }
+    
+}elseif(!State & SoundQ){ #Close
+    SoundQ = 0
+    soundPlay(0,2,Sound)
+    
+    #Main
+    if(Path1Multi){
+        foreach(K,V:entity=Path1_Multiple){
+            noCollideAll(V,0)
+            if(HideOtherPath){
+                V:setAlpha(255)
+            }
+        }
+        
+    }else{
+        local P1 = Path1:entity()
+        noCollideAll(P1,0)
+        if(HideOtherPath){
+            P1:setAlpha(255)
+        }
+    }
+    #Diverging
+    if(Path2Multi){
+        foreach(K,V:entity=Path2_Multiple){
+            noCollideAll(V,1)
+            if(HideOtherPath){
+                V:setAlpha(HideAlpha)
+            }
+        }
+        
+    }else{
+        local P2 = Path2:entity()
+        noCollideAll(P2,1)
+        if(HideOtherPath){
+            P2:setAlpha(HideAlpha)
+        }
+    }
+    #Indicator
+    local I = Indicator:entity()
+    if(ChangeIndicatorBodygroup){
+        I:setBodygroup(BodygroupNum,PartClosed)
+    }
+    if(ChangeIndicatorSkin){
+        I:setSkin(SkinClosed)
+    }
+}
+if(chatClk(O)){
+    LS = O:lastSaid()
+    if(LS==".reset"){
+        hideChat(1)
+        State = 0
+        SoundQ = ToggleQ = 0
+        OnThrown = OnClosed = 0
+        local P1 = Path1:entity()
+        local P2 = Path2:entity()
+        P1:setAlpha(255)
+        P2:setAlpha(255)
+        local I = Indicator:entity()
+        noCollideAll(P1,0)
+        noCollideAll(P2,0)
+        foreach(K,V:entity=Path1_Multiple){
+            noCollideAll(V,0)
+            V:setAlpha(255)
+        }
+        foreach(K,V:entity=Path2_Multiple){
+            noCollideAll(V,0)
+            V:setAlpha(255)
+        }
+        I:setBodygroup(BodygroupNum,PartClosed)
+        I:setSkin(SkinClosed)
+        
+    }
+}

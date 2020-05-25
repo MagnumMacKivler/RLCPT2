@@ -1,0 +1,28 @@
+@name E2 Finder
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+#Locates all E2s that may be invisible and marks them with a holo (a red cone). Great for updating old dupes.
+#Optionally, you can specify a kill name below. All e2s that have that text in their name will be deleted.
+Kill = "crynet" #Set this as "crynet" if not in use.
+
+findInSphere(entity():pos(),1024)
+findClipToClass("gmod_wire_expression2")
+R = findToArray()
+if(Kill==""){Kill="crynet"}
+for(N=1,R:count()){
+    local O = R[N,entity]
+    holoCreate(N,O:pos() + vec(0,0,12),vec(1,1,2),ang(180,0,0),vec(255,0,0),"cone")
+    holoDisableShading(N,1)
+    holoAlpha(N,100)
+    #holoParent(N,O)
+    #if(O:getName():lower():find(Kill) & O:owner()==owner()){
+    if(O:getName():lower():find(Kill)){
+        
+        print("Deleting " + O:id() + " " + O:getName())
+        #print(round(O:pos()))
+        O:propDelete()
+    }
+}

@@ -1,0 +1,101 @@
+@name Magnums Perfect Door
+@inputs Door1:wirelink Door2:wirelink Open Auto
+@outputs Dst [D1 D2]:entity T Op Counting
+@persist Enabled DistanceR DistanceF [E O D1 D2]:entity Dst Subdivisions T CloseTime Op Counting
+@trigger 
+@model models/hunter/plates/plate125.mdl
+
+if(first()|duped()){
+	#A Sliding Door
+    #Link Door1 and Door2 first, then reload the chip.
+	#Make sure the door is closed when you reload!
+	
+    DistanceR = 36     #The side-to-side move distance
+    DistanceF = -4.5         #The forward move distance
+    Subdivisions = 128    #Higher Number -> Slower
+    
+    CloseTime = 5      #The amount of time, in seconds, until the doors close. This only matters when using the "Auto" input
+    
+    
+    runOnChat(1)
+    E = entity()
+    O = owner()
+    Counting = 0
+    
+}
+
+if(dupefinished() & Enabled){
+    D1 = Door1:entity()
+    D2 = Door2:entity()
+        
+    H1 = holoCreate(0,E:pos())
+    H2 = holoCreate(1,E:pos())
+    holoAlpha(0,0),holoAlpha(1,0)
+        
+    D1:parentTo(H1)
+    D2:parentTo(H2)
+    holoParent(0,E)
+    holoParent(1,E)
+}
+interval(10)
+if(chatClk(O)){
+    LS = O:lastSaid()
+    if(LS==".enable" & !Enabled){
+        Enabled = 1
+        D1 = Door1:entity()
+        D2 = Door2:entity()
+        
+        H1 = holoCreate(0,E:pos())
+        H2 = holoCreate(1,E:pos())
+        holoAlpha(0,0),holoAlpha(1,0)
+        
+        D1:parentTo(H1)
+        D2:parentTo(H2)
+        holoParent(0,E)
+        holoParent(1,E)
+    }elseif(LS==".disable"){
+        Enabled = 0
+        D1:deparent()
+        D2:deparent()
+        D1 = D2 = noentity()
+        
+        H1 = holoCreate(0,E:pos() - 36*E:right(),vec(1),E:angles(),vec(255,0,0),"models/sprops/misc/alphanum/alphanum_1.mdl")
+        H2 = holoCreate(1,E:pos() + 36*E:right(),vec(1),E:angles(),vec(0,255,0),"models/sprops/misc/alphanum/alphanum_2.mdl")
+        holoAlpha(0,255)
+        holoAlpha(1,255)
+        holoParent(0,E)
+        holoParent(1,E)
+    }
+}
+
+if(Enabled){
+    
+    if(Auto & ~Auto){
+        Counting = 1
+        T = 0
+        E:soundPlay(0,2,"doors/doormove2.wav")
+    }
+    
+    if(Counting){
+        T++
+        if(T>CloseTime*100){
+            Counting=0
+            E:soundPlay(0,2,"doors/doormove2.wav")
+        }
+    }
+      
+    if(~Open){
+        E:soundPlay(0,2,"doors/doormove2.wav")
+        Counting = 0
+    }
+    
+    Op = (Counting ? 1 : Open)
+    
+    
+    Dst += (Op - !Op)/Subdivisions
+    Dst = clamp(Dst,0,1)
+    
+    holoPos(0,E:pos() + Dst*(DistanceF*E:forward() - DistanceR*E:right()))
+    holoPos(1,E:pos() + Dst*(DistanceF*E:forward() + DistanceR*E:right()))
+    
+}

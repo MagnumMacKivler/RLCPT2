@@ -1,0 +1,166 @@
+@name Signal Lantern
+@inputs 
+@outputs 
+@persist E:entity O:entity RT:entity W:entity Mode Theta PT LQ RQ Swinging
+@trigger 
+#@model models/props_2fort/lantern001_off.mdl
+if(first()|duped()){
+	#Version 1.1
+	
+	#E2 that lets you make hand signals with a lantern! 
+	#Uses the Wire Remote Controller SWEP. Left Click to toggle the signal on and off, Right Click to cycle the signal type.
+
+    E = entity()
+    holoCreate(0,E:pos()+36*E:up(),vec(1),E:angles(),vec(255),"cube")
+    holoAlpha(0,0)
+    Lantern = holoCreate(1,E:pos(),vec(1,1,0.75),E:angles(),vec(255,0,0),"models/props_2fort/lantern001_off.mdl")
+    holoParent(1,0)
+    
+    Lantern:setSubMaterial(1,"debug/debugdrawflat")
+    Lantern:setSubMaterial(2,"models/magtrains/train_metal1")
+    #E:setColor(vec(255,0,0))
+    W = holoCreate(2,E:pos() - 0.5*E:up(),vec(0.75),E:angles():rotateAroundAxis(E:right(),180),vec(255),"cplane")
+    holoMaterial(2,"debug/debugdrawflat")
+    holoParent(2,0)
+    RT = holoCreate(3,E:pos()+10*E:up(),vec(1),ang(),vec(255),"cube")
+    holoAlpha(3,0)
+    holoParent(3,0)
+    
+    runOnChat(1)
+    
+    O = owner()
+    Mode = 1
+    Theta = 0
+    LQ = RQ = 0
+    Swinging = 0
+    
+    function void lanternClear(){
+        holoPos(0,E:pos()+36*E:up())
+        holoAng(0,E:angles())
+        W:removeTrails()
+        RT:removeTrails()
+        
+        return void
+    }
+    function void lanternRed(){
+        RT:setTrails(16,8,1,"effects/beam_generic01",vec(255,0,0),200)
+        W:removeTrails()
+        return void
+    }
+    function void lanternWhite(){
+        W:setTrails(12,8,1,"effects/beam_generic01",vec(255),200)
+        RT:removeTrails()
+        return void
+    }
+}
+timer("clk",100)
+
+
+
+if(chatClk(O)){
+    local LS = O:lastSaid()
+    local Sentence = LS:explode(" ")
+    if(Sentence[1,string]==".signal"){
+        hideChat(1)
+        local Type = Sentence[2,string]
+        switch(Type){
+            case "end",
+                Swinging = 0
+                print("[Lantern] Terminating Signal.")
+                break
+            case "forward",
+			case "fwd",
+                Mode = 2
+                print("[Lantern] Proceed Forward.")
+                break
+            case "backward",
+			case "back",
+			case "reverse",
+			case "rev",
+                Mode = 3
+                print("[Lantern] Proceed Backwards.")
+                break
+            case "stop",
+                Mode = 1
+                print("[Lantern] Stop.")
+                break
+            case "em",
+			case "emergency",
+                Mode = 4
+                print("[Lantern] Emergency Stop!")
+                break
+            default,
+                Swinging = 0
+                print("[Lantern] Terminating Signal.")
+                break
+            
+        }
+        
+        
+    }
+}elseif(clk("clk")){
+    Pistol = O:weapon():type()=="remotecontroller"
+    if(Pistol & !PT){
+        PT = 1
+        if((Mode==2)|(Mode==3)){lanternWhite()}else{lanternRed()}
+        
+    }elseif(!Pistol & PT){
+        PT = 0
+        Swinging = 0
+        lanternClear()
+    }
+    
+    if(Pistol){
+        local LC = O:keyAttack1()
+        local RC = O:keyAttack2()
+        if(RC & !RQ){
+            RQ = 1
+            Mode+=1
+            if(Mode>4){Mode=1}
+            hint(select(Mode,"Stop","Forward","Reverse","Emergency"),2)
+            PT = 0
+        }elseif(!RC & RQ){
+            RQ = 0
+        }
+        if(LC & !LQ){
+            LQ = 1
+            Swinging = !Swinging
+            if(Swinging){
+                if((Mode==2)|(Mode==3)){lanternWhite()}else{lanternRed()}
+            }else{   
+                lanternClear()
+            }
+        }elseif(!LC & LQ){
+            LQ = 0
+        }
+    }
+    
+    if(PT & Swinging){
+        if(Mode==1 | Mode==4){
+            local S = (Mode==4 ? 90 : 120)*cos(Theta)
+            local Eye = O:eye()
+            holoPos(0,O:attachmentPos("anim_attachment_RH"))
+            holoAng(0,O:eyeAngles():rotateAroundAxis(Eye,S))
+            
+            Theta += Mode==4 ? 45 : 15
+            
+        }elseif(Mode==3){
+            local Angs = O:eyeAngles()
+            local Eye = Angs:forward()
+            local Right = Angs:right()
+            local Up = Angs:up()
+            holoPos(0,O:attachmentPos("anim_attachment_RH"))
+            holoAng(0,O:eyeAngles():rotateAroundAxis(Up,90):rotateAroundAxis(Right,90+30*sin(Theta)):rotateAroundAxis(Up,30*cos(Theta)))
+            Theta += 30
+        }elseif(Mode==2){
+            S = 90 + 60*cos(Theta)
+            local Angs = O:eyeAngles()
+            local Right = Angs:right()
+            local Up = Angs:up()
+            holoPos(0,O:attachmentPos("anim_attachment_RH"))
+            holoAng(0,Angs:rotateAroundAxis(Up,90):rotateAroundAxis(Right,S))
+            Theta += 30
+        }
+        if(Theta>360){Theta += -360}
+    }
+}

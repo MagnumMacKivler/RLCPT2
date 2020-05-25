@@ -1,0 +1,177 @@
+@name Magnums 2 in 1 Horn and Bell Quillable
+@inputs Horn Quill Bell
+@outputs [Horn_On Horn_Off]:string HQ BQ
+@persist [Horn_On Horn_Off BellSound]:string BellPitch HornPitch HQ BQ [H1 H2 B1]:entity Fade QuillPitch Pitch QuillSpeed
+@trigger Horn Bell Quill
+if(first()|duped()){
+    BellSound = "GSG_Bells_CDN" #The sound path for the Bell
+    BellPitch = 100    #The Pitch of the bell sound. 100 is default.
+    
+    Horntype = 26   #Pick from below list
+    HornPitch = 100 #Don't change this unless you know what you're doing
+    
+    Fade = 0
+    
+    QuillPitch = 3 #Good values are 1-5
+    QuillSpeed = QuillPitch/2 #Less than or Equal to QuillPitch. Constant numbers work, or you can do QuillPitch/2
+   #[
+    Asterisks (*) denote high-quality horn sounds
+    
+    0 - Leslie A200*
+    1 - Leslie RS3L (CNW)
+    2 - Leslie RS3L (Conrail)
+    3 - Airchime K5h (CSX)
+    4 - Airchime K5HLL (CSX)
+    5 - Airchime K5L (CSX)
+    6 - Generic Horn
+    7 - Airchime K3L
+    8 - Airchime K3LA
+    9 - Airchime K5H
+    10 - Airchime K5HLL
+    11 - Airchime KS1
+    12 - Airchime M3
+    13 - Airchime P5 Newcast*
+    14 - Leslie RS3K
+    15 - Leslie RS3K (Alternate)
+    16 - Leslie RS3K (Alternate 2)*
+    17 - Leslie RS3L*
+    18 - Leslie S3K*
+    19 - Leslie S3L
+    20 - Leslie S5T*
+    21 - Leslie S3J*
+    22 - Nathan P5A*
+    23 - WABCO E2*
+    24 - Leslie S2M*
+    25 - Nathan P3*
+    26 - Leslie RS5T*
+    27 - Airchime K3H*
+    28 - Airchime K5H (Alternate)*
+    29 - Airchime M3H*
+    30 - Hancock 4700*
+    ]#
+    
+    
+    Horn_On = array(
+    "GSG_Horn_A200_Loop",
+    "GSG_Horn_CNW_RS3l_Loop",
+    "GSG_Horn_CR_RS3l_Loop2",
+    "GSG_Horn_CSX_K5H_Loop",
+    "GSG_Horn_CSX_K5HLL_Loop",
+    "GSG_Horn_CSX_K5L_Loop",
+    "GSG_Horn_Generic_Loop",
+    "GSG_Horn_K3L_Loop",
+    "GSG_Horn_K3LA_Loop",
+    "GSG_Horn_K5H_Loop",
+    "GSG_Horn_K5HLL_Loop1",
+    "GSG_Horn_KS1_Loop",
+    "GSG_Horn_M3_Loop",
+    "GSG_Horn_P5_Newcast_Loop",
+    "GSG_Horn_RS3K_Loop1",
+    "GSG_Horn_RS3K_Loop2",
+    "GSG_Horn_RS3K_Loop3",
+    "GSG_Horn_RS3L_Loop",
+    "GSG_Horn_S3K_Loop",
+    "GSG_Horn_S3L_Loop",
+    "GSG_Horn_S5T_Loop",
+    "GSG_Horn_S3J_Loop",
+    "GSG_Horn_P5A_Loop",
+    "GSG_Horn_E2_Loop",
+    "GSG_Horn_S2M_Loop",
+    "GSG_Horn_P3_Loop",
+    "GSG_Horn_RS5T_Loop",
+    "GSG_Horn_K3H_Loop",
+    "GSG_Horn_K5H_Loop2",
+    "GSG_Horn_M3H_Loop",
+    "trainsoundpack2/steamstuff/hancock_4700_loop.wav"
+    )[Horntype+1,string]
+    
+    Horn_Off = array(
+    "GSG_Horn_A200_End",
+    "GSG_Horn_CNW_RS3l_End",
+    "GSG_Horn_CR_RS3l_End2",
+    "GSG_Horn_CSX_K5H_End",
+    "GSG_Horn_CSX_K5HLL_End",
+    "GSG_Horn_CSX_K5L_End",
+    "GSG_Horn_Generic_End",
+    "GSG_Horn_K3l_End",
+    "GSG_Horn_K3lA_End",
+    "GSG_Horn_K5H_End",
+    "GSG_Horn_K5HLL_End1",
+    "GSG_Horn_KS1_End",
+    "GSG_Horn_M3_End",
+    "GSG_Horn_P5_Newcast_End",
+    "GSG_Horn_RS3K_End1",
+    "GSG_Horn_RS3K_End2",
+    "GSG_Horn_RS3K_End3",
+    "GSG_Horn_RS3L_End",
+    "GSG_Horn_S3K_End",
+    "GSG_Horn_S3L_End",
+    "GSG_Horn_S5T_End",
+    "GSG_Horn_S3J_End",
+    "GSG_Horn_P5A_End",
+    "GSG_Horn_E2_End",
+    "GSG_Horn_S2M_End",
+    "GSG_Horn_P3_End",
+    "GSG_Horn_RS5T_End",
+    "GSG_Horn_K3H_End",
+    "GSG_Horn_K5H_End2",
+    "GSG_Horn_M3H_End",
+    "trainsoundpack2/steamstuff/hancock_4700_end.wav"
+    
+    )[Horntype+1,string]
+    
+    H1 = entity()
+    H2 = holoCreate(0,entity():pos())
+    B1 = holoCreate(1,entity():pos())
+    holoAlpha(0,0)
+    holoAlpha(1,0)
+    holoParent(0,H1)
+    holoParent(1,H1)
+    HQ = BQ = 0
+    
+}
+
+if(Horn & !HQ){
+    HQ = 1
+    H1:soundPlay(1,0,Horn_On)
+    H2:soundPlay(2,0,Horn_On)
+    Pitch = HornPitch - Quill*QuillPitch
+    soundPitch(1,Pitch)
+    soundPitch(2,Pitch)
+    soundVolume(1,Quill ? 0.75 : 1)
+    soundVolume(2,Quill ? 0.75 : 1)
+    timer("quill",100)
+}elseif(!Horn & HQ){
+    HQ = 0
+    if(Fade){
+        soundStop(1,0.5)
+        soundStop(2,0.5)
+    }else{
+        H1:soundPlay(1,2,Horn_Off)
+        H2:soundPlay(2,2,Horn_Off)
+        soundPitch(1,Pitch)
+        soundPitch(2,Pitch)
+        soundVolume(1,Quill ? 0.75 : 1)
+        soundVolume(2,Quill ? 0.75 : 1)
+    }
+}
+if(Bell & !BQ){
+    BQ = 1
+    B1:soundPlay(3,0,BellSound)
+    soundPitch(3,BellPitch)
+}elseif(!Bell & BQ){
+    BQ = 0
+    soundStop(3)
+}
+if(clk("quill")){
+    Pitch += (!Quill - Quill)*QuillSpeed
+    Pitch = clamp(Pitch,HornPitch - QuillPitch, HornPitch)
+    soundPitch(1,Pitch)
+    soundPitch(2,Pitch)
+    if(Horn){
+        timer("quill",100)
+    }
+    local Volume = 1 - 0.25*(HornPitch-Pitch)/(QuillPitch)
+    soundVolume(1,Volume)
+    soundVolume(2,Volume)
+}

@@ -1,0 +1,137 @@
+@name Remote Switcher V3
+@inputs User:wirelink Enable
+@outputs 
+@persist Buttons:array Button:entity E:entity O:entity KeySwitch:string KeyShift:string Switching Dialog DQ Toggle:array
+@trigger 
+#V3.1
+#Welcome to Magnum's Remote Switcher V3!
+#Instructions:
+#1- Place the e2 on the locomotive, and spawn a wire user ON THE GROUND! Do NOT spawn it on the locomotive!
+#2- Wire User[Wirelink] from the e2 to the User
+#3- Wire Enable from the e2 to the MU Master switch
+
+#Usage:
+#Point at a switch lever and press the designated Key. The Remote Switcher trips the switch button in your view cone (ignores props, 5-degree angle) that is closest
+#to your aim position (does NOT ignore props, like the cab!).
+
+#Advanced Usage:
+#Press the "shift" key (left shift by default) and the Switch Key together to use the Advanced Switch Dialog. A set of numbers 0-9 will appear on the
+#10 closest switches to you in your forward view cone (angle 15 degrees). Press the required numbers on the keyboard (NOT the numpad) to switch them.
+#Press "shift" + Switch Key or just the Shift Key again to close the dialog.
+if(first()|dupefinished()){
+    KeySwitch = "R"
+    KeyShift = "lshift"
+    
+    Switching = 0
+    Dialog = 0
+    
+    runOnKeys(owner(),1)
+    E = entity()
+    O = owner()
+    DQ = 0
+    Buttons = array()
+}
+timer("clk",200)
+if(->User & !Switching & clk("clk")){
+    local U = User:entity()
+    U:setPos(E:pos()+vec(0,0,12))
+    U:setAng(ang(180,0,0))
+    if(!O:inVehicle() & Dialog){
+        Dialog = 0
+        holoDeleteAll()
+        Buttons = array()
+    }
+    
+}elseif(clk("fire")){
+    User["Fire",number] = 1
+    timer("unfire",100)
+}elseif(clk("unfire")){
+    User["Fire",number] = 0
+    Switching = 0
+}
+if(keyClk() & Enable){
+    Fire = O:keyPressed(KeySwitch)
+    Shift = O:keyPressed(KeyShift)
+    if(Fire & !Shift){
+        local Weapon = O:weapon():type()
+        local WOK = (Weapon!="weapon_physgun") & (Weapon!="weapon_crowbar") & (Weapon != "gmod_tool")
+        if(WOK | O:inVehicle()){
+            
+            if(Dialog){
+                Dialog = 0
+                holoDeleteAll()
+                Buttons = array()
+            }else{
+                findInCone(O:shootPos(),O:eye(),16384,5)
+                findClipToClass("func_button")
+                Button = findClosest(O:aimPos())
+                if(Button:isValid()){
+                    User:entity():setPos(Button:pos()+vec(0,0,8))
+                    Switching = 1
+                    timer("fire",200)
+                }
+            }
+            
+        }
+    }elseif(Fire & Shift){
+        if(O:inVehicle() & !DQ){
+            DQ = 1
+            Dialog = !Dialog
+            if(Dialog){
+                findInCone(O:shootPos(),O:eye(),16384,15)
+                findClipToClass("func_button")
+                findSortByDistance(O:pos())
+                local ButtonsRaw = findToArray()
+                for(N=1,clamp(ButtonsRaw:count(),0,10)){
+                    Buttons[N,entity] = ButtonsRaw[N,entity]
+                }
+                if(Buttons:count()>0){
+                    Toggle = array(0,0,0,0,0,0,0,0,0,0)
+                    local Players = players()
+                    for(N=1,Buttons:count()){
+                        holoCreate(N,Buttons[N,entity]:pos()+vec(0,0,96),vec(6),ang(0,O:eyeAngles():yaw() + 90,0),vec(255,0,0))
+                        holoModel(N, N==10 ? "models/sprops/misc/alphanum/alphanum_0.mdl" : "models/sprops/misc/alphanum/alphanum_" + N:toString() + ".mdl")
+                        holoMaterial(N,"debug/debugdrawflat")
+                        holoVisible(N,Players,0)
+                        holoVisible(N,O,1)
+                    }
+                }
+            }else{
+                holoDeleteAll()
+                Buttons = array()
+            }
+        }
+    }else{
+        DQ = 0
+    }
+    if(Dialog){
+        local K = array()
+        
+        
+        K[1,number] = O:keyPressed("1")
+        K[2,number] = O:keyPressed("2")
+        K[3,number] = O:keyPressed("3")
+        K[4,number] = O:keyPressed("4")
+        K[5,number] = O:keyPressed("5")
+        K[6,number] = O:keyPressed("6")
+        K[7,number] = O:keyPressed("7")
+        K[8,number] = O:keyPressed("8")
+        K[9,number] = O:keyPressed("9")
+        K[10,number] = O:keyPressed("0")
+        
+        for(N=1,10){
+            if(K[N,number]){
+                User:entity():setPos(Buttons[N,entity]:pos()+vec(0,0,8))
+                Switching = 1
+                Toggle[N,number] = !Toggle[N,number]
+                holoColor(N,Toggle[N,number] ? vec(0,255,0) : vec(255,0,0))
+                timer("fire",200)
+                
+                break
+            }
+        }
+        
+        
+        
+    }
+}

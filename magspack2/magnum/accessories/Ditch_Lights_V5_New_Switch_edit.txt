@@ -1,22 +1,23 @@
 @name Ditch Lights V5 New Switch edit
 @inputs Enable_Front Enable_Rear Horn Headlights_Front Headlights_Rear BellToggle
-@outputs [RGB1_Front RGB2_Front RGB1_Rear RGB2_Rear]:vector T Bell
+@outputs [RGB1_Front RGB2_Front RGB1_Rear RGB2_Rear]:vector On_Front On_Rear T Bell
 @persist T On:vector Flashing Period FlashDuration ResidualBrightness
 @trigger 
 if(first()|duped()){
-    #V5.4
+    #V5.4.1
     
     #Setup Instructions
     #1- Configure the E2... There shouldn't be much you'll want to change, except maybe "On."
     #2- Place this E2 somewhere with the rest of your wire stuff on the locomotive.
-    #3- Place two Wire Lights (With NO boxes ticked!) at each end of the locomotive according to the FRA Standards below. Putting them on the rear end is optional.
+    #3- Place two Headsplight E2s at each end of the locomotive according to the FRA Standards below. Putting them on the rear end is optional.
     #4- (If you want the lights to flash): Wire Enable_Front and Enable_Rear (If Used) to a pair of Toggled Buttons in the cab,
     #and wire Horn to whichever Pod Controller output controls the Horn.
     #5- (If you want the lights to come on with the headlights): Wire Headlights_Front and Headlights_Rear to whatever controls the headlights on your locomotive.
     #6- (If you want the Bell to come on when you honk the horn): Wire your Bell to the Bell output on the E2, and wire BellToggle to a Pod Controller output or a Button (NON-Toggled)!
-    #7- Wire the Lefthand Wire Light's RGB[VECTOR] to RGB1_Front
-    #8- Wire the Righthand Wire Light's RGB[VECTOR] to RGB2_Front
-    #9- Repeat Steps 7 and 8 for the Rear Lights, if used. Obviously, those go to RGB1_Rear and RGB2_Rear.
+    #7- Wire the Lefthand Headsplight's RGB[VECTOR] to RGB1_Front.
+    #8- Wire the Righthand Headsplight's RGB[VECTOR] to RGB2_Front.
+	#9- Wire the Headsplights' On inputs to On_Front.
+    #9- Repeat Steps 7 thru 9 for the Rear Lights, if used. Obviously, those go to RGB1_Rear, RGB2_Rear, and On_Rear.
     
     #How to Work the Ditch Lights:
     
@@ -85,4 +86,5 @@ if(clk("reset")){
 if(BellToggle & ~BellToggle){
     Bell = !Bell
 }
-
+On_Front = (Enable_Front & Flashing) | Headlights_Front
+On_Rear = (Enable_Rear & Flashing) | Headlights_Rear

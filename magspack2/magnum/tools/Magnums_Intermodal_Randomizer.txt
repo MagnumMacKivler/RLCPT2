@@ -1,0 +1,1302 @@
+@name Magnums Intermodal Randomizer
+@inputs Units:array
+@outputs Flat89s:array
+@persist O:entity Automatic CarLength Brackets [BaseChance Flat89TypeChance Flat89Chance TwentyChance FortyChance FortyEightChance FiftyThreeChance SkinOverride]:table
+@persist Height BaseSum Flat89TypeSum Flat89Sum TwentySum FortySum FortyEightSum FiftyThreeSum [Bottoms Bottoms2 Wells Flat89s FlatType F89L1]:array H Iteration E:entity ShortOverLongChance TripleHitchChance
+@trigger none
+
+#Note: Make Rear-Center Trailer Wheel more likely
+#Note: Randomize Intermodal Tanker DOT Placards
+
+#V1.9
+#Instructions:
+#1- Configure Settings Below
+#2- Place onto a wellcar (and create an Adv. Entity Marker if Automatic mode is not used!)
+#(3)- Link the Adv. Entity Marker to all the well cars in the consist and Wire Units[ARRAY] to the Adv. Entity Marker
+#(4) - Reload the E2 or type .randomize
+if(first()|dupefinished()){
+    runOnChat(1)
+    O = owner()
+}
+if(first() | dupefinished() | clk("reload")){
+    
+    Automatic = 1 #If set to 1, will automatically generate containers on all wellcars in the consist, if 0, uses Entity Marker to manually mark cars.
+    
+    CarLength = 40 #Nominal length of your container cars (40, 48, 53). This is ignored if "Automatic" is set!
+    Brackets = 0 #Is it that one bracketed wellcar (wellcar_40b)?
+    
+    BaseChance = table() #Ignore
+    Flat89TypeChance = table()
+    Flat89Chance = table()
+    TwentyChance = table()
+    FortyChance = table()
+    FortyEightChance = table()
+    FiftyThreeChance = table()
+    SkinOverride = table()
+    
+    #Container Length Probability Distributions. Each number represents the likelihood of picking a particular car length.
+    #Actual Probability depends on the total sum of the numbers below. ("Marbles in a bag...")
+    
+    BaseChance["Empty",number] = 1
+    BaseChance["1x20",number] = 2
+    BaseChance["2x20",number] = 8
+    BaseChance["40",number] = 8
+    BaseChance["45",number] = 2
+    BaseChance["48",number] = 8
+    BaseChance["53",number] = 8
+    
+    #Car Type Probabilities for 89' Flatcars
+    
+    Flat89TypeChance["240",number] = 1
+    Flat89TypeChance["240C",number] = 2
+    Flat89TypeChance["245",number] = 4
+    Flat89TypeChance["245C",number] = 4
+    Flat89TypeChance["328",number] = 2
+    Flat89TypeChance["328C",number] = 4
+    Flat89TypeChance["C",number] = 2 
+    
+    #Load Probabilities for 89' Flatcars
+    
+    Flat89Chance["Empty",number] = 1
+    Flat89Chance["1x20",number] = 1
+    Flat89Chance["2x20",number] = 4
+    Flat89Chance["1x40",number] = 4
+    Flat89Chance["48T",number] = 8
+    Flat89Chance["53T",number] = 8
+    
+    #Individual Container Types, works the same as the Length Probability Config
+    
+    #20'
+    TwentyChance["Dryvan",number] = 16
+    TwentyChance["Opentop",number] = 1
+    TwentyChance["Flatrack",number] = 1
+    TwentyChance["Drybulk",number] = 2
+    TwentyChance["Tanker",number] = 4
+    #40'
+    FortyChance["Dryvan",number] = 16
+    FortyChance["Hicube",number] = 16
+    FortyChance["Opentop",number] = 1
+    FortyChance["Flatrack",number] = 1
+    #48'
+    FortyEightChance["Ribbed",number] = 1
+    FortyEightChance["Smooth",number] = 1
+    #53'
+    FiftyThreeChance["Ribbed",number] = 1
+    FiftyThreeChance["Smooth",number] = 1
+    
+    #Skin Overrides: Set to 0 to pick a random skin, otherwise forces the skin of all containers of that type to the specified number.
+    
+    SkinOverride["models/magtrains/intermodal/container_20.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_20_opentop.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40_opentop.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_45_hc.mdl",number] = 0
+    
+    SkinOverride["models/magtrains/intermodal/container_48_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_48_hc_smooth.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_53_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_53_hc_smooth.mdl",number] = 0
+    
+    #Probability that, if needed, the randomizer will put a shorter container on top of a longer one.
+    #Value is expressed as a Percent (%)!
+    ShortOverLongChance = 5
+    
+    #End of Config
+    
+    Height = -24
+    
+    BaseSum = 0
+    foreach(K,V:number=BaseChance){
+        BaseSum += V
+    }
+    Flat89TypeSum = 0
+    foreach(K,V:number=Flat89TypeChance){
+        Flat89TypeSum += V
+    }
+    Flat89Sum = 0
+    foreach(K,V:number=Flat89Chance){
+        Flat89Sum += V
+    }
+    TwentySum = 0
+    foreach(K,V:number=TwentyChance){
+        TwentySum += V
+    }
+    FortySum = 0
+    foreach(K,V:number=FortyChance){
+        FortySum += V
+    }
+    FortyEightSum = 0
+    foreach(K,V:number=FortyEightChance){
+        FortyEightSum += V
+    }
+    FiftyThreeSum = 0
+    foreach(K,V:number=FiftyThreeChance){
+        FiftyThreeSum += V
+    }
+    H = 0
+    Car = noentity()
+    Holo = noentity()
+    
+    Iteration = 1
+    
+    Bottoms = array()
+    Bottoms2 = array()
+    F89L1 = array()
+    Wells = array()
+    Flat89s = array()
+    if(Automatic){
+        local Base = rangerOffset(8,entity():pos(),-entity():up()):entity()
+        local Props = array(Base):add(Base:getConstraints())
+        local CI = 1
+        local FI = 1
+        foreach(K,V:entity = Props){
+            local Mdl = V:model()
+            if(Mdl:find("wellcar")){
+                Wells[CI,entity] = V
+                CI++
+            }elseif(Mdl:find("flatcar_f89")){
+                Flat89s[FI,entity] = V
+                FI++
+            }
+        }
+    }else{
+        Wells = Units
+    }
+    timer("singlestack",100)
+}
+if(clk("singlestack")){
+    if(Wells:count()>0){
+        if(Automatic){
+            local Mdl = Wells[Iteration,entity]:model()
+            if(Mdl:find("40")){
+                CarLength = 40
+            }elseif(Mdl:find("48")){
+                CarLength = 48
+            }elseif(Mdl:find("53")){
+                CarLength = 53
+            }else{
+                CarLength = 40
+            }
+            #print(CarLength)
+        }
+        local Rand = randint(1,BaseSum)
+        local BaseType = ""
+        Rand -= BaseChance["Empty",number]
+        if(Rand<=0){
+            BaseType = "Empty"
+        }else{
+            Rand -= BaseChance["1x20",number]
+            if(Rand<=0){
+                BaseType = "1x20"
+            }else{
+                Rand -= BaseChance["2x20",number]
+                if(Rand<=0){
+                    BaseType = "2x20"
+                }else{
+                    Rand -= BaseChance["40",number]
+                    if(Rand<=0){
+                        BaseType = "40"
+                    }else{
+                        Rand -= BaseChance["45",number]
+                        if(Rand<=0){
+                            BaseType = (CarLength>=45) ? "45" : "2x20"
+                        }else{
+                            Rand -= BaseChance["48",number]
+                            if(Rand<=0){
+                                BaseType = (CarLength>=48) ? "48" : "40"
+                            }else{
+                                BaseType = (CarLength>=53) ? "53" : "40"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #print(BaseType)
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,((random()>0.5)*2 - 1)*120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+            
+            
+                
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "45",
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,"models/magtrains/intermodal/container_45_hc.mdl")
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "48",
+                Rand = random()
+                if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                    CType = "models/magtrains/intermodal/container_48_hc.mdl"
+                }else{
+                    CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "53",
+                Rand = random()
+                if(Rand<=(FiftyThreeChance["Ribbed",number]/FiftyThreeSum)){
+                    CType = "models/magtrains/intermodal/container_53_hc.mdl"
+                }else{
+                    CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            default,
+                break
+        }
+    }
+    Iteration++
+    if(Iteration>Wells:count()){
+        Iteration = 1
+        timer("transition",100)
+    }else{
+        timer("singlestack",100)
+    }
+}elseif(clk("doublestack")){
+    if(Wells:count()>0){
+        if(Automatic){
+            local Mdl = Wells[Iteration,entity]:model()
+            if(Mdl:find("40b")){
+                CarLength = 40
+            }elseif(Mdl:find("40")){
+                CarLength = 48
+            }elseif(Mdl:find("48")){
+                CarLength = 53
+            }elseif(Mdl:find("53")){
+                CarLength = 53
+            }else{
+                CarLength = 48
+            }
+            #print(CarLength)
+        }
+    
+        local Rand = randint(1,BaseSum)
+        local BaseType = ""
+        if(Bottoms[Iteration,entity] & (!Bottoms[Iteration,entity]:model():find("20") | Bottoms2[Iteration,entity])){
+            Rand -= BaseChance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= BaseChance["40",number]
+                if(Rand<=0 | (CarLength==40)){
+                    if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40")){
+                        BaseType = "40"
+                    }elseif(CarLength==40){
+                        BaseType = "Empty"
+                    }elseif(Bottoms[Iteration,entity]:model():find("smooth")){
+                        BaseType = "48"
+                    }else{
+                        BaseType = (random()<(ShortOverLongChance/100)) ? "40" : "48"
+                    }
+                }else{
+                    Rand -= BaseChance["45",number]
+                    if(Rand<=0){
+                        if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40") | Bottoms[Iteration,entity]:model():find("45")){
+                            BaseType = "45"
+                        }else{
+                            BaseType = (!Bottoms[Iteration,entity]:model():find("smooth") & (random()<(ShortOverLongChance/100))) ? "45" : "48"
+                        }
+                    }else{
+                        Rand -= BaseChance["48",number]
+                        if(Rand<=0){
+                            if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40") | Bottoms[Iteration,entity]:model():find("45") |Bottoms[Iteration,entity]:model():find("48")){
+                                BaseType = "48"
+                            }else{
+                                BaseType = (random()<(ShortOverLongChance/100)) ? "48" : "53"
+                            }
+                        }else{
+                            if(CarLength==48){
+                                BaseType = "48"
+                            }else{
+                                BaseType = "53"
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            BaseType = "Empty"
+        }
+        
+        switch(BaseType){
+            case "40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                H++
+                
+                break
+            case "45",
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,"models/magtrains/intermodal/container_45_hc.mdl")
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "48",
+                if(Bottoms[Iteration,entity]:model():find("smooth")){
+                    CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                }else{
+                    Rand = random()
+                    if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                        CType = "models/magtrains/intermodal/container_48_hc.mdl"
+                    }else{
+                        CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            case "53",
+                if(Bottoms[Iteration,entity]:model():find("smooth")){
+                    CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                }else{
+                    Rand = random()
+                    if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                        CType = "models/magtrains/intermodal/container_53_hc.mdl"
+                    }else{
+                        CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            default,
+                break
+        }
+    }
+    Iteration++
+    if(Iteration>Wells:count()){
+        timer("flat89_1",100)
+        Iteration = 1
+    }else{
+        timer("doublestack",100)
+    }
+
+
+
+}elseif(clk("flat89_1")){
+    if(Flat89s:count()>0){
+        
+        local Rand = randint(1,Flat89TypeSum)
+        local FType = ""
+        Rand -= Flat89TypeChance["240",number]
+        if(Rand<=0){
+            FType = "240"
+        }else{
+            Rand -= Flat89TypeChance["240C",number]
+            if(Rand<=0){
+                FType = "240C"
+            }else{
+                Rand -= Flat89TypeChance["245",number]
+                if(Rand<=0){
+                    FType = "245"
+                }else{
+                    Rand -= Flat89TypeChance["245C",number]
+                    if(Rand<=0){
+                        FType = "245C"
+                    }else{
+                        Rand -= Flat89TypeChance["328",number]
+                        if(Rand<=0){
+                            FType = "328"
+                        }else{
+                            Rand -= Flat89TypeChance["328C",number]
+                            if(Rand<=0){
+                                FType = "328C"
+                            }else{
+                                FType = "C"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        FlatType[Iteration,string] = FType
+        local ContCapable = FType:find("C")
+        local ContOnly = FType=="C"
+        
+        local BaseType = ""
+        if(ContCapable){
+            local Rand = randint(1,ContOnly ? Flat89Sum - Flat89Chance["48T",number] - Flat89Chance["53T",number] : Flat89Sum)
+            #if(ContOnly){Rand -= (Flat89Chance["48T",number] + Flat89Chance["53T",number])}
+            Rand -= Flat89Chance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= Flat89Chance["1x20",number]
+                if(Rand<=0){
+                    BaseType = "1x20"
+                }else{
+                    Rand -= Flat89Chance["2x20",number]
+                    if(Rand<=0){
+                        BaseType = "2x20"
+                    }else{
+                        Rand -= Flat89Chance["1x40",number]
+                        if(Rand<=0){
+                            BaseType = "1x40"
+                        }else{
+                            Rand -= Flat89Chance["48T",number]
+                            if(Rand<=0){
+                                BaseType = "48T"
+                            }else{
+                                BaseType = "53T"
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            local Rand = randint(1,Flat89Chance["Empty",number] + Flat89Chance["48T",number] + Flat89Chance["53T",number])
+            Rand -= Flat89Chance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= Flat89Chance["48T",number]
+                if(Rand<=0){
+                    BaseType = "48T"
+                }else{
+                    BaseType = "53T"
+                }
+            }
+        }
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "1x40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-272,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "48T",
+                local HitchType = FType:find("240") ? 1 : 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_48.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-228,4)),vec(1),Car:toWorld(ang(0,180,1)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-261,4)),vec(1),Car:toWorld(ang(0,180,1)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                break
+            case "53T",
+                local HitchType = FType:find("240") ? 1 : 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_53.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-198,4)),vec(1),Car:toWorld(ang(0,180,0.75)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-230,4)),vec(1),Car:toWorld(ang(0,180,0.75)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                break
+            default,
+                break
+        }
+        F89L1[Iteration,string] = BaseType
+        Car = Flat89s[Iteration,entity]
+        for(N=1,10){
+            Car:setBodygroup(N,0)
+        }
+        #print(FType + " " + BaseType)
+    }
+    Iteration++
+    if(Iteration>Flat89s:count()){
+        timer("flat89_2",100)
+        Iteration = 0
+    }else{
+        timer("flat89_1",100)
+    }
+}elseif(clk("flat89_2")){
+    if(Flat89s:count()>0){
+        local Load1 = F89L1[Iteration,string]
+        local Trailered1 = (Load1:find("48T") | Load1:find("53T"))
+        local Nort = Load1:find("Empty") & (FlatType[Iteration,string]:find("240"))
+        local FType = FlatType[Iteration,string]
+        local ContCapable = FType:find("C")
+        local ContOnly = FType=="C"
+        local NoTrailers = !(Load1=="Empty" | Load1=="1x20")
+        
+        local BaseType = ""
+        
+        if(!Trailered1){
+            if(ContCapable){
+                local Rand = randint(1,(ContOnly | NoTrailers) ? Flat89Sum - Flat89Chance["48T",number] - Flat89Chance["53T",number] : Flat89Sum)
+                #if(ContOnly | NoTrailers){Rand -= (Flat89Chance["48T",number] + Flat89Chance["53T",number])}
+                Rand -= Flat89Chance["Empty",number]
+                if(Rand<=0){
+                    BaseType = "Empty"
+                }else{
+                    Rand -= Flat89Chance["1x20",number]
+                    if(Rand<=0){
+                        BaseType = "1x20"
+                    }else{
+                        Rand -= Flat89Chance["2x20",number]
+                        if(Rand<=0){
+                            BaseType = "2x20"
+                        }else{
+                            Rand -= Flat89Chance["1x40",number]
+                            if(Rand<=0){
+                                BaseType = "1x40"
+                            }else{
+                                Rand -= Flat89Chance["48T",number]
+                                if(Rand<=0){
+                                    BaseType = Nort ? "Empty" : "48T"
+                                }else{
+                                    BaseType = Nort ? "Empty" : "53T"
+                                }
+                            }
+                        }
+                    }
+                }
+            }else{
+                local Rand = randint(1,Flat89Chance["Empty",number] + Flat89Chance["48T",number] + Flat89Chance["53T",number])
+                Rand -= Flat89Chance["Empty",number]
+                if(Rand<=0){
+                    BaseType = "Empty"
+                }else{
+                    Rand -= Flat89Chance["48T",number]
+                    if(Rand<=0){
+                        BaseType = "48T"
+                    }else{
+                        BaseType = "53T"
+                    }
+                }
+            }
+        }elseif(ContCapable){
+            BaseType = "1x20"
+        }else{
+            BaseType = "Empty"
+        }
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "1x40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,272,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkin(H,SkinOverride[Holo:model(),number])
+                }else{
+                    holoSkin(H,randint(1,Holo:getSkinCount() - 1))
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "48T",
+                local HitchType = 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_48.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,228,4)),vec(1),Car:toWorld(ang(0,0,1)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,261,4)),vec(1),Car:toWorld(ang(0,0,1)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                #F89L1[Iteration,number] = 2
+                break
+            case "53T",
+                local HitchType = 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_53.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,198,4)),vec(1),Car:toWorld(ang(0,0,0.75)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,230,4)),vec(1),Car:toWorld(ang(0,0,0.75)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                #F89L1[Iteration,number] = 2
+                break
+            default,
+                break
+        }
+        
+        Car = Flat89s[Iteration,entity]
+        local Trailered2 = BaseType:find("48T") | BaseType:find("53T")
+
+        switch(FType){
+            case "240",
+                Car:setBodygroup(1,1+Trailered1)
+                Car:setBodygroup(2,1+Trailered2)
+                Car:setBodygroup(6,1)
+                break
+            case "240C",
+                Car:setBodygroup(1,1+Trailered1)
+                Car:setBodygroup(2,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "245",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,2)
+                break
+            case "245C",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "328",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(4,1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,3)
+                break
+            case "328C",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(4,1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "C",
+                local TLFA = 0
+                local TLFB = 0
+                if(Load1=="Empty" & BaseType=="Empty"){
+                    TLFA = randint(1,2)
+                    TLFB = randint(1,2)
+                }
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : TLFA)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : TLFA)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : TLFB)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : TLFB)
+                break
+        }
+        
+    }
+    
+    Iteration++
+    if(Iteration>Flat89s:count()){
+        timer("finalize",100)
+    }else{
+        timer("flat89_2",100)
+    }
+}elseif(clk("transition")){
+    BaseSum = BaseSum - BaseChance["1x20",number] - BaseChance["2x20",number]
+    timer("doublestack",100)
+}elseif(clk("finalize")){
+    E = entity()
+    if(!E:parent():isValidPhysics()){
+        E:parentTo(E:isWeldedTo())
+        E:constraintBreak("weld")
+    }
+    print("[Intermodal] Randomized " + Wells:count() + " Wells and " + Flat89s:count() + " 89' Flatcars!")
+}
+    
+    
+    
+
+
+if(chatClk(O)){
+    if(O:lastSaid()==".randomize"){
+        holoDeleteAll()
+        hideChat(1)
+        print("[Intermodal] Randomizing Cars...]")
+        timer("reload",1000)
+    }elseif(O:lastSaid()==".unloadall"){
+        hideChat(1)
+        holoDeleteAll()
+        print("[Intermodal] Unloading All Cars...]")
+        
+        for(Iteration=1,Flat89s:count()){
+            local Car = Flat89s[Iteration,entity]
+            local FType = FlatType[Iteration,string]
+            switch(FType){
+                case "240",
+                    Car:setBodygroup(1,1)
+                    Car:setBodygroup(2,1)
+                    break
+                case "240C",
+                    Car:setBodygroup(1,1)
+                    Car:setBodygroup(2,1)
+                    break
+                case "245",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "245C",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "328",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(4,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "328C",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(4,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "C",
+                    break
+            }
+        }
+    }
+}
+
+
+
+
+

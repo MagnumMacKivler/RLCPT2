@@ -1,0 +1,13 @@
+@name Server Uptime
+@inputs 
+@outputs 
+@persist 
+@trigger 
+Curtime = round(realtime())
+
+
+
+Hours = floor(Curtime/3600)
+Minutes = floor((Curtime - Hours*3600)/60)
+
+print("Server has been up for " + Hours + " hours, " + Minutes + " minutes.")

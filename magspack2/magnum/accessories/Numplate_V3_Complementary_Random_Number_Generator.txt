@@ -1,0 +1,11 @@
+@name Numplate V3 Complementary Random Number Generator
+@outputs Num:string
+#V1.1 Does everything
+#Don't let the name fool you, this works up to Numplate V6 too.
+
+PadStart = "" #Number string to add before the random portion
+Min = 1000 #Minimum value of random portion
+Max = 1999 #Maximum value of random portion
+PadEnd = "" #Number string to add after the random portion
+
+Num = PadStart + randint(Min,Max):toString() + PadEnd

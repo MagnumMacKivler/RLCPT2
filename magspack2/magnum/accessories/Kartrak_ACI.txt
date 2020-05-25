@@ -1,0 +1,82 @@
+@name Kartrak ACI
+@inputs NumIn:string
+@outputs Num:string
+@persist 
+@trigger 
+@model models/freight/kartrak.mdl
+
+#Welcome to Magnum's Kartrak ACI (Automatic Car Identification)! (Model by Daylight106)
+#Apply this e2 directly to the car, or apply to a Kartrak model to configure it.
+
+IsLoco = 0 #1 for Locomotive, 0 for Anything Else
+OwnerType = 2 #0 for Real RR owner, 1 for Real Non-RR Owner, 2 for Gmod RR Owner, 3 for Gmod Non-RR Owner
+ReportingMark = "FC&N" #Just for Shits and Giggles, the 4-character Reporting mark of the owner company. Non-Railroad owners end in X.
+OwnerCode = "238" #3-digit code representing the owner. Pick something at random if it's a Gmod RR/Company. Otherwise, see http://eaneubauer.ipower.com/aci.pdf
+Number = "123456" #Numbers only, no letters. If the car is a locomotive, the first two digits (out of 6) are a code for the unit type, Railroad-Specific.
+
+RandomNumber = 0 #Generate a random number?
+Min = 1000 #Minimum for Random Number
+Max = 1999 #Maximum for Random Number
+
+if(RandomNumber & !->NumIn){
+    Number = randint(Min,Max):toString()
+}elseif(->NumIn){
+    Number = NumIn
+}
+
+
+OT = OwnerType:toString()
+
+OC = OwnerCode
+L = 3 - OC:length()
+if(L>0){OC = "0":repeat(L) + OC}elseif(L<0){error("[KARTRAK] Owner Code too long!")}
+
+
+
+N1 =  Number
+L = 6 - N1:length()
+if(L>0){N2 = "0":repeat(L) + N1}elseif(L<0){error("[KARTRAK] Number too long!")}else{N2=N1}
+
+
+Num = IsLoco ? N2:right(4) : Number
+
+Line1 = "Kartrak ACI"
+Line2 = ((OwnerType % 2) ? "Non-Railroad Owner: " : "Railroad Owner: ") + ReportingMark
+Line3 = "Owner Code: " + OT + OC
+Line4 = IsLoco ? ("Unit Type: " + N2:left(2) + ", No. " + N2:right(4)) : ("No. " + Number)
+setName(Line1 + "\n" + Line2 + "\n" + Line3 + "\n" + Line4)
+
+Digits = array("0","stop",N2:index(6),N2:index(5),N2:index(4),N2:index(3),N2:index(2),N2:index(1),OC:index(3),OC:index(2),OC:index(1),OT,"start")
+Sum = 0
+for(N=3,11){
+    Sum += Digits[N,string]:toNumber()*(2^(11-N))
+}
+
+
+Parity = Sum % 11
+
+Digits[1,string] = Parity:toString()
+
+W = entity():isWeldedTo()
+if(W:model()=="models/freight/kartrak.mdl"){
+    E = W
+}else{
+    E = entity()
+}
+E:setSubMaterial(2,"models/dl106/equipment/freight/aci"+Digits[12,string])
+E:setSubMaterial(3,"models/dl106/equipment/freight/aci"+Digits[11,string])
+E:setSubMaterial(4,"models/dl106/equipment/freight/aci"+Digits[10,string])
+E:setSubMaterial(5,"models/dl106/equipment/freight/aci"+Digits[9,string])
+E:setSubMaterial(6,"models/dl106/equipment/freight/aci"+Digits[8,string])
+E:setSubMaterial(7,"models/dl106/equipment/freight/aci"+Digits[7,string])
+E:setSubMaterial(8,"models/dl106/equipment/freight/aci"+Digits[6,string])
+E:setSubMaterial(9,"models/dl106/equipment/freight/aci"+Digits[5,string])
+E:setSubMaterial(10,"models/dl106/equipment/freight/aci"+Digits[4,string])
+E:setSubMaterial(11,"models/dl106/equipment/freight/aci"+Digits[3,string])
+E:setSubMaterial(14,"models/dl106/equipment/freight/aci"+Digits[1,string])
+
+if(W:model()=="models/freight/kartrak.mdl"){
+    selfDestruct()
+}
+
+

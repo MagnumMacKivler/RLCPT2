@@ -1,0 +1,13 @@
+@name Toggle x3m
+@inputs A B C
+@outputs OA OB OC Constant
+@persist OA OB OC Constant
+@trigger 
+if(first() | duped()){
+    OA = OB = OC = 0
+    Constant = 1
+}
+if(A){OA = !OA}
+if(B){OB = !OB}
+if(C){OC = !OC}
+

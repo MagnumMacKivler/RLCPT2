@@ -1,0 +1,44 @@
+@name Waffle Indicator V2 Composite Stand
+@inputs Enable Emergency ForceSand BrakeWarn WheelSlip
+@outputs 
+@persist [L1_Off L2_Off L3_Off L4_Off L1_On L2_On L3_On L4_On]:string H:entity
+@trigger 
+
+if(first()|duped()){
+    local E = entity()
+    H = holoCreate(0,E:toWorld(vec(0,0,0.75)),vec(1),E:toWorld(ang(-90,0,0)),vec(255),"models/magtrainslocos/cstands_bg/indicators.mdl")
+    holoParent(0,E)
+    E:setAlpha(0)
+    
+    # [1][2]
+    # [3][4]
+    
+    #The standard arrangement is:
+    # [1] is PCS Open, [2] is Sand,
+    # [3] is Brake Warn, [4] is the WheelSlip Indicator.
+    
+    L1_Off = "models/proppertextures/pcs_off"
+    L1_On = "models/proppertextures/pcs_on"
+    
+    L2_Off = "models/proppertextures/sand_off"
+    L2_On = "models/proppertextures/sand_on"
+    
+    L3_Off = "models/proppertextures/brakewarn_off"
+    L3_On = "models/proppertextures/brakewarn_on"
+    
+    L4_Off = "models/proppertextures/wheelslip_off"
+    L4_On = "models/proppertextures/wheelslip_on"
+    
+    #For those of you who want to do the awesome meme, here are the paths for the "Fender Bender" indication:
+    #models/proppertextures/fenderbender_off
+    #models/proppertextures/fenderbender_on
+}
+
+#L1
+H:setSubMaterial(1,(Enable & Emergency) ? L1_On : L1_Off)
+#L2
+H:setSubMaterial(4,(Enable & ForceSand) ? L2_On : L2_Off)
+#L3
+H:setSubMaterial(6,(Enable & BrakeWarn) ? L3_On : L3_Off)
+#L4
+H:setSubMaterial(5,(Enable & WheelSlip) ? L4_On : L4_Off)

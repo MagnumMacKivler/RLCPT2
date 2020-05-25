@@ -1,0 +1,33 @@
+@name Magnums Holo Stripe E2
+@inputs Prop:wirelink
+@trigger Prop
+ScaleAdd = vec(1/128,1/256,1/64)  #The protrusion factor. Larger values make the stripe float higher from the surface it's painted on. 1/256 is a good value.
+LocalPos = vec(0) #Should Be zero unless you have a good reason to change it
+LocalAxis = vec(0,0,1):normalized() #The direction (local to the model) that the stripe will be painted along. For example (0,0,1) will draw the stripe going UP a certain thickess around the whole model.
+Start = 0 #The distance from the coord center of the model (direction determined by LocalAxis) to start the stripe 
+Thickness = 16 #The thickness of the stripe
+
+
+Color = vec(255) #The color of the stripe
+Skin = 1 #The skin of the stripe
+BodyGroups = array() #Body groups to apply.
+#Bodygroup Usage: Each entry in the array must be a 2-d vector. The first part of that is the Bodygroup ID (starts at 1) and the second part of that is the bodygroup choice (Starts at 0)
+#Example: "BodyGroups = array(vec2(1,1))" will set the first bodygroup to 1.
+#Example: "BodyGroups = array(vec2(1,1), vec2(2,0))" will set the first bodygroup to 1 and the second bodygroup to 0.
+
+if(->Prop){W=Prop:entity()}else{W=entity():isWeldedTo()}
+
+if(W:isValid()){
+    M = W:model()
+    holoCreate(0,W:toWorld(LocalPos),vec(1)+ScaleAdd,W:angles(),Color,M)
+    holoParent(0,W)
+    holoClipEnabled(0,1,1)
+    holoClipEnabled(0,2,1)
+    holoClip(0,1,(Start+Thickness)*LocalAxis,-LocalAxis,0)
+    holoClip(0,2,Start*LocalAxis,LocalAxis,0)
+    holoSkin(0,Skin)
+    
+    for(N=1,BodyGroups:count()){
+        holoBodygroup(0,BodyGroups[N,vector2]:x(),BodyGroups[N,vector2]:y())
+    }
+}

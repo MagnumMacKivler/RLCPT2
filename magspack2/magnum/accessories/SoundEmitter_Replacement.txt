@@ -1,0 +1,20 @@
+@name SoundEmitter Replacement
+@inputs A Pitch
+@outputs Sound:string
+@persist Sound:string Default_Pitch Default_Volume 
+@trigger 
+
+#Sound Emitters are for noobs because they don't play sounds to people who aren't within a certain range when they are spawned.
+if(first() | duped()){
+    Sound = "ambient/music/country_rock_am_radio_loop.wav"      #This is the path to the sound that you want to play.
+    Default_Pitch = 125    #This is the pitch that the sound will play at. 100 is the default pitch. 50 is one octave lower, 200 is one octave higher.
+    Default_Volume = 1     #This is the default volume the sound will play at, 1 is the default as well as the maximum.
+}
+
+if(A & ~A){
+    soundPlay(0,0,Sound)
+    soundVolume(0,Default_Volume)
+}elseif(!A){
+    soundStop(0)
+}
+soundPitch(0,->Pitch ? Pitch*100 : Default_Pitch)

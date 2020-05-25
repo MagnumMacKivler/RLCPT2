@@ -1,0 +1,48 @@
+@name Track Torpedo
+@persist [E H1 H2 H3 H4]:entity Boom:effect Det Sound:string
+@model models/jaanus/thruster_flat.mdl
+
+#Also called a railway detonator.
+#Place this on the rail (don't worry, it will automatically nocollide) as a warning device:
+#Three track torpedoes placed in a row is a signal to the engineer to make an emergency stop.
+
+if(first()){
+    E = entity()
+    #E:propNotSolid(1)
+    H1 = holoCreate(0,E:pos())
+    H2 = holoCreate(1,E:pos())
+    H3 = holoCreate(2,E:pos())
+    H4 = holoCreate(3,E:pos())
+    H1:propDraw(0)
+    H2:propDraw(0)
+    H3:propDraw(0)
+    H4:propDraw(0)
+    
+    Boom = effect()
+    Boom:setOrigin(E:pos()+vec(0,0,64))
+    Boom:setRadius(64)
+    #Boom:play("helicoptermegabomb")
+    Det = 0
+    Sound = "weapons/shotgun/shotgun_dbl_fire.wav"
+    #weapons/shotgun/shotgun_dbl_fire.wav
+    
+}
+interval(50)
+R = ranger(32)
+if(R:hit() & !Det){
+    local Ent = R:entity()
+    if(Ent:type()=="prop_physics"){
+        Det = 1
+        soundPlay(0,3,Sound)
+        H1:soundPlay(1,3,Sound)
+        H2:soundPlay(2,3,Sound)
+        H3:soundPlay(2,3,"^"+Sound)
+        H4:soundPlay(2,3,"<"+Sound)
+        Boom:play("helicoptermegabomb")
+        timer("delete",3000)
+        E:propDraw(0)
+    }
+}
+if(clk("delete")){
+    selfDestruct()
+}

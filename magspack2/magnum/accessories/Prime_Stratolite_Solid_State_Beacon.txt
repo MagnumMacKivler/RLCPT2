@@ -1,0 +1,50 @@
+@name Prime Stratolite Solid State Beacon
+@inputs On [L1 L2 L3 L4]:wirelink
+@outputs Theta On1 On2 On3 On4 Int1 Int2 Int3 Int4 [RGB1 RGB2 RGB3 RGB4]:vector
+@persist Theta Overlap ColorOn:vector Period
+@trigger 
+#@model models/gsgtrainprops/parts/auxlights/beacon.mdl
+if(first()|duped()){
+    
+    ColorOn = vec(255,93,0)
+    Overlap = 25
+    Theta = 0
+    Period = 1
+}
+if(On){
+    On1 = (Theta <= (45+Overlap)) | (Theta >= (315-Overlap))
+    On2 = (Theta >= (45-Overlap)) & (Theta <= (135+Overlap))
+    On3 = (Theta >= (135-Overlap)) & (Theta <= (225+Overlap))
+    On4 = (Theta >= (225-Overlap)) & (Theta <= (315+Overlap))
+    
+    local Th = (Theta < 180) ? Theta : (Theta - 360)
+    
+    Int1 = On1*cos(180*(Th)/(90+2*Overlap))
+    Int2 = On2*cos(180*(Theta-90)/(90+2*Overlap))
+    Int3 = On3*cos(180*(Theta-180)/(90+2*Overlap))
+    Int4 = On4*cos(180*(Theta-270)/(90+2*Overlap))
+    
+    L1["On",number] = On1
+    L2["On",number] = On2
+    L3["On",number] = On3
+    L4["On",number] = On4
+    
+    L1["RGB",vector] = RGB1 = Int1*ColorOn
+    L2["RGB",vector] = RGB2 = Int2*ColorOn
+    L3["RGB",vector] = RGB3 = Int3*ColorOn
+    L4["RGB",vector] = RGB4 = Int4*ColorOn
+    
+    timer("clk",50)
+    Theta += 18/Period
+    if(Theta >= 360){Theta += -360}
+}else{
+    L1["On",number] = On1 = 0
+    L2["On",number] = On2 = 0
+    L3["On",number] = On3 = 0
+    L4["On",number] = On4 = 0
+    
+    L1["RGB",vector] = RGB1 = vec()
+    L2["RGB",vector] = RGB2 = vec()
+    L3["RGB",vector] = RGB3 = vec()
+    L4["RGB",vector] = RGB4 = vec()
+}

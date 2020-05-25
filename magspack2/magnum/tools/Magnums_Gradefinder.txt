@@ -1,0 +1,18 @@
+@name Magnums Gradefinder
+@inputs 
+@outputs PercentGrade:string Angle
+@persist O:entity
+@trigger 
+if(first()|duped()){
+    O = owner()
+}
+interval(30)
+N = O:aimNormal()
+Dot = N:dot(vec(0,0,1))
+Angle = acos(Dot)
+if(round(Dot)!=0){
+    Grade = round(tan(Angle)*100,2)
+    PercentGrade = Grade:toString() + " Percent Grade"
+}else{
+    PercentGrade = "Vertical Surface!"
+}

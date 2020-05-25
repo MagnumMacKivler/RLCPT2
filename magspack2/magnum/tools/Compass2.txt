@@ -1,0 +1,35 @@
+@name Compass2
+@inputs 
+@outputs 
+@persist
+@trigger 
+@model models/sprops/misc/sq_holes/sqhole_d3_24.mdl
+
+#Useful for building if you don't want to put your spray down on a flat surface
+#X axis is Red
+#Y axis is Green
+#Z Axis is Blue
+
+if(first()|duped()){
+    E = entity()
+    P = E:pos()
+    
+    holoCreate(0,P,vec(1.5),ang(),vec(255),"hq_sphere")
+    holoMaterial(0,"models/props_combine/health_charger_glass")
+    
+    holoCreate(1,P+vec(3,0,0),vec(0.125,0.125,0.5),ang(90,0,0),vec(255,0,0),"cone")
+    holoCreate(2,P+vec(0,3,0),vec(0.125,0.125,0.5),ang(0,0,-90),vec(0,255,0),"cone")
+    holoCreate(3,P+vec(0,0,3),vec(0.125,0.125,0.5),ang(0,0,0),vec(0,0,255),"cone")
+    holoCreate(4,P+vec(7.5,0,0),vec(0.125),ang(0,180,90),vec(255,0,0),"models/sprops/misc/alphanum/alphanum_e.mdl")
+    holoCreate(5,P+vec(-7.5,0,0),vec(0.125),ang(0,180,90),vec(255,0,0),"models/sprops/misc/alphanum/alphanum_w.mdl")
+    holoCreate(6,P+vec(0,7.5,0),vec(0.125),ang(0,180,90),vec(0,255,0),"models/sprops/misc/alphanum/alphanum_n.mdl")
+    holoCreate(7,P+vec(0,-7.5,0),vec(0.125),ang(0,180,90),vec(0,255,0),"models/sprops/misc/alphanum/alphanum_s.mdl")
+    
+    for(N=1,7){
+        holoDisableShading(N,1)
+        holoParent(N,0)
+    }
+    holoParent(0,E)
+}
+interval(20)
+holoAng(0,ang())

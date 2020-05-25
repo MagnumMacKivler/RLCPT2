@@ -1,0 +1,39 @@
+@name Coin
+@inputs 
+@outputs 
+@persist E:entity
+@trigger 
+@model models/sprops/geometry/fdisc_36.mdl
+
+#Heads or Tails?
+#Toss it in the air with the gravity gun.
+
+if(first()){
+    E = entity()
+    A = E:angles()
+    A2 = A:rotateAroundAxis(E:up(),90)
+    holoCreate(0,E:toWorld(vec(0,2,0)),vec(0.75,0.125,0.75),A,vec(255),"models/props_combine/breenbust.mdl")
+    holoCreate(1,E:toWorld(vec(-1,1.5,5.5)),vec(0.875,0.125,0.875),A,vec(255),"models/player/items/engineer/engineer_cowboy_hat.mdl")
+    
+    holoCreate(2,E:toWorld(vec(0,-1.5,0)),vec(1/64,1.5/32,1.5/32),A2,vec(255),"models/magtrainslocos/alco_rs3.mdl")
+    holoCreate(3,E:toWorld(vec(9.5,-1.5,0)),vec(1/64,1.5/32,1.5/32),A2,vec(255),"models/magtrains/locobogey1.mdl")
+    holoCreate(4,E:toWorld(vec(-9.5,-1.5,0)),vec(1/64,1.5/32,1.5/32),A2,vec(255),"models/magtrains/locobogey1.mdl")
+    
+    holoCreate(5,E:pos(),vec(1,1.5,1),A,vec(255),"models/sprops/geometry/fring_42.mdl")
+    
+    E:setMaterial("models/magtrainslocos/cabmetal_gray")
+    for(N=0,5){
+        holoParent(N,E)
+        holoMaterial(N,"models/magtrainslocos/cabmetal_gray")
+    }
+}
+interval(100)
+R = E:right()
+if(R:z() < 0){
+    setName("Coin: Heads")
+}elseif(R:z() > 0){
+    setName("Coin: Tails")
+}else{
+    setName("Coin: How the hell did you get it to land like this!?")
+    
+}

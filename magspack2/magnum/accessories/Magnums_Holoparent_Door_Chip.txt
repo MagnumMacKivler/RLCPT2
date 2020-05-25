@@ -1,0 +1,106 @@
+@name Magnums Holoparent Door Chip
+@inputs Open Close Toggle Set Ents:array ShowHolo
+@outputs Param
+@persist SwingAngle SwingSpeed State [SoundOpen SoundOpened SoundClose SoundClosed]:string E:entity Running ToggleQ Param
+@trigger Open Close Toggle Set ShowHolo
+@model models/sprops/cuboids/height06/size_1/cube_6x6x6.mdl
+if(first()|dupefinished()){
+    
+	#A hinged door, great for propbuilds!
+	#The E2 itself is the hinge axis. Place the E2, link all the props you want to move to an ADV Entity marker.
+	#Wire Ents[ARRAY] to the ADV Ent Marker, then Reload the E2.
+	
+	#Make sure the doors are all closed when you save the dupe or reload the e2!
+	
+    SwingAngle = 135
+    SwingSpeed = 90
+    
+    SoundOpen = "doors/default_locked.wav"
+    SoundOpened = ""
+    SoundClose = ""
+    SoundClosed = "doors/default_stop.wav"
+    
+    runOnLast(1)
+    E = entity()
+    holoCreate(1,E:pos(),vec(0.25,0.25,1.5),E:angles(),vec(0,0,255),"cone")
+    holoParent(1,E)
+    
+    holoCreate(2,E:toWorld(vec(3,3,0)),vec(0.25),E:toWorld(ang(0,-90,-90)),vec(0,0,255),"models/sprops/geometry/qring_48.mdl")
+    holoParent(2,1)
+    holoCreate(3,E:toWorld(vec(-3,3,0)),vec(0.25),E:toWorld(ang(0,0,-90)),vec(0,0,255),"models/sprops/geometry/qring_48.mdl")
+    holoParent(3,1)
+    holoCreate(4,E:toWorld(vec(-3,-3,0)),vec(0.25),E:toWorld(ang(0,90,-90)),vec(0,0,255),"models/sprops/geometry/qring_48.mdl")
+    holoParent(4,1)
+    holoCreate(5,E:toWorld(vec(0,-5.5,0)),vec(0.25),E:toWorld(ang(90,0,0)),vec(0,0,255),"cone")
+    holoParent(5,1)
+    
+    for(N=1,5){
+        holoMaterial(N,"models/debug/debugwhite")
+    }
+    
+    Running = 0
+    State = Param = 0
+    ToggleQ = 0
+    timer("parent",500)
+}elseif(clk("parent")){
+    foreach(K,V:entity=Ents){
+        V:parentTo(holoEntity(1))
+    }
+    Running = 1
+}elseif(clk("clk")){
+    if(State){
+        if(Param==0){
+            if(SoundOpen!=""){soundPlay(1,2,SoundOpen)}
+        }
+        Param += (SwingSpeed/abs(SwingAngle))/10
+        if(Param>=1){
+            Param = 1
+            if(SoundOpened!=""){soundPlay(1,2,SoundOpened)}
+        }else{
+            timer("clk",100)
+        }
+        
+    }else{
+        if(Param==1){
+            if(SoundClose!=""){soundPlay(1,2,SoundClose)}
+        }
+        Param += -(SwingSpeed/abs(SwingAngle))/10
+        if(Param<=0){
+            Param = 0
+            if(SoundClosed!=""){soundPlay(1,2,SoundClosed)}
+        }else{
+            timer("clk",100)
+        }
+        
+    }
+    holoAng(1,E:angles():rotateAroundAxis(E:up(),Param*SwingAngle))
+    
+    
+}elseif(Running){
+    if(Open & !State){
+        State = 1
+        if(Param<1){timer("clk",100)}
+    }elseif(Close & State){
+        State = 0
+        if(Param>0){timer("clk",100)}
+    }elseif(~Set){
+        State = Set
+        if(Param!=State){timer("clk",100)}
+    }elseif(Toggle & !ToggleQ){
+        ToggleQ = 1
+        State = !State
+        if(Param!=State){timer("clk",100)}
+    }elseif(!Toggle & ToggleQ){
+        ToggleQ = 0
+    }
+}
+if(last()){
+    foreach(K,V:entity=Ents){
+        V:deparent()
+    }
+}
+if(->ShowHolo){
+    for(N=1,5){
+        holoAlpha(N,ShowHolo ? 255 : 0)
+    }
+}

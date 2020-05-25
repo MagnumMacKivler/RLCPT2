@@ -1,0 +1,195 @@
+@name Magic Crowbar Coupler V3
+@inputs Enable
+@outputs [C1 C2]:vector
+@persist Index [E1 E2 O]:entity Q TensionFactor
+@trigger 
+
+#Updated to use the "New" constraint core function
+
+if(first()|duped()){
+    
+    TensionFactor = 0.25 #The larger the number, the more tension the couplings will have. DO NOT SET GREATER THAN 0.5! 0.25 is a good value.
+    
+    #[
+        V3.0
+        Instructions!
+        
+        Standard Coupling:
+        1- Take out the crowbar and point at a truck/bogey.
+        2- Left click to select it. You should receive a hint message and an encouraging button noise.
+        3- Point at the second prop you wish to couple and repeat.
+        4- Left click once more anywhere to finalize the coupling.
+            Note: You can press R to cancel the process at any step.
+        
+        Quick Coupling:
+        1- Take out the crowbar and point at a truck/bogey.
+        2- Right click to select it. The chip will then find the closest prop with the same model within 256 units and couple it.
+            Note: Do Not use with span-bolstered rolling stock!
+        
+        Semiautomatic Coupling:
+        1- Take out the crowbar and point at a truck (NOT a carbody!)
+        2- Press Alt to "Mark" the truck for coupling
+        3- Point at the other truck you want to be coupled and press Alt again
+        4- Push the two cars together (via locomotive, preferably) and they should automatically couple themselves!
+            Note: This mode ONLY works with Magnum's Rolling Stock! If it works with anything else that's awesome but unintended.
+        Uncoupling:
+        1- Take out the crowbar and point at a prop.
+        2- Press R to remove all rope constraints from that prop, thereby uncoupling it.
+    
+    ]#
+    
+    O = owner()
+    runOnKeys(O,1)
+    Q = 0
+    Index = 0
+    
+    function vector entity:findCoupling(){
+        local Car = This:isConstrainedTo("axis")
+        local Box = Car:boxSize()
+        if(Box:y()>Box:x()){
+            Ytotal = Box:y()/2 - 24
+            TD = sign(Car:toLocal(This:pos()):y())
+            Vex = Car:toWorld(vec(0,Ytotal*TD,0))*vec(1,1,0)
+        }else{
+            Ytotal = Box:x()/2 - 24
+            TD = sign(Car:toLocal(This:pos()):x())
+            Vex = Car:toWorld(vec(Ytotal*TD,0,0))*vec(1,1,0)
+        } 
+        return Vex
+    }
+}
+if(Enable | !->Enable){
+    
+    if((O:weapon():type()=="weapon_crowbar") & (!O:inVehicle())){
+        if(Q==0){#No entities selected
+            if(O:keyAttack1() & (keyClkPressed()=="mouse_left")){
+                E1 = O:aimEntity()
+                if(E1:isValidPhysics()){
+                    Q = 1
+                    hint("Entity 1 Selected: " + (E1:model()),4)
+                    O:soundPlay(0,2,"buttons/button3.wav")
+                }else{
+                    hint("Selected Entity 1 is not valid!",4)
+                    O:soundPlay(0,2,"buttons/button8.wav")
+                }
+            }elseif(O:keyAttack2() & (keyClkPressed()=="mouse_right")){
+                E1 = O:aimEntity()
+                if(E1:isValidPhysics()){
+                    findInSphere(E1:pos(),256)
+                    findClipToModel(E1:model())
+                    findClipFromEntity(E1)
+                    E2 = findClosest(E1:pos())
+                    if(E2:isValidPhysics()){
+                        Q = 0
+                        local M1 = E1:massCenterL()
+                        local M2 = E2:massCenterL()
+                        local P1 = E1:toLocal(E2:pos())*TensionFactor*vec(1,1,0)
+                        local P2 = E2:toLocal(E1:pos())*TensionFactor*vec(1,1,0)
+                        #local Dist = Disp1:length()
+                        rope(Index,E1,M1+P1,E2,M2+P2,0,2,"cable/cable",1)
+                        Index++
+                        hint("Closest Matching Prop has been auto-coupled!",4)
+                        O:soundPlay(0,2,"gsgtrainsounds/misc/couple.wav")
+                    }else{
+                        hint("No Matching Props were auto-detected",4)
+                        O:soundPlay(0,2,"buttons/button8.wav")
+                    }
+                }else{
+                    hint("Selected Entity 1 is not valid!",4)
+                    O:soundPlay(0,2,"buttons/button8.wav")
+                }
+                E1 = noentity()
+                E2 = noentity()
+            }elseif(O:keyPressed("lalt") & (keyClkPressed()=="lalt")){
+                E1 = O:aimEntity()
+                if(E1:isValidPhysics()){
+                    Q = -1
+                    hint("Entity 1 Marked: " + (E1:model()),4)
+                    O:soundPlay(0,2,"buttons/button18.wav")
+                }else{
+                    hint("Marked Entity 1 is not valid!",4)
+                    O:soundPlay(0,2,"buttons/button8.wav")
+                }
+            }
+        }elseif(Q==1){#1st Entity Selected, Std
+            if(O:keyAttack1() & (keyClkPressed()=="mouse_left")){
+                E2 = O:aimEntity()
+                if(E2:isValidPhysics()){
+                    Q = 2
+                    hint("Entity 2 Selected: " + (E2:model()) + "\nLeft Click one more time to Finalize, or reload to cancel.",4)
+                    O:soundPlay(1,2,"buttons/button3.wav")
+                }else{
+                    hint("Selected Entity 2 is not valid!",4)
+                    O:soundPlay(1,2,"buttons/button8.wav")
+                }
+            }
+        }elseif(Q==2){#2nd entity selected, Std
+            if(O:keyAttack1() & (keyClkPressed()=="mouse_left")){
+                Q = 0
+                
+                local M1 = E1:massCenterL()
+                local M2 = E2:massCenterL()
+                local P1 = E1:toLocal(E2:pos())*TensionFactor*vec(1,1,0)
+                local P2 = E2:toLocal(E1:pos())*TensionFactor*vec(1,1,0)
+                #local Dist = Disp1:length()
+                rope(Index,E1,M1+P1,E2,M2+P2,0,2,"cable/cable",1)
+                Index++
+                hint("Selected Entities have been coupled!",4)
+                O:soundPlay(2,2,"gsgtrainsounds/misc/couple.wav")
+                E1 = noentity()
+                E2 = noentity()
+                
+                
+            }
+        }elseif(Q==-1){#1st Entity Selected, Semi
+            if(O:keyPressed("lalt") & (keyClkPressed()=="lalt")){
+                E2 = O:aimEntity()
+                if(E2:isValidPhysics()){
+                    Q = -2
+                    hint("Entity 2 Marked: " + (E2:model()) + "\nMove the cars together to Finalize, or reload to cancel.",4)
+                    O:soundPlay(1,2,"buttons/button18.wav")
+                    timer("test",50)
+                }else{
+                    hint("Marked Entity 2 is not valid!",4)
+                    O:soundPlay(1,2,"buttons/button8.wav")
+                }
+            }
+        }
+        if(O:keyReload() & (keyClkPressed()=="r")){
+            if(Q!=0){
+                hint("Coupling Cancelled",4)
+            }
+            Q = 0
+            E1 = noentity()
+            E2 = noentity()
+            local E = O:aimEntity()
+            if(E:hasConstraints("rope")){
+                O:soundPlay(2,2,"gsgtrainsounds/misc/uncouple.wav")
+                E:constraintBreak("rope")
+                hint("Selected Entity Uncoupled!",4)
+            }
+        }
+    }
+    if(Q==-2 & clk("test")){
+        timer("test",50)
+        C1 = E1:findCoupling()
+        C2 = E2:findCoupling()
+        if(C1:distance(C2) < 44){
+            Q = 0
+            
+            local M1 = E1:massCenterL()
+            local M2 = E2:massCenterL()
+            local P1 = E1:toLocal(E2:pos())*TensionFactor*vec(1,1,0)
+            local P2 = E2:toLocal(E1:pos())*TensionFactor*vec(1,1,0)
+            #local Dist = Disp1:length()
+            rope(Index,E1,M1+P1,E2,M2+P2,0,2,"cable/cable",1)
+            Index++
+            hint("Marked Entities have been coupled!",4)
+            E1:soundPlay(2,2,"gsgtrainsounds/misc/couple.wav")
+            E1 = noentity()
+            E2 = noentity()
+        }
+        
+    }
+
+}

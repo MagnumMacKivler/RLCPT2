@@ -42,7 +42,7 @@ if(first()|duped()){
     
     AUTOPARENT = 0 #Set this to 1 to make the chip parent itself to the prop you attach it to. MAKE SURE IT IS THE BASEPLATE/CARBODY!
     
-    LazyMode = 0 #This doesn't actually work anymore. Wiremod broke it a long time ago.
+    LazyMode = 0 #This doesn't actually work anymore. Wiremod broke it a long time ago. Leave it as 0.
     
     RTD = 1   #Enables Red Tape Defender (RTD) Recording. At any time, you can type ".rerail" in chat and it will place your entire train back on the rails!
     FreezeOnDerail = 0  #"Traditional" FBD functionality. When it detects a derailment, it will freeze the entire train.
@@ -52,7 +52,7 @@ if(first()|duped()){
     Interval = 50   #Derailment Check Interval, in ms. 50ms means 20 trucks per second (10 cars per second). You should probably leave it at 50.
     RTD_Interval = 10 #Time in seconds between Red Tape snapshots.
     
-    #Don't touch these
+    #Search Paths - Any model with the following entries will be considered a truck.
     
     Paths = table()
     
@@ -63,7 +63,8 @@ if(first()|duped()){
     TruckModels = array(
     #For adding extra models, that don't fall into one of the categories above. Feel Free to keep this up to date as more and more models get added.
     
-    "models/flak/ge_hi-ad.mdl"
+    "models/flak/ge_hi-ad.mdl",
+    "models/flak/rockwell.mdl"
     
     )
     signalSetGroup("FBD")

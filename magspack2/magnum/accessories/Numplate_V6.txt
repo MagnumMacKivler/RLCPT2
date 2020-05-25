@@ -1,0 +1,106 @@
+@name Numplate V6
+@inputs Num:string
+@outputs 
+@persist NumDefault:string FrameColor:vector NumColor:vector Scale:vector Ready E:entity Skin
+@trigger 
+@model models/magtrains/numplate_emd_4d.mdl
+#Always specify the 4-digit model!
+
+if(first()|dupefinished()){
+    
+    NumDefault = "0000"
+    NumColor = vec(255)
+    FrameColor = vec(255)
+    
+    Skin = 0 #Used for Font
+    
+    BackingType = 0 #0 for Black, 1 for White, 2 for None
+    FrameType = 0 #0 for Black, 1 for White, 2 for None
+    
+    Scale = vec(1) #Don't change this
+    
+    
+    E = entity()
+    holoCreate(1,E:pos(),Scale,E:angles(),NumColor,E:model())
+    holoParent(1,E)
+    holoBodygroup(1,5,2)
+    holoBodygroup(1,6,2)
+    holoSkin(1,Skin)
+    
+    E:setColor(FrameColor)
+    E:setBodygroup(1,16)
+    E:setBodygroup(2,16)
+    E:setBodygroup(3,16)
+    E:setBodygroup(4,16)
+    E:setBodygroup(5,BackingType)
+    E:setBodygroup(6,FrameType)
+    
+    Ready = 0
+    timer("ready",500)
+}
+
+function void update(Line:string){
+    local Model = E:model()
+    local Model4 = Model
+    local Model3 = Model:replace("4d","3d")
+    if(Line:length() <=4){
+        local Odd = Line:length() % 2
+        holoModel(1,Odd ? Model3 : Model4)
+        holoScale(1,Scale)
+        local L2 = ""
+        if(Line:length()<3){
+            L2 = " " + Line + " "
+        }else{
+            L2 = Line
+        }
+        
+        local Chars = L2:explode("")
+        local BodyGroup = 0
+        local Offset = (Odd ? 3 : 4) - Chars:count()
+        for(N=1,Offset){
+            E:setBodygroup(N,14)
+        }
+        for(N=1,Chars:count()){
+            switch(Chars[N,string]){
+                case "A",
+                    BodyGroup = 10
+                    break
+                case "B",
+                    BodyGroup = 11
+                    break
+                case "C",
+                    BodyGroup = 12
+                    break
+                case "D",
+                    BodyGroup = 13
+                    break
+                case "X",
+                    BodyGroup = 14
+                    break
+                case "-",
+                    BodyGroup = 15
+                    break
+                case " ",
+                    BodyGroup = 16
+                    break
+                default,
+                    BodyGroup = Chars[N,string]:toNumber()
+                    break
+            }
+            holoBodygroup(1,N+Offset,BodyGroup)
+            
+        }
+        holoBodygroup(1,5-Odd,2)
+        holoBodygroup(1,6-Odd,2)
+        holoSkin(1,Skin)
+    }else{
+        print("[Numplate] Number must be 4 or fewer digits!")
+    }
+}
+
+if(clk("ready")){
+    Ready = 1
+    update(->Num ? Num : NumDefault)
+}elseif(~Num & Ready){
+    update(->Num ? Num : NumDefault)
+}

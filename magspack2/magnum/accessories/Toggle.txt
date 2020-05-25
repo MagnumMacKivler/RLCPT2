@@ -1,0 +1,11 @@
+@name Toggle
+@inputs A
+@outputs Out NOut CONSTANT
+@persist Out CONSTANT
+@trigger 
+if(first() | duped()){
+    Out = 0
+    CONSTANT = 1
+}
+if(A){Out = !Out}
+NOut = !Out

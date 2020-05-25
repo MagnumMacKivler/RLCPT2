@@ -1,0 +1,54 @@
+@name Waffle Indicator V2
+@inputs Enable L1 L2 L3 L4 L5 L6
+@outputs 
+@persist [L1_Off L2_Off L3_Off L4_Off L5_Off L6_Off L1_On L2_On L3_On L4_On L5_On L6_On]:string H:entity
+@trigger 
+
+if(first()|duped()){
+    local E = entity()
+    H = holoCreate(0,E:toWorld(vec(0,0,0.25)),vec(1),E:toWorld(ang(0,-90,90)),vec(255),"models/monkcabdetailpack/misc/ind_waffle.mdl")
+    holoParent(0,E)
+    E:setAlpha(0)
+    
+    # [1][2][3]
+    # [4][5][6]
+    
+    #The standard arrangement is:
+    # [1] is Wheelslip, [2] is PCS Open (Emergency Brake), [3] is Dynamic Brake Warning,
+    # [4] is unused, [5] is the Sander, and [6] is unused.
+    
+    L1_Off = "models/monkcabdetailpack/indwaffle/ind_ws_unlit"
+    L1_On = "models/monkcabdetailpack/indwaffle/ind_ws_lit"
+    
+    L2_Off = "models/monkcabdetailpack/indwaffle/ind_pcs_unlit"
+    L2_On = "models/monkcabdetailpack/indwaffle/ind_pcs_lit"
+    
+    L3_Off = "models/monkcabdetailpack/indwaffle/ind_brk_unlit"
+    L3_On = "models/monkcabdetailpack/indwaffle/ind_brk_lit"
+    
+    L4_Off = "models/monkcabdetailpack/indwaffle/ind_unlit"
+    L4_On = "models/monkcabdetailpack/indwaffle/ind_lit"
+    
+    L5_Off = "models/monkcabdetailpack/indwaffle/ind_sd_unlit"
+    L5_On = "models/monkcabdetailpack/indwaffle/ind_sd_lit"
+    
+    L6_Off = "models/monkcabdetailpack/indwaffle/ind_unlit"
+    L6_On = "models/monkcabdetailpack/indwaffle/ind_lit"
+    
+    #For those of you who want to do the silly meme, here are the paths for the "Crippling Depression" indication:
+    #models/monkcabdetailpack/indwaffle/ind_crp_unlit
+    #models/monkcabdetailpack/indwaffle/ind_crp_lit
+}
+
+#L1
+H:setSubMaterial(4,(Enable & L1) ? L1_On : L1_Off)
+#L2
+H:setSubMaterial(3,(Enable & L2) ? L2_On : L2_Off)
+#L3
+H:setSubMaterial(2,(Enable & L3) ? L3_On : L3_Off)
+#L4
+H:setSubMaterial(6,(Enable & L4) ? L4_On : L4_Off)
+#L5
+H:setSubMaterial(7,(Enable & L5) ? L5_On : L5_Off)
+#L6
+H:setSubMaterial(5,(Enable & L6) ? L6_On : L6_Off)

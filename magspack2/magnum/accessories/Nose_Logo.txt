@@ -1,0 +1,81 @@
+@name Nose Logo
+@inputs 
+@outputs 
+@persist 
+@trigger 
+@model models/sprops/rectangles_thin/size_1_5/rect_6x6x1_5.mdl
+E = entity()
+
+#I don't remember how this works, you'll have to screw around with it. Included for posterity. -Mag
+
+Length = 24
+
+Angle1 = 30
+Angle2 = 45
+Angle3 = 90
+
+Distance1 = 24
+Distance2 = 6
+Distance3 = 12
+
+
+TotalDist1 = Distance1+Distance2
+TotalDist2 = Distance1 + Distance2 + Distance3
+#Skeleton
+holoCreate(1,E:pos(),vec(0.25),E:angles(),vec(255),"cube")
+holoCreate(2,E:pos()+Distance1*E:right(),vec(0.25),E:angles(),vec(255),"cube")
+holoCreate(3,E:pos()+TotalDist1*E:right(),vec(0.25),E:angles(),vec(255),"cube")
+holoCreate(4,E:pos(),vec(0.25),E:angles(),vec(255),"cube")
+holoCreate(5,E:pos()-Distance1*E:right(),vec(0.25),E:angles(),vec(255),"cube")
+holoCreate(6,E:pos()-TotalDist1*E:right(),vec(0.25),E:angles(),vec(255),"cube")
+
+for(N=1,6){
+    holoAlpha(N,0)
+}
+
+Scale = vec(Length/12,TotalDist2/6,1)
+
+for(N=7,12){
+    holoCreate(N,E:pos(),Scale,E:angles(),vec(255),"plane")
+    holoClipEnabled(N,1,1)
+    holoClipEnabled(N,2,1)
+    holoMaterial(N,"bobsters_trains/decals/norfolk_southern_nose")
+}
+holoParent(1,E)
+holoParent(2,1)
+holoParent(3,2)
+holoParent(4,E)
+holoParent(5,4)
+holoParent(6,5)
+
+holoParent(7,1)
+holoParent(8,2)
+holoParent(9,3)
+holoParent(10,4)
+holoParent(11,5)
+holoParent(12,6)
+
+#holoColor(10,vec(255,0,0))
+
+holoClip(7,1,vec(),vec(0,-1,0),0)
+holoClip(8,1,vec(0,-Distance1,0),vec(0,-1,0),0)
+holoClip(9,1,vec(0,-TotalDist1,0),vec(0,-1,0),0)
+
+holoClip(10,1,vec(),vec(0,1,0),0)
+holoClip(11,1,vec(0,Distance1,0),vec(0,1,0),0)
+holoClip(12,1,vec(0,TotalDist1,0),vec(0,1,0),0)
+
+holoClip(7,2,vec(0,-Distance1,0),vec(0,1,0),0)
+holoClip(8,2,vec(0,-TotalDist1,0),vec(0,1,0),0)
+
+holoClip(10,2,vec(0,Distance1,0),vec(0,-1,0),0)
+holoClip(11,2,vec(0,TotalDist1,0),vec(0,-1,0),0)
+
+
+holoAng(1,E:angles():rotateAroundAxis(E:forward(),Angle1))
+holoAng(2,E:angles():rotateAroundAxis(E:forward(),Angle2))
+holoAng(3,E:angles():rotateAroundAxis(E:forward(),Angle3))
+
+holoAng(4,E:angles():rotateAroundAxis(E:forward(),-Angle1))
+holoAng(5,E:angles():rotateAroundAxis(E:forward(),-Angle2))
+holoAng(6,E:angles():rotateAroundAxis(E:forward(),-Angle3))

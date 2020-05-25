@@ -1,0 +1,17 @@
+@name Consist Supericer
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+#Super-ices (actually friction_00) an entire consist/contraption.
+#It will automatically delete when you place it.
+
+W = entity():isWeldedTo()
+W:propPhysicalMaterial("friction_00")
+Ents = W:getConstraints()
+for(N=1,Ents:count()){
+    Ents[N,entity]:propPhysicalMaterial("friction_00")
+}
+print("Consist has been friction_00-ed.")
+if(W){entity():propDelete()}

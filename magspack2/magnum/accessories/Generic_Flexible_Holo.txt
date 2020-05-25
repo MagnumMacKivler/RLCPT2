@@ -1,0 +1,44 @@
+@name Generic Flexible Holo
+@inputs 
+@outputs 
+@persist 
+@trigger 
+#@model models/sprops/rectangles/size_1/rect_3x3x3.mdl
+@model models/sprops/cuboids/height06/size_1/cube_6x6x6.mdl
+#@model models/sprops/rectangles/size_5/rect_48x48x3.mdl
+#@model models/sprops/rectangles/size_5/rect_48x48x3.mdl
+#@model models/sprops/rectangles_thin/size_1_5/rect_6x6x1_5.mdl
+
+#Spawns a single holo. Great for one-off props that need to be scaled, animated, or clipped.
+
+Model = "cube"
+LocalPos = vec(0,0,0)
+LocalAng = ang(0,0,0)
+Scale = vec(1,1,1)
+
+Color = vec(255)
+Alpha = 255
+Material = ""
+Skin = 0
+
+
+#Comment/Uncomment the stuff below as you need.
+E = entity()
+#E:setMaterial("models/proppertextures/invisible")
+#E:setAlpha(0)
+
+holoCreate(0,E:toWorld(LocalPos),Scale,E:toWorld(LocalAng),Color,Model)
+holoParent(0,E)
+
+holoMaterial(0,Material)
+holoSkin(0,Skin)
+holoAlpha(0,Alpha)
+
+#holoDisableShading(0,1)
+#holoBodygroup(0,1,1)
+#holoAnim(0,"sitchair1",0,4)
+#holoClipEnabled(0,1)
+#holoClip(0,vec(40,0,0),vec(1,0,0),0)
+#holoEntity(0):setSubMaterial(1,"wtp/cloth_2")
+#holoEntity(0):setSubMaterial(2,"models/proppertextures/invisible")
+
