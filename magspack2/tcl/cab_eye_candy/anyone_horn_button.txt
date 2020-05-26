@@ -1,0 +1,58 @@
+@name magspack2/tcl/cab_eye_candy/Anyone Horn Button
+@inputs Horn
+@persist ButtonType BellType ButtonMaterial:string Horn E:entity Q
+@trigger BellToggle
+@model models/anytrains/props/detail/buttons/button_mushroomtop.mdl
+#@model models/anytrains/props/detail/buttons/large_square_a.mdl
+
+# TCL <3
+
+# Uses Anyone's pushbutton model as an electronic horn valve controller.
+# Simply place, wire and enjoy!
+
+# Having trouble? Find me on Discord! TransCanadaLimited#8427
+
+if(first()|dupefinished()){
+
+ButtonMaterial = "models/proppertextures/plastic_yellow" #Material for button cap.
+
+####
+
+E=entity()
+
+switch(E:model()){
+    case "models/anytrains/props/detail/buttons/button_mushroomtop.mdl",
+    E:setSubMaterial(2,ButtonMaterial)
+    ButtonType=0
+    break
+    case "models/anytrains/props/detail/buttons/large_square_a.mdl",
+    E:setSubMaterial(3,ButtonMaterial)
+    ButtonType=1
+    break
+}
+
+}
+
+if(Horn & !Q){
+    Q=1
+    if(ButtonType==0){
+        E:setBodygroup(1,1)
+        soundPlay(0,0,"trans_train_sounds/buttons/button1_press.wav")
+    }
+    if(ButtonType==1){
+        E:setBodygroup(1,1)
+        soundPlay(0,0,"monkssounds/buttons/button31_push.wav")
+    }
+}elseif(!Horn & Q){
+    Q=0
+    if(ButtonType==0){
+        E:setBodygroup(1,0)
+        soundPlay(0,0,"trans_train_sounds/buttons/button1_rel.wav")
+        soundPlay(1,0,"trans_train_sounds/air/bellvalve.wav")
+    }
+    if(ButtonType==1){
+        E:setBodygroup(1,0)
+        soundPlay(0,0,"monkssounds/buttons/button31_release.wav")
+        soundPlay(1,0,"trans_train_sounds/air/bellvalve.wav")
+    }
+}

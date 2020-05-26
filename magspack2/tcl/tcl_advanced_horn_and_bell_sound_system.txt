@@ -1,13 +1,13 @@
 @name TCL Advanced Horn and Bell Sound System
 @inputs Horn1 Horn2 Bell [HornProp BellProp]:entity
+@persist LevelCheck
 @persist [Horn1_On Horn1_Off Horn2_On Horn2_Off Bell_On Bell_Off]:string
 @persist Horn1Pitch Horn2Pitch BellPitch H1Q H2Q BQ
 @persist [E H B HornProp BellProp]:entity
 @persist Horn1Vol Horn2Vol BellVol
 @persist RealistiQuill PlayFromProps
-@persist [HornType BellType]:string
 
-#V1.0
+#V1.1
 
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
@@ -35,6 +35,8 @@
 #   Optional Inputs (only required for PlayFromProps functionality):            #
 #       HornProp[ENTITY] - Wire this to the horn prop on your locomotive.       #
 #       BellProp[ENTITY] - Wire this to the bell prop on your locomotive.       #
+#   NOTE: If using PlayFromProps, refresh the E2 once you've finished wiring    #
+#   it. If you hear a brief "toot" from your horn/whistle, you're good.         #
 #                                                                               #
 # Happy railroading!                                                     TCL <3 #
 #                                                                               #
@@ -44,9 +46,6 @@
 if(first()|dupefinished()){
 
     ### SETUP ###
-    
-    HornType = "AirChime sandcast K5L" #Name of horn type (e.g. "Leslie RS3L", "Nathan K5LA")
-    BellType = "GMDD Bronze Bell" #Name of bell type (e.g. "EMD steel bell", "Graham-White E-Bell")
 
     # Horn1 sound settings
     Horn1_On = "trans_train_sounds/horns/bcr_budd_k5l.wav" #Sound path for Horn1 loop
@@ -78,23 +77,38 @@ if(first()|dupefinished()){
     E=entity()
     
     #ifdef soundLevel(number,number)
-    print("[TCL Adv. Horn and Bell E2] Sound Level Active!")
-    E:soundPlay(3,2,"buttons/bell1.wav")
+    LevelCheck=1
     #endif
     
     if(PlayFromProps){
         H=HornProp
         B=BellProp
-    }else{
+        H1Q=1
+        BQ=1
+    }elseif(!PlayFromProps){
         H=E
         B=E
     }
     
-    soundPitch(0,Horn1Pitch)
-    soundPitch(1,Horn2Pitch)
-    soundPitch(2,BellPitch)
+    if(LevelCheck & PlayFromProps){
+        print("[TCL Adv. Horn and Bell E2] Sound Level active. PlayFromProps enabled.")
+        E:soundPlay(3,5,"ui/cyoa_ping_in_progress.wav")
+    }
+    if(LevelCheck & !PlayFromProps){
+        print("[TCL Adv. Horn and Bell E2] Sound Level active.")
+        E:soundPlay(3,5,"ui/cyoa_ping_in_progress.wav")
+    }
     
-    setName("TCL Advanced Horn & Bell Sound System\n"+HornType+"\n"+BellType)
+    if(!LevelCheck & PlayFromProps){
+        print("[TCL Adv. Horn and Bell E2] Sound Level function not present. PlayFromProps enabled.")
+        E:soundPlay(3,5,"ui/cyoa_ping_available.wav")
+    }
+    if(!LevelCheck & !PlayFromProps){
+        print("[TCL Adv. Horn and Bell E2] Sound Level function not present.")
+        E:soundPlay(3,5,"ui/cyoa_ping_available.wav")
+    }
+    
+    setName("TCL Advanced Horn & Bell Sound System")
 
 }
 
@@ -169,3 +183,7 @@ if(RealistiQuill){
     soundVolume(1,Horn2Vol)
     
 }
+
+soundPitch(0,Horn1Pitch)
+soundPitch(1,Horn2Pitch)
+soundPitch(2,BellPitch)

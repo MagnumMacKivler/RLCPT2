@@ -1,4 +1,4 @@
-@name Electronic Horn Lever Holo
+@name magspack2/tcl/cab_eye_candy/Horn Solenoid Lever
 @inputs Horn
 @outputs 
 @persist E:entity L:entity Q HandleMat:string

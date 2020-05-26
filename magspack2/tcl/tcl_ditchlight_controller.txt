@@ -1,39 +1,25 @@
-@name magspack2/tcl/class_splight_system/TCL Tri-Beam Class Splight Controller
+@name magspack2/tcl/TCL Ditchlight Controller
 @inputs Pod:entity NextWeapon PrevWeapon ThirdPerson
-@outputs RGB:vector SwitchPos
-@persist E:entity Driver:entity Position Unlock KeyUnlock SwitchSound:string UnlockKey:string Radius
-@persist Name:string
+@outputs RGBF:vector RGBR:vector OnF OnR
+@persist E:entity Driver:entity Position Unlock KeyUnlock SwitchSound:string UnlockKey:string Radius LightRGB:vector RockLights
 @trigger NextWeapon PrevWeapon UnlockKey
 
-#V3.1 - added reminder for what key you've set to cycle.
+# V1.0
 
 #-------------------------------------------------------------------------------#
 # W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
 #                                                                               #
-# Hello and welcome to TCL's Advanced Class Splight Controller! This type of    #
-# rotary switch can be found in pretty much any mid- to late-era diesel that    #
-# has tri-beam (white/red/green) class lights.                                  #
-#                                                                               #
-# This controller E2 is designed to work in tandem with the TCL Advanced        #
-# Tri-Beam Class Splight system.                                                #
+# Hello and welcome to TCL's Ditchlight Controller!                             #
 #                                                                               #
 # Setup:                                                                        #
 #   1)  Spawn and position this E2 somewhere accessible from your engineer's    #
 #       seat. ** It must be visible from the seat to be used. **                #
-#   2)  Spawn, position and parent your Class Splight E2s - see their code for  #
-#       any special instructions.                                               #
+#   2)  Spawn, position and parent your ditch lights.                           #
 #   3)  Wire all inputs on this E2 to their respective outputs on your Pod.     #
-#   4)  Wire the SwitchPos output to your Class Splight E2s.                    #
+#   4)  Wire RGB and On outputs to your front (F) and rear (R) ditch lights.    #
 #   5)  Cycle through the positions by either aiming at the E2 or holding down  #
 #       the key you've set to unlock it, and roll your mouse wheel.             #
 #   6)  Make sure you parent everything, and enjoy!                             #
-#                                                                               #
-#   Tip- Not sure where to place your class light switches? Older Canadian      #
-#   locomotives usually have a small extension built onto the left of the       #
-#   control stand, directly adjacent to the brake controls, where the light     #
-#   controls can be found. More modern locomotives with desktop stands have     #
-#   them positioned overhead airliner style, or on the front face of the        #
-#   console underneath the Engine Run/Gen Field/Fuel Pump triple switches.      #
 #                                                                               #
 # SUPER thanks to Monkatraz for help with development and optimization!         #
 #                                                                               #
@@ -46,13 +32,16 @@ if(first() | dupefinished()){
     
 SwitchSound = "trans_train_sounds/buttons/headlight_switch.wav"
 
-UnlockKey = "4" #Hold down this key to operate the switch without looking at it.
-
-Name = "Class Lights" #"Front Class", "Rear Right Class", etc
+UnlockKey = "3" #Hold down this key to operate the switch without looking at it.
 
 SwitchScale = 1 #Scale of the switch model.
 
 Radius = 2 #Radius your cursor will be detected from.
+
+LightRGB = vec(255,255,200) #Light RGB value. (255,255,200 is the default used by RLC locos.)
+
+RockLights = 0 #Set this to 1 if your locomotive has two sets of ditch lights or rock lights.
+               #In this case, wire RGBF/R and OnF/R to the top and bottom sets of lights respectively.
 
 ####
 
@@ -63,7 +52,7 @@ if(E:parent():isValid()){
 
 holoCreate(0)
 holoParent(0,E)
-holoModel(0,"models/anytrains/props/detail/class_light_switch.mdl")
+holoModel(0,"models/rusty/details/knob_modern.mdl")
 holoScale(0,vec(SwitchScale))
 
 timer("clk",100)
@@ -96,34 +85,42 @@ if(inputClk() & ((Unlock & !ThirdPerson) | KeyUnlock)){
     }
 }
 
-#All lights off
+#Pos 1 (Off)
 if(Position==0){
-    holoBodygroup(0,2,0)
-    RGB = vec(0)
-    SwitchPos = 0
-    setName(Name+" ("+UnlockKey+")\n(Off)")
+    holoBodygroup(0,1,3)
+    RGBF = vec(0)
+    RGBR = vec(0)
+    OnF = 0
+    OnR = 0
+    setName("Ditch Lights\n-Off-")
 }
 
-#Colour 1 (White)
+#Pos 2 (Front Only)
 if(Position==1){
-    holoBodygroup(0,2,1)
-    RGB = vec(200)
-    SwitchPos = 1
-    setName(Name+" ("+UnlockKey+")\n(White)")
+    holoBodygroup(0,1,0)
+    RGBF = LightRGB
+    RGBR = vec(0)
+    OnF = 1
+    OnR = 0
+    setName(RockLights ? "Ditch Lights ("+UnlockKey+")\n-Top On-" : "Ditch Lights ("+UnlockKey+")\n-Front-")
 }
 
-#Colour 2 (Green)
+#Pos 3 (Both)
 if(Position==2){
-    holoBodygroup(0,2,2)
-    RGB = vec(100,200,100)
-    SwitchPos = 3
-    setName(Name+" ("+UnlockKey+")\n(Green)")
+    holoBodygroup(0,1,1)
+    RGBF = LightRGB
+    RGBR = LightRGB
+    OnF = 1
+    OnR = 1
+    setName(RockLights ? "Ditch Lights ("+UnlockKey+")\n-Both On-" : "Ditch Lights ("+UnlockKey+")\n-Both-")
 }
 
-#Colour 3 (Red)
+#Pos 4 (Rear Only)
 if(Position==3){
-    holoBodygroup(0,2,3)
-    RGB = vec(200,0,0)
-    SwitchPos = 2
-    setName(Name+" ("+UnlockKey+")\n(Red)")
+    holoBodygroup(0,1,2)
+    RGBF = vec(0)
+    RGBR = LightRGB
+    OnF = 0
+    OnR = 1
+    setName(RockLights ? "Ditch Lights ("+UnlockKey+")\n-Bottom On-" : "Ditch Lights ("+UnlockKey+")\n-Rear-")
 }

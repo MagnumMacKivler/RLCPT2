@@ -1,0 +1,133 @@
+@name magspack2/tcl/TCL Simplified Headlight Controller
+@inputs Pod:entity NextWeapon PrevWeapon ThirdPerson
+@outputs HdltRGB:vector HdltOn DitchltOn
+@persist E:entity Driver:entity Position Unlock KeyUnlock SwitchSound:string UnlockKey:string Radius Brand Direction
+@persist Name:string RGB:vector
+@trigger NextWeapon PrevWeapon UnlockKey
+
+# V2.0
+
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to TCL's Simplified Headlight Controller!                   #
+#                                                                               #
+# Structured the same as my Class Splight Controller, which was in turn based   #
+# off of Magnum's Headlight Control Switch.                                     #
+#                                                                               #
+# Setup:                                                                        #
+#   1)  Spawn and position this E2 on your control stand, and set up as desired #
+#       below.                                                                  #
+#   2)  Wire all inputs on this E2 to their respective outputs on your Pod.     #
+#   3)  Wire the HdltOn and/or HdltRGB outputs to whatever controls the         #
+#       lighting system on your locomotive, or directly to your lights. You can # 
+#       also wire the DitchltOn output to your ditch lights, if equipped - it   #
+#       will only turn on if the switch is set to full brightness.              #
+#   4)  Cycle through the positions by either aiming at the E2 or holding down  #
+#       the key you've set to unlock it, and roll your mouse wheel.             #
+#   5)  Make sure you parent everything, and enjoy!                             #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+if(first()|dupefinished()){
+    
+SwitchSound = "trans_train_sounds/buttons/headlight_switch.wav"
+
+UnlockKey = "1" #Hold down this key to operate the switch without looking at it.
+
+Name = "Headlights" #"HDLTS FRONT" "Rear Headlight" etc.
+
+SwitchScale = 1 #Scale of the switch model.
+
+Radius = 2 #Radius your cursor will be detected from.
+
+Brand = 1 #1 for EMD, 2 for GE, 3 for MLW/ALCo.
+
+Direction = 0 #0 for Front, 1 for Rear.
+
+RGB = vec(255,255,200) #Headlight colour. 255,255,200 is the default used by RLC Platinum.
+
+####
+
+E=entity()
+E:setAlpha(255)
+if(E:parent():isValid()){
+        E:setMaterial("models/proppertextures/invisible")
+    }
+
+holoCreate(0)
+holoParent(0,E)
+holoModel(0,"models/magtrainslocos/rotaryswitches/headlight_"+select(Brand,"emd","ge","alco")+".mdl")
+holoSkin(0,Direction)
+holoScale(0,vec(SwitchScale))
+
+timer("clk",100)
+
+}
+
+#Main Code
+
+Driver = Pod:driver()
+if(Driver){
+Unlock = Driver:aimPos():distance(E:pos()) < Radius
+KeyUnlock = Driver:keyPressed(UnlockKey)
+}
+
+if(inputClk() & ((Unlock & !ThirdPerson) | KeyUnlock)){
+    if(PrevWeapon){ #Switch Pos Up
+        if(Position<2){
+            Position++
+            soundPlay(0,1,SwitchSound)
+        }
+    }elseif(NextWeapon){ #Switch Pos Down
+        if(Position>0){
+            Position--
+            soundPlay(0,1,SwitchSound)
+        }
+    }
+}
+
+#Off
+if(Position==0){
+    if(Brand==1|Brand==2){
+        holoBodygroup(0,1,0)
+    }
+    if(Brand==3){
+        holoBodygroup(0,1,7)
+    }
+    HdltRGB=vec(0,0,0)
+    HdltOn=0
+    DitchltOn=0
+    setName(Name+" ("+UnlockKey+")"+"\n-Off-")
+}
+
+#Dim
+if(Position==1){
+    if(Brand==1|Brand==2){
+        holoBodygroup(0,1,1)
+    }
+    if(Brand==3){
+        holoBodygroup(0,1,0)
+    }
+    HdltRGB=RGB*0.5
+    HdltOn=0.5
+    DitchltOn=0
+    setName(Name+" ("+UnlockKey+")"+"\n-Dim-")
+}
+
+#Bright
+if(Position==2){
+    if(Brand==1|Brand==2){
+        holoBodygroup(0,1,2)
+    }
+    if(Brand==3){
+        holoBodygroup(0,1,1)
+    }
+    HdltRGB=RGB
+    HdltOn=1
+    DitchltOn=1
+    setName(Name+" ("+UnlockKey+")"+"\n-Bright-")
+}

@@ -1,0 +1,50 @@
+@name magspack2/tcl/cab_eye_candy/Bell Air Valve
+@inputs BellToggle
+@outputs Bell
+@persist ButtonMaterial:string Bell E:entity Q
+@trigger BellToggle
+
+# V2.0
+
+# TCL <3
+
+# Pretty self explanatory. Setup below, wire BellToggle, wire Bell to your bell, parent, and enjoy.
+
+# Having trouble? Find me on Discord! TransCanadaLimited#8427
+
+if(first()|dupefinished()){
+
+    E=entity()
+
+    holoCreate(0)
+    holoParent(0,E)
+    holoModel(0,"models/sprops/cylinders/size_1/cylinder_1_5x3.mdl")
+    holoPos(0,E:toWorld(vec(0,0,-0.6)))
+    holoScale(0,vec(1.1,1.1,0.5))
+    holoMaterial(0,"models/proppertextures/aluminum")
+
+    holoCreate(1)
+    holoParent(1,E)
+    holoModel(1,"models/props_metaladon/parts/tanker_bell_3.mdl")
+    holoScale(1,vec(0.05,0.05,0.05))
+    holoMaterial(1,"models/proppertextures/brass")
+
+if(E:parent():isValid()){
+        E:setAlpha(0)
+    } 
+
+}
+
+if(BellToggle & !Bell){
+    Bell=1
+    soundPlay(0,0,"moztrainsounds/us_horns_bells/bell_on.wav")
+}elseif(BellToggle & Bell){
+    Bell=0
+    soundPlay(0,0,"moztrainsounds/us_horns_bells/bell_off.wav")
+}
+
+if(Bell){
+    holoPos(1,E:toWorld(vec(0,0,0.7)))
+}elseif(!Bell){
+    holoPos(1,E:toWorld(vec(0,0,0.2)))
+}

@@ -1,0 +1,90 @@
+@name magspack2/tcl/cab_eye_candy/Anyone Bell Controller
+@inputs BellToggle BellTrigger
+@outputs Bell
+@persist ButtonType BellType ButtonMaterial:string Bell E:entity Q
+@trigger BellToggle BellTrigger
+@model models/anytrains/props/detail/buttons/button_mushroomtop.mdl
+#@model models/anytrains/props/detail/buttons/large_square_a.mdl
+#@model models/anytrains/props/detail/buttons/large_square_b.mdl
+
+# TCL <3
+
+# A rewrite of my bell controller E2s, using Anyone's pushbutton models rather than holos.
+# Simply place, wire and enjoy. BellTrigger can be wired to your horn for modern locomotives.
+# Uncomment ONE @model line above to change models.
+
+# Having trouble? Find me on Discord! TransCanadaLimited#8427
+
+if(first()|dupefinished()){
+
+ButtonMaterial = "models/proppertextures/plastic_blue" #Material for button cap.
+
+BellType = 0 #0 for air, 1 for electronic
+
+####
+
+E=entity()
+
+switch(E:model()){
+    case "models/anytrains/props/detail/buttons/button_mushroomtop.mdl",
+    E:setSubMaterial(2,ButtonMaterial)
+    ButtonType=0
+    break
+    case "models/anytrains/props/detail/buttons/large_square_a.mdl",
+    E:setSubMaterial(3,ButtonMaterial)
+    ButtonType=1
+    break
+    case "models/anytrains/props/detail/buttons/large_square_b.mdl",
+    E:setSubMaterial(3,ButtonMaterial)
+    ButtonType=2
+    break
+}
+
+}
+
+if(BellToggle & !Q){
+    Q=1
+    if(ButtonType==0){
+        E:setBodygroup(1,1)
+        soundPlay(0,0,"trans_train_sounds/buttons/button1_press.wav")
+    }
+    if(ButtonType==1){
+        E:setBodygroup(1,1)
+        soundPlay(0,0,"monkssounds/buttons/button31_push.wav")
+    }
+    if(ButtonType==2){
+        if(Bell){
+            E:setBodygroup(1,1)
+        }elseif(!Bell){
+            E:setBodygroup(2,1)
+        }
+        soundPlay(0,0,"monkssounds/buttons/button31_push.wav")
+    }
+    if(!Bell){
+        Bell=1
+    }elseif(Bell){
+        Bell=0
+    }
+    if(!Bell & !BellType){
+        soundPlay(1,0,"trans_train_sounds/air/bellvalve.wav")
+    }
+}elseif(!BellToggle & Q){
+    Q=0
+    if(ButtonType==0){
+        E:setBodygroup(1,0)
+        soundPlay(0,0,"trans_train_sounds/buttons/button1_rel.wav")
+    }
+    if(ButtonType==1){
+        E:setBodygroup(1,0)
+        soundPlay(0,0,"monkssounds/buttons/button31_release.wav")
+    }
+    if(ButtonType==2){
+        E:setBodygroup(1,0)
+        E:setBodygroup(2,0)
+        soundPlay(0,0,"monkssounds/buttons/button31_release.wav")
+    }
+}
+
+if(BellTrigger & !Bell){
+    Bell=1
+}
