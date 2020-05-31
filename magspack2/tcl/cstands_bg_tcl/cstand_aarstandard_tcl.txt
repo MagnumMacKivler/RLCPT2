@@ -1,21 +1,22 @@
-@name magspack2/tcl/cstands_bg_tcl/cstand_sd60m_desktop_tcl
-@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 ForceSand EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
-@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics
+@name magspack2/tcl/cstands_bg_tcl/cstand_aarstandard_tcl
+@inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggleFwd LightToggleBwd MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
+@outputs CtlTable:table Bell LightsFwd LightsBwd Misc CONSTANT RemoteMode
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
-@persist [Lever_PowerHandleCrossover Lever_PowerHandleNotch Lever_PowerHandleIdle Lever_PowerHandleMax Lever_PowerHandleDBMax]:string
+@persist [Lever_ThrottleOn Lever_ThrottleOff Lever_ThrottleNotchUp Lever_ThrottleNotchDown Lever_ThrottleMax]:string
 @persist [Lever_ReverserF Lever_ReverserN Lever_ReverserB]:string
 @persist [Lever_ABEmergency Lever_ABEmergencyRecover Lever_ABSuppressionOn Lever_ABSuppressionOff Lever_ABMove Lever_ABNotch Lever_ABRelease]:string
-@persist [AirBrakeApply AirBrakeApplyInitial AirBrakeRelease AirBrakeDump]:string
+@persist [AirBrakeApply AirBrakeApplyInitial AirBrakeRelease]:string
 @persist [LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
-@persist [ButtonMomOn ButtonMomOff ButtonTogOn ButtonTogOff HornAirOn HornAirOff WarningHiss]:string
-@persist [BellValveOn BellValveOff BellTriggerOn MiscSwitch]:string
-@persist BellTrigger
+@persist WarningHiss:string
+@persist [BellValveOn BellValveOff MiscSwitch]:string
 @persist NQ Notch DNQ DynaNotch Dynamics TransitionQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
-@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle KeyThrUp KeyThrDn KeyDynUp KeyDynDn IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
-@persist HandBrake EmergencyBrake Sander SanderQ
+@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
+@persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding FeedPressure FullReleaseCock WarningHissQ
-@persist CS:entity LeverBased Midshift BellQ HornQ
+@persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
+@persist CS:entity
+@persist ABNotchSoundRand
 @trigger 
 if(duped()){
     reset()
@@ -24,7 +25,9 @@ if(first()){
     #FOR USE WITH RLC PT 2.0.65 OR OTHER COMPATIBLE VERSIONS
     CtlTable["CS_Version",string] = "2.0.65"
     #HEAVILY MODIFIED, BUT FULLY COMPATIBLE WITH THIS VERSION
-	#THIS IS A DROP-IN REPLACEMENT FOR THE DEFAULT DESKTOP STAND
+	#THIS IS A DROP-IN REPLACEMENT FOR THE DEFAULT AAR STAND
+	
+	#For locomotives with AAR standard control stands (mlw_aar, cstand_emd_standard, ge_kc108)
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -32,15 +35,15 @@ if(first()){
     #The "HEP_Notch" input is only necessary if the locomotive has HEP.
     #The "Active" and "RemoteControl" inputs are only necessary if the locomotive is equipped with Remote Control capability; "Active" goes to the Pod Controller, "RemoteControl" to a separate toggled button.
     #The "UsingRearSeat" input  is only necessary if the locomotive features Dual Cabs or Dual Control Stands.
-	
-	#Modified by TransCanadaLimited.
+    
+    #Modified by TransCanadaLimited.
     
     ### CONFIGURATION ###
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
     #include "ptgamma/controls/Standard"
     
-    AirBrakeMode = 2 #For best results, leave at 2.
+    AirBrakeMode = 2
     #0 - Simple Self-Lapping (Easy)
     #1 - Simple Manual Lapping (Medium)
     #2 - 26L Self-Lapping (Medium-Hard)
@@ -63,83 +66,53 @@ if(first()){
     TransitionMode = 1 #0 for No Transition, 1 for Transition
     TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
-    BellTrigger = 1 #Set to 1 to have your horn input also turn the bell on.
-
-    ### CONTROL SOUND PATHS ###
+    HornType = 0 #0 for Lever, 1 for Cord, 2 for None
     
-	#Combined Power Handle (Throttle + Dynamics)
-    Lever_PowerHandleDBMax = "trans_train_sounds/controls/desktop/powerhandle_dbmax.wav"
-    Lever_PowerHandleCrossover = "trans_train_sounds/controls/desktop/powerhandle_crossover.wav"
-    Lever_PowerHandleIdle = "trans_train_sounds/controls/desktop/powerhandle_notchdown.wav"
-    Lever_PowerHandleNotch = "trans_train_sounds/controls/desktop/powerhandle_notchup.wav"
-    Lever_PowerHandleMax = "trans_train_sounds/controls/desktop/powerhandle_notchupmax.wav"
+    CordExtendLength = 4 #How far from anchor point is the horn valve at the top?
+    DongleHeight = 0.13 #Fraction of total cord length to place Dongle at
+    PullLength = 1 #How many units to pull the cord towards you?
+    DownRatio = 0.5 #Pull the dongle (PullLength x DownRatio) units down as well
     
-	#Reverser
-    Lever_ReverserF = "trans_train_sounds/controls/desktop/reverser_forward.wav"      
-    Lever_ReverserN = "trans_train_sounds/controls/desktop/reverser_center.wav"
-    Lever_ReverserB = "trans_train_sounds/controls/desktop/reverser_reverse.wav"
+    ### SOUND SYSTEM CONFIGURATION ###
     
-	#Automatic / Train Brake Lever (30CDW / Analog)
-    Lever_ABEmergency = "trans_train_sounds/controls/desktop/30cdw_auto_emergency.wav"
-    Lever_ABEmergencyRecover = "trans_train_sounds/controls/desktop/30cdw_auto_emergency_recover.wav"
-    Lever_ABSuppressionOn = "trans_train_sounds/controls/desktop/30cdw_auto_suppression_on.wav"
-    Lever_ABSuppressionOff = "trans_train_sounds/controls/desktop/30cdw_auto_suppression_off.wav"
-    Lever_ABMove = "trans_train_sounds/controls/desktop/30cdw_auto_lever_move.wav"
-    Lever_ABNotch = "trans_train_sounds/controls/desktop/30cdw_auto_lever_notch.wav"
-    Lever_ABRelease = "trans_train_sounds/controls/desktop/30cdw_auto_lever_release.wav"
-	
-	#Automatic / Train Brake Lever (ICE / Electronic)
-	#[
-	Lever_ABEmergency = "trans_train_sounds/controls/desktop/ice_auto_lever_emergency.wav"
-    Lever_ABEmergencyRecover = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
-    Lever_ABSuppressionOn = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
-    Lever_ABSuppressionOff = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
-    Lever_ABMove = "trans_train_sounds/controls/desktop/ice_auto_lever_move.wav"
-    Lever_ABNotch = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
-    Lever_ABRelease = "trans_train_sounds/controls/desktop/ice_auto_lever_release.wav"
-	]#
+    #Throttle / Dynamic Brake Levers
+    Lever_ThrottleOn = "trans_train_sounds/controls/aar/aar_throttle_idleto1.wav"
+    Lever_ThrottleOff = "trans_train_sounds/controls/aar/aar_throttle_1toidle.wav"
+    Lever_ThrottleNotchUp = "trans_train_sounds/controls/aar/aar_throttle_notchup.wav"
+    Lever_ThrottleNotchDown = "trans_train_sounds/controls/aar/aar_throttle_notchdown.wav"
+    Lever_ThrottleMax = "trans_train_sounds/controls/aar/aar_throttle_notchupmax.wav"
     
-	#Automatic / Train Brake Air (30CDW / Analog)
-    AirBrakeApply = "trans_train_sounds/controls/desktop/30cdw_auto_air_apply.wav"
-    AirBrakeApplyInitial = "trans_train_sounds/controls/desktop/30cdw_auto_air_apply_initial.wav"
-    AirBrakeRelease = "trans_train_sounds/controls/desktop/30cdw_auto_air_release.wav"
-	
-	#Automatic / Train Brake Air (ICE / Electronic)
-	#[
-	AirBrakeApply = "trans_train_sounds/controls/desktop/ice_auto_air_apply.wav"
-    AirBrakeApplyInitial = "trans_train_sounds/controls/desktop/ice_auto_air_apply.wav"
-    AirBrakeRelease = "trans_train_sounds/controls/desktop/ice_auto_air_release.wav"
-    AirBrakeDump = "trans_train_sounds/air/dump.wav"
-	]#
+    #Reverser
+    Lever_ReverserF = "trans_train_sounds/controls/aar/aar_reverser_forward.wav"      
+    Lever_ReverserN = "trans_train_sounds/controls/aar/aar_reverser_neutral.wav"
+    Lever_ReverserB = "trans_train_sounds/controls/aar/aar_reverser_reverse.wav"
     
-	#Independent / Locomotive Brake (30CDW / Analog)
-    LocoBrakeFull = "trans_train_sounds/controls/desktop/30cdw_indy_full.wav"
-    LocoBrakeReleaseSoft = "trans_train_sounds/controls/desktop/30cdw_indy_release_soft.wav"
-    LocoBrakeReleaseHard = "trans_train_sounds/controls/desktop/30cdw_indy_release.wav"
-	
-	#Independent / Locomotive Brake (ICE / Electronic)
-	#[
-    LocoBrakeFull = "trans_train_sounds/controls/desktop/ice_indy_apply.wav"
-    LocoBrakeReleaseSoft = "trans_train_sounds/controls/desktop/ice_indy_release_soft.wav"
-    LocoBrakeReleaseHard = "trans_train_sounds/controls/desktop/ice_indy_release.wav"
-	]#
-	
-	#Buttons, misc
-    ButtonMomOn = "monkssounds/buttons/button31_push.wav"
-    ButtonMomOff = "monkssounds/buttons/button31_release.wav"
+    #Automatic / Train Brake Lever
+    Lever_ABEmergency = "trans_train_sounds/controls/aar/auto_lever_emergency.wav"
+    Lever_ABEmergencyRecover = "trans_train_sounds/controls/aar/auto_lever_emergency_recover.wav"
+    Lever_ABSuppressionOn = "trans_train_sounds/controls/aar/auto_lever_suppression_on.wav"
+    Lever_ABSuppressionOff = "trans_train_sounds/controls/aar/auto_lever_suppression_off.wav"
+    Lever_ABMove = "trans_train_sounds/controls/aar/auto_lever_move.wav"
+    Lever_ABNotch = "trans_train_sounds/controls/aar/auto_lever_initial.wav"
+    Lever_ABRelease = "trans_train_sounds/controls/aar/auto_lever_release.wav"
     
-    HornAirOn = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
-    HornAirOff = "gsgtrainsounds/misc/desktop/horn_air_release.wav"
+    #Automatic / Train Brake Air
+    AirBrakeApply = "trans_train_sounds/controls/aar/auto_air_apply.wav"
+    AirBrakeApplyInitial = "trans_train_sounds/controls/aar/auto_air_apply_initial.wav"
+    AirBrakeRelease = "trans_train_sounds/controls/aar/auto_air_release.wav"
     
-    BellValveOn = "trans_train_sounds/air/ge_bellvalve_on.wav"
-    BellValveOff = "trans_train_sounds/air/ge_bellvalve_off.wav"
-    BellTriggerOn = "gsgtrainsounds/misc/air_on.wav"
+    #Independent / Locomotive Brake
+    LocoBrakeFull = "trans_train_sounds/controls/aar/indy_full.wav"
+    LocoBrakeReleaseSoft = "trans_train_sounds/controls/aar/indy_release_soft.wav"
+    LocoBrakeReleaseHard = "trans_train_sounds/controls/aar/indy_release_full.wav"
     
-    MiscSwitch = "buttons/lightswitch2.wav"
-    
+    #Miscellaneous Sounds
     WarningHiss = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
-	
-	### ADVANCED USERS ONLY BEYOND THIS POINT ###
+    BellValveOn = "gsgtrainsounds/misc/air_on.wav"
+    BellValveOff = "gsgtrainsounds/misc/air_off.wav"
+    MiscSwitch = "gsgtrainsounds/misc/switch2.wav"
+    
+    ### ADVANCED USERS ONLY BEYOND THIS POINT ###
     
     #SOUND CHANNELS
     #1 - control levers (throttle, reverser)
@@ -252,19 +225,43 @@ if(first()){
     #Control Stand Init
     CS = ControlStand:entity()
     
+    if(HornType==1){
+        if(CS:lookupAttachment("horncord1")){
+            local Hpos1 = CS:attachmentPos("horncord1")
+            local Hang1 = CS:attachmentAng("horncord1")
+            rangerFilter(CS)
+            local Hpos2 = rangerOffset(128,Hpos1 + CordExtendLength*Hang1:forward(), Hang1:up()):pos() 
+            CordAnchor1 = CS:toLocal(Hpos2)
+            local Hpos3 = linpos(Hpos1,Hpos2,DongleHeight) + (CordExtendLength/4)*Hang1:forward()
+            #local Haxis1 = (Hpos2-Hpos1)
+            local Length1 = Hpos1:distance(Hpos3)
+            local Ang1 = -heading(Hpos1,ang(),Hpos3)
+            local Ang1a = Ang1:rotateAroundAxis(Ang1:right(),-90)
+            
+            local Length2 = Hpos2:distance(Hpos3)
+            local Ang2 = -heading(Hpos3,ang(),Hpos2)
+            local Ang2a = Ang2:rotateAroundAxis(Ang2:right(),-90)
+            
+            holoCreate(1,linpos(Hpos1,Hpos3,0.5),vec(0.125,0.125,(Length1/60)),Ang1a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+            holoCreate(2,linpos(Hpos2,Hpos3,0.5),vec(0.125,0.125,(Length2/60)),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+            holoCreate(3,Hpos3 + 1*Ang2a:up(),vec(0.125,0.125,0.25),Ang2a,vec(255),"models/sprops/misc/fittings/cred_12_9_tall.mdl")
+            holoParent(1,CS)
+            holoParent(2,CS)
+            holoParent(3,CS)
+            holoMaterial(1,"models/debug/debugwhite")
+            holoMaterial(2,"models/debug/debugwhite")
+            holoMaterial(3,"sprops/textures/sprops_wood2")
+            
+            C1P = CS:toLocal(Hpos1)
+            C1A = CS:toLocal(Hang1)
+        }
+        CS:setBodygroup(6,3)
+    }
+    
     CtlTable["CTL_Version",string] = CTL_Version
-    setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nEMD SD60M Desktop\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents\nTCL Sound Enhancement Equipped")
+    setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nAAR Standard\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents"+"\nTCL SFX Enhancement")
     runOnChat(1)
     timer("clk",100)
-    
-    #Notch Indicator
-    holoCreate(0)
-    holoModel(0,"models/jazzie/trains/number_wheel.mdl")
-    holoMaterial(0,"trans_train_stuff/cabstuff/indicators/jazzie_notchwheel")
-    holoPos(0,CS:toWorld(vec(4.65,8.39,31.55)))
-    holoScale(0,vec(0.05,0.07,0.05))
-    holoParent(0,CS)
-    holoDisableShading(0,1)
 }
 if(MU_Master){
             
@@ -300,11 +297,8 @@ if(MU_Master){
             ReverserF = Driver:keyPressed(Controls[RF,string]) & (Routing[RF,number] ? Shifting : !Shifting)
             ReverserB = Driver:keyPressed(Controls[RB,string]) & (Routing[RB,number] ? Shifting : !Shifting)
             
-            KeyThrUp = Driver:keyPressed(Controls["IncreaseThrottle",string]) & (Routing["IncreaseThrottle",number] ? Shifting : !Shifting)
-            KeyThrDn = Driver:keyPressed(Controls["DecreaseThrottle",string]) & (Routing["DecreaseThrottle",number] ? Shifting : !Shifting)
-            
-            IncreaseThrottle = 0
-            DecreaseThrottle = 0
+            IncreaseThrottle = Driver:keyPressed(Controls["IncreaseThrottle",string]) & (Routing["IncreaseThrottle",number] ? Shifting : !Shifting)
+            DecreaseThrottle = Driver:keyPressed(Controls["DecreaseThrottle",string]) & (Routing["DecreaseThrottle",number] ? Shifting : !Shifting)
             
             IncreaseTrainBrake = Driver:keyPressed(Controls["IncreaseTrainBrake",string]) & (Routing["IncreaseTrainBrake",number] ? Shifting : !Shifting)
             DecreaseTrainBrake = Driver:keyPressed(Controls["DecreaseTrainBrake",string]) & (Routing["DecreaseTrainBrake",number] ? Shifting : !Shifting)
@@ -312,11 +306,8 @@ if(MU_Master){
             IncreaseLocoBrake = Driver:keyPressed(Controls["IncreaseLocoBrake",string]) & (Routing["IncreaseLocoBrake",number] ? Shifting : !Shifting)
             DecreaseLocoBrake = Driver:keyPressed(Controls["DecreaseLocoBrake",string]) & (Routing["DecreaseLocoBrake",number] ? Shifting : !Shifting)
             
-            KeyDynUp = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
-            KeyDynDn = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
-            
-            IncreaseDynamics = 0
-            DecreaseDynamics = 0
+            IncreaseDynamics = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
+            DecreaseDynamics = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
             
             EmergencyBrake = Driver:keyPressed(Controls["EmergencyBrake",string]) & (Routing["EmergencyBrake",number] ? Shifting : !Shifting)
             
@@ -338,59 +329,37 @@ if(clk("clk")){
     local Tick = 1
     Dynamics = SetDynamics>0
     
-    #Lever-Based Controlling - This part is different for every control stand!
-    if(LeverBased){
-        #Initial Control Resets
-        
-        #Throttle/Dynamics Interlock
-        if(!NQ & !DNQ){
-            if((SetThrottle==0) & KeyThrDn){
-                DecreaseThrottle = 0
-                IncreaseDynamics = 1
-            }elseif(Dynamics){
-                IncreaseDynamics = KeyThrDn
-                DecreaseDynamics = KeyThrUp
-                
-                #IncreaseThrottle = 0
-                #DecreaseThrottle = 0
-            }else{
-                IncreaseThrottle = KeyThrUp
-                DecreaseThrottle = KeyThrDn
-            }
-        }
-    }else{
-        IncreaseDynamics = KeyDynUp
-        DecreaseDynamics = KeyDynDn
-        IncreaseThrottle = KeyThrUp
-        DecreaseThrottle = KeyThrDn
-    }
-    
-    #CPH - Throttle
+    #Throttle (modded behaviour)
     if(!Dynamics){
         if(NotchedThrottle){
             if(IncreaseThrottle & !NQ){
-                if(Notch<NumThrottleNotches-1){
-                    NQ = 1
-                    Notch++
-                    soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleNotch)
+                if((Notch<NumThrottleNotches-1) & (Notch>0)){
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,5,Lever_ThrottleNotchUp)
                 }elseif(Notch==NumThrottleNotches-1){
-                    NQ = 1
-                    Notch++
-                    soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleMax)
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,5,Lever_ThrottleMax)
+                }elseif(Notch<1){
+                NQ = 1
+                Notch++
+                soundStop(1)
+                Pod:soundPlay(1,5,Lever_ThrottleOn)
                 }
-            }elseif(DecreaseThrottle & !NQ & (Notch>0)){
+            }elseif(DecreaseThrottle & !NQ){
                 if(Notch>1){
-                    NQ = 1
-                    Notch--
-                    soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleNotch)
+                NQ = 1
+                Notch--
+                soundStop(1)
+                Pod:soundPlay(1,5,Lever_ThrottleNotchDown)
                 }elseif(Notch==1){
-                    NQ = 1
-                    Notch--
-                    soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleIdle)
+                NQ = 1
+                Notch--
+                soundStop(1)
+                Pod:soundPlay(1,5,Lever_ThrottleOff)
                 }
             }elseif(!IncreaseThrottle & !DecreaseThrottle & NQ){
                 NQ = 0
@@ -408,75 +377,81 @@ if(clk("clk")){
     
     SetHumpMul = ->HumpMultiplier ? HumpMultiplier : 1
     
-    #CPH - Dynamic Brakes
+    #Dynamic Brakes
     if((SetThrottle==0) & HasDynamics & (abs(SetReverser)==1)){
         if((SetDynamics==0) & IncreaseDynamics & !DNQ){
             DNQ = 1
             DynaNotch = 0
             SetDynamics = 10
             soundStop(1)
-            CS:soundPlay(1,2,Lever_PowerHandleCrossover)
-            Midshift = 1
+            Pod:soundPlay(1,5,Lever_ThrottleOn)
         }elseif((SetDynamics==10) & DecreaseDynamics & !DNQ){
             DNQ = 1
             DynaNotch = -1
             SetDynamics = 0
             soundStop(1)
-            CS:soundPlay(1,2,Lever_PowerHandleCrossover)
-            Midshift = 1
+            Pod:soundPlay(1,5,Lever_ThrottleOff)
         }
         
         if(Dynamics & NotchedDynamics){
             if(IncreaseDynamics & !DNQ){
-                if(DynaNotch<NumThrottleNotches-1){
+                if((DynaNotch<NumThrottleNotches-1)){
                     DNQ = 1
                     DynaNotch++
                     soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleNotch)
+                    Pod:soundPlay(1,5,Lever_ThrottleNotchUp)
                 }elseif(DynaNotch==NumThrottleNotches-1){
                     DNQ = 1
                     DynaNotch++
                     soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleMax)
+                    Pod:soundPlay(1,5,Lever_ThrottleMax)
+                }elseif(DynaNotch<1){
+                    NQ = 1
+                    DynaNotch++
+                    soundStop(1)
+                    Pod:soundPlay(1,5,Lever_ThrottleOn)
                 }
-            }elseif(DecreaseDynamics & !DNQ & (DynaNotch>-1)){
-                DNQ = 1
-                DynaNotch--
-                soundStop(1)
-                CS:soundPlay(1,2,Lever_PowerHandleNotch)
+            }elseif(DecreaseDynamics & !DNQ){
+                    if(DynaNotch>0){
+                    DNQ = 1
+                    DynaNotch--
+                    soundStop(1)
+                    Pod:soundPlay(1,5,Lever_ThrottleNotchDown)
+                }elseif(DynaNotch==0){
+                    NQ = 1
+                    DynaNotch--
+                    soundStop(1)
+                    Pod:soundPlay(1,5,Lever_ThrottleOff)
+                }
             }
             if(DynaNotch>-1){SetDynamics = dac(10,100,NumThrottleNotches,DynaNotch)}
+            
         }elseif(Dynamics){
             if(IncreaseDynamics & (SetDynamics<100) & !DNQ){
-                SetDynamics+=2
-                if(SetDynamics>100){
-                    SetDynamics=100
-                }elseif(SetDynamics>99){
-                    DNQ = 1
+                SetDynamics++
+                if(SetDynamics>99){
                     soundStop(1)
-                    CS:soundPlay(1,2,Lever_PowerHandleDBMax)
+                    Pod:soundPlay(1,5,Lever_ThrottleMax)
                 }
-            }elseif(DecreaseDynamics & (SetDynamics>10) & !DNQ){
-                SetDynamics-=2
-                if(SetDynamics<=10){
+                if(SetDynamics>100){
+                    SetDynamics=100}
+            }elseif(DecreaseDynamics & (SetDynamics>10)){
+                DNQ = 1
+                SetDynamics--
+                if(SetDynamics==11){
+                    soundStop(1)
+                    Pod:soundPlay(1,5,Lever_ThrottleNotchDown)
+                }
+                if(SetDynamics<10){
                     SetDynamics=10
-                    DNQ = 1
-                    CS:soundPlay(1,2,Lever_PowerHandleDBMax)
+                    DNQ=1
                 }
             }
             DynaNotch = adc(10,100,NumThrottleNotches,SetDynamics)
         }
         if(!IncreaseDynamics & !DecreaseDynamics & DNQ){
             DNQ = 0
-            Midshift = 0
         }
-    }
-    
-    #Notch Indicator
-    if(!Dynamics){
-        holoAng(0,CS:toWorld(ang(-47+(Notch*36),0,0)))
-    }elseif(Dynamics){
-        holoAng(0,CS:toWorld(ang(-83,0,0)))
     }
     
     #Selector
@@ -486,14 +461,14 @@ if(clk("clk")){
             if(SetSelector<4){
                 SetSelector++
                 soundStop(1)
-                CS:soundPlay(1,2,Lever_PowerHandleCrossover)
+                Pod:soundPlay(1,5,Lever_ReverserN)
             }
         }elseif(SelectorDown & !TransitionQ){
             TransitionQ = 1
             if(SetSelector>0){
                 SetSelector--
                 soundStop(1)
-                CS:soundPlay(1,2,Lever_PowerHandleCrossover)
+                Pod:soundPlay(1,5,Lever_ReverserN)
             }
         }elseif(!SelectorUp & !SelectorDown & TransitionQ){
             TransitionQ = 0
@@ -508,12 +483,12 @@ if(clk("clk")){
             RevQ = 1
             SetReverser++
             soundStop(1)
-            CS:soundPlay(1,2,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
+            Pod:soundPlay(1,5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
         }elseif(ReverserB & !RevQ & (SetReverser>-1)){
             RevQ = 1
             SetReverser--
             soundStop(1)
-            CS:soundPlay(1,2,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
+            Pod:soundPlay(1,5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
         }elseif(!ReverserF & !ReverserB & RevQ){
             RevQ = 0
         }
@@ -533,7 +508,7 @@ if(clk("clk")){
             ABQ = 1
             SetBrakeNotch++
             soundStop(2)
-            CS:soundPlay(2,2,Lever_ABNotch)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 CS:soundPlay(3,10,AirBrakeApply)
@@ -547,7 +522,7 @@ if(clk("clk")){
                 SetBrakeNotch--
             }
             soundStop(2)
-            CS:soundPlay(2,2,Lever_ABNotch)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
                 CS:soundPlay(3,10,AirBrakeRelease)
@@ -596,7 +571,7 @@ if(clk("clk")){
             ABQ = 1
             SetBrakeNotch++
             soundStop(2)
-            CS:soundPlay(2,2,Lever_ABNotch)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
                 CS:soundPlay(3,10,AirBrakeApply)
@@ -615,7 +590,7 @@ if(clk("clk")){
                 SetBrakeNotch--
             }
             soundStop(2)
-            CS:soundPlay(2,2,Lever_ABNotch)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
                 CS:soundPlay(3,10,AirBrakeRelease)
@@ -660,7 +635,7 @@ if(clk("clk")){
                     Lock_26L = 1
                     SetBrakeNotch=1
                     soundStop(2)
-                    CS:soundPlay(2,2,Lever_ABNotch)
+                    CS:soundPlay(2,5,Lever_ABNotch)
                     CS:soundPlay(3,10,AirBrakeApplyInitial)
                     SetEqualRes = FeedPressure-InitialReduction
                 }elseif((SetBrakeNotch==1) & (SetEqualRes>FSP)){
@@ -686,7 +661,7 @@ if(clk("clk")){
                 if((SetBrakeNotch==1) & (SetEqualRes==(FeedPressure-InitialReduction))){
                     SetBrakeNotch=0
                     soundStop(2)
-                    CS:soundPlay(2,2,Lever_ABRelease)
+                    CS:soundPlay(2,5,Lever_ABRelease)
                     SetEqualRes = FeedPressure
                     if(!HissQ){
                         HissQ = 1
@@ -907,7 +882,7 @@ if(clk("clk")){
     if(EmergencyBrake | EmBrake){
         
         if(SetBrakeNotch<6){
-            CS:soundPlay(3,0,Lever_ABEmergency)
+            CS:soundPlay(2,0,Lever_ABEmergency)
         }
         
         SetEqualRes = 0
@@ -916,38 +891,17 @@ if(clk("clk")){
         SetDynamics = 0
         DynaNotch = 0
         SetBrakeNotch = 6
-    }
         
-    #Sander Button Sounds
-    
-    if(ForceSand & !SanderQ){
-        SanderQ = 1
-        CS:soundPlay(4,2,ButtonMomOn)
-    }elseif(!ForceSand & SanderQ){
-        SanderQ = 0
-        CS:soundPlay(4,2,ButtonMomOff)
-    }
-    
-    #Horn Button and Air Sounds
-    
-    if(Horn1 & !HornQ){
-        HornQ = 1
-        CS:soundPlay(4,2,ButtonMomOn)
-        CS:soundPlay(5,0,HornAirOn)
-    }elseif(!Horn1 & HornQ){
-        HornQ = 0
-        CS:soundPlay(4,2,ButtonMomOff)
-        CS:soundPlay(5,5,HornAirOff)
     }
         
     #Control Stand
     
     #Reverser
     CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)
-    #Throttle and Dynamics
-    CS:setBodygroup(2,Midshift ? 9 : Dynamics ? adc(10,100,8,SetDynamics)+10 : adc(0,100,8,SetThrottle))
+    #Throttle
+    CS:setBodygroup(2,adc(0,100,8,SetThrottle))
     #Dynamic Brakes
-    #CS:setBodygroup(3,Dynamics ? adc(10,100,8,SetDynamics)+1 : 0)
+    CS:setBodygroup(3,HasDynamics ? (Dynamics ? adc(10,100,8,SetDynamics)+1 : 0) : 10)
     #Train Brake
     local TBB = 0
     switch(AirBrakeMode){
@@ -958,13 +912,13 @@ if(clk("clk")){
             TBB = select(SetBrakeNotch+1,0,2,4,7,10,0,11)
             break
         case 2, #26L
-            TBB = select(SetBrakeNotch+1,0,adc(0,FeedPressure-InitialReduction,6,FeedPressure-InitialReduction-SetEqualRes)+2,10,0,0,0,11)
+            TBB = select(SetBrakeNotch+1,0,adc(0,FeedPressure - (FeedPressure*64/90)-InitialReduction,6,FeedPressure-InitialReduction-SetEqualRes)+2,10,0,0,0,11)
             break
         case 1, #SML
             TBB = select(SetBrakeNotch+1,0,5,10,0,0,0,11)
             break
         case 0, #SSL
-            TBB = select(SetBrakeNotch+1,adc(0,FeedPressure,10,FeedPressure-SetEqualRes),0,0,0,0,0,11)
+            TBB = select(SetBrakeNotch+1,adc(0,FeedPressure - (FeedPressure*64/90),10,FeedPressure-SetEqualRes),0,0,0,0,0,11)
             break
     }
     CS:setBodygroup(4,TBB)
@@ -976,20 +930,48 @@ if(clk("clk")){
         LBB = SetBleeding ? 0 : adc(0,72,6,SetLocoBrakePressure)+1
     }
     CS:setBodygroup(5,LBB)
+    
     #Horn 1
-    
-    CS:setBodygroup(6,Horn1)
-    
+    if(HornType==0){
+        if(Horn1){
+            CS:setBodygroup(6,2)
+        }elseif(Quill1 & !Horn1){
+            CS:setBodygroup(6,1)
+        }elseif(!Quill1 & !Horn1){
+            CS:setBodygroup(6,0)
+        }
+    }
+    if(HornType==1){
+        local Hpos1 = CS:toWorld(C1P)
+        local Hang1 = CS:toWorld(C1A)
+        #CordDir1 = CS:toLocal(Hang1:forward())
+        #rangerFilter(CS)
+        local Hpos2 = CS:toWorld(CordAnchor1)
+        local PFactor = Quill1 ? 0.5*Horn1 : Horn1
+        local Hpos3 = linpos(Hpos1,Hpos2,DongleHeight) + Hang1:forward()*(CordExtendLength/4 + PullLength*PFactor) - Hang1:up()*PullLength*PFactor*DownRatio
+        #local Haxis1 = (Hpos2-Hpos1)
+        local Length1 = Hpos1:distance(Hpos3)
+        local Ang1 = -heading(Hpos1,ang(),Hpos3)
+        local Ang1a = Ang1:rotateAroundAxis(Ang1:right(),-90)
+        local Length2 = Hpos2:distance(Hpos3)
+        local Ang2 = -heading(Hpos3,ang(),Hpos2)
+        local Ang2a = Ang2:rotateAroundAxis(Ang2:right(),-90)
+        
+        #holoCreate(6,linpos(Hpos1,Hpos3,0.5),vec(0.25,0.25,(Length1/60)),Ang1a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+        #holoCreate(7,linpos(Hpos2,Hpos3,0.5),vec(0.25,0.25,(Length2/60)),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+        holoScale(1,vec(0.125,0.125,(Length1/60)))
+        holoScale(2,vec(0.125,0.125,(Length2/60)))
+        holoPos(1,linpos(Hpos1,Hpos3,0.5))
+        holoPos(2,linpos(Hpos2,Hpos3,0.5))
+        holoPos(3,Hpos3 + 1*Ang2a:up())
+        holoAng(1,Ang1a)
+        holoAng(2,Ang2a)
+    }
+    if(HornType==2){
+        CS:setBodygroup(6,3)
+    }
     #Horn 2 Unused
     #CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)
-    
-    #Bell On/Off
-    #See Bell Toggle
-    
-    #Sander
-    CS:setBodygroup(9,ForceSand)
-    
-    
     
     timer("clk",50)
 }elseif(clk("EndHiss")){
@@ -1213,17 +1195,17 @@ if(chatClk(owner())|chatClk(Pod:driver())){
                 break
 			case ".brake",
 				if(MU_Master & OnRun){
-					SetEqualRes = 0
-					SetThrottle = 0
-					Notch = 0
-					SetDynamics = 0
-					SetBrakeNotch = 6
-					Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
+        SetEqualRes = 0
+        SetThrottle = 0
+        Notch = 0
+        SetDynamics = 0
+        SetBrakeNotch = 6
+        Speaker:printProper("[RLCPT] Setting Emergency Brake application!")
 				}
 				hideChat(1)
 				break
             case ".lbset",
-                local Set = clamp(Sentence[2,string]:toNumber(),0,72)
+                local Set = clamp(Sentence[2,string]:toNumber(),0,60)
                 local ML = (AirBrakeMode==1)|(AirBrakeMode==3)|(AirBrakeMode==4)
                 SetLocoBrakePressure = Set
                 if(ML){SetLocoBrakeNotch=1}
@@ -1273,32 +1255,19 @@ if(chatClk(owner())|chatClk(Pod:driver())){
     }
     
 }
-if(LightToggle & ~LightToggle){
-    Light = !Light
+if(LightToggleFwd & ~LightToggleFwd){
+    LightsFwd = !LightsFwd
     CS:soundPlay(4,1,MiscSwitch)
+}
+if(LightToggleBwd & ~LightToggleBwd){
+    LightsBwd = !LightsBwd
+    CS:soundPlay(4,1,MiscSwitch)
+}
+if(BellToggle & ~BellToggle){
+    Bell = !Bell
+    CS:soundPlay(6,5,Bell ? BellValveOn : BellValveOff)
 }
 if(MiscToggle & ~MiscToggle){
     Misc = !Misc
     CS:soundPlay(4,1,MiscSwitch)
-}
-if(BellToggle & !BellQ){
-    CS:soundPlay(6,5,Bell ? BellValveOff : BellValveOn)
-    BellQ = 1
-    if(Bell){
-        CS:setBodygroup(7,1)
-    }else{
-        CS:setBodygroup(8,1)
-    }
-}elseif(!BellToggle & BellQ){
-    Bell = !Bell
-    BellQ = 0
-    CS:setBodygroup(7,0)
-    CS:setBodygroup(8,0)
-    
-}
-if(BellTrigger){
-    if(Horn1 & !Bell){
-        Bell = 1
-        CS:soundPlay(6,5,BellTriggerOn)
-    }
 }
