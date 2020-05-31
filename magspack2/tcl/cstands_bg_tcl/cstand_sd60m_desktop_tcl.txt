@@ -22,7 +22,8 @@ if(duped()){
 }
 if(first()){
     #FOR USE WITH RLC PT 2.0.65 OR OTHER COMPATIBLE VERSIONS
-    CtlTable["CS_Version",string] = "2.0.65" #HEAVILY MODIFIED, BUT FULLY COMPATIBLE WITH THIS VERSION
+    CtlTable["CS_Version",string] = "2.0.65"
+    #HEAVILY MODIFIED, BUT FULLY COMPATIBLE WITH THIS VERSION
     
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
@@ -31,7 +32,7 @@ if(first()){
     #The "Active" and "RemoteControl" inputs are only necessary if the locomotive is equipped with Remote Control capability; "Active" goes to the Pod Controller, "RemoteControl" to a separate toggled button.
     #The "UsingRearSeat" input  is only necessary if the locomotive features Dual Cabs or Dual Control Stands.
 	
-	#Modified by TransCanadaLimited.
+	   #Modified by TransCanadaLimited.
     
     ### CONFIGURATION ###
     
@@ -65,19 +66,19 @@ if(first()){
 
     ### CONTROL SOUND PATHS ###
     
-	#Combined Power Handle (Throttle + Dynamics)
+	   #Combined Power Handle (Throttle + Dynamics)
     Lever_PowerHandleDBMax = "trans_train_sounds/controls/desktop/powerhandle_dbmax.wav"
     Lever_PowerHandleCrossover = "trans_train_sounds/controls/desktop/powerhandle_crossover.wav"
     Lever_PowerHandleIdle = "trans_train_sounds/controls/desktop/powerhandle_notchdown.wav"
     Lever_PowerHandleNotch = "trans_train_sounds/controls/desktop/powerhandle_notchup.wav"
     Lever_PowerHandleMax = "trans_train_sounds/controls/desktop/powerhandle_notchupmax.wav"
     
-	#Reverser
+	   #Reverser
     Lever_ReverserF = "trans_train_sounds/controls/desktop/reverser_forward.wav"      
     Lever_ReverserN = "trans_train_sounds/controls/desktop/reverser_center.wav"
     Lever_ReverserB = "trans_train_sounds/controls/desktop/reverser_reverse.wav"
     
-	#Automatic / Train Brake Lever (30CDW)
+	   #Automatic / Train Brake Lever (30CDW / Analog)
     Lever_ABEmergency = "trans_train_sounds/controls/desktop/30cdw_auto_emergency.wav"
     Lever_ABEmergencyRecover = "trans_train_sounds/controls/desktop/30cdw_auto_emergency_recover.wav"
     Lever_ABSuppressionOn = "trans_train_sounds/controls/desktop/30cdw_auto_suppression_on.wav"
@@ -86,44 +87,43 @@ if(first()){
     Lever_ABNotch = "trans_train_sounds/controls/desktop/30cdw_auto_lever_notch.wav"
     Lever_ABRelease = "trans_train_sounds/controls/desktop/30cdw_auto_lever_release.wav"
 	
-	#Automatic / Train Brake Lever (ICE)
-	#[
-	Lever_ABEmergency = "trans_train_sounds/controls/desktop/ice_auto_lever_emergency.wav"
+	   #Automatic / Train Brake Lever (ICE / Electronic)
+	   #[
+	   Lever_ABEmergency = "trans_train_sounds/controls/desktop/ice_auto_lever_emergency.wav"
     Lever_ABEmergencyRecover = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
     Lever_ABSuppressionOn = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
     Lever_ABSuppressionOff = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
     Lever_ABMove = "trans_train_sounds/controls/desktop/ice_auto_lever_move.wav"
     Lever_ABNotch = "trans_train_sounds/controls/desktop/ice_auto_lever_notch.wav"
     Lever_ABRelease = "trans_train_sounds/controls/desktop/ice_auto_lever_release.wav"
-	]#
+	   ]#
     
-	#Automatic / Train Brake Air (30CDW)
+	   #Automatic / Train Brake Air (30CDW / Analog)
     AirBrakeApply = "trans_train_sounds/controls/desktop/30cdw_auto_air_apply.wav"
     AirBrakeApplyInitial = "trans_train_sounds/controls/desktop/30cdw_auto_air_apply_initial.wav"
     AirBrakeRelease = "trans_train_sounds/controls/desktop/30cdw_auto_air_release.wav"
-    AirBrakeDump = "trans_train_sounds/air/dump.wav"
 	
-	#Automatic / Train Brake Air (ICE)
-	#[
-	AirBrakeApply = "trans_train_sounds/controls/desktop/ice_auto_air_apply.wav"
+	   #Automatic / Train Brake Air (ICE / Electronic)
+	   #[
+	   AirBrakeApply = "trans_train_sounds/controls/desktop/ice_auto_air_apply.wav"
     AirBrakeApplyInitial = "trans_train_sounds/controls/desktop/ice_auto_air_apply.wav"
     AirBrakeRelease = "trans_train_sounds/controls/desktop/ice_auto_air_release.wav"
     AirBrakeDump = "trans_train_sounds/air/dump.wav"
-	]#
+	   ]#
     
-	#Independent / Locomotive Brake (30CDW)
+	   #Independent / Locomotive Brake (30CDW / Analog)
     LocoBrakeFull = "trans_train_sounds/controls/desktop/30cdw_indy_full.wav"
     LocoBrakeReleaseSoft = "trans_train_sounds/controls/desktop/30cdw_indy_release_soft.wav"
     LocoBrakeReleaseHard = "trans_train_sounds/controls/desktop/30cdw_indy_release.wav"
 	
-	#Independent / Locomotive Brake (ICE)
-	#[
+	   #Independent / Locomotive Brake (ICE / Electronic)
+	   #[
     LocoBrakeFull = "trans_train_sounds/controls/desktop/ice_indy_apply.wav"
     LocoBrakeReleaseSoft = "trans_train_sounds/controls/desktop/ice_indy_release_soft.wav"
     LocoBrakeReleaseHard = "trans_train_sounds/controls/desktop/ice_indy_release.wav"
-	]#
+	   ]#
 	
-	#Buttons, misc
+	   #Buttons, misc
     ButtonMomOn = "monkssounds/buttons/button31_push.wav"
     ButtonMomOff = "monkssounds/buttons/button31_release.wav"
     
@@ -138,7 +138,7 @@ if(first()){
     
     WarningHiss = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
 	
-	### DO NOT EDIT PAST THIS POINT ###
+	   ### ADVANCED USERS ONLY BEYOND THIS POINT ###
     
     #SOUND CHANNELS
     #1 - control levers (throttle, reverser)
@@ -238,7 +238,9 @@ if(first()){
     }else{ #Simple SL
         SetBrakeNotch = 0
     }
-    LocoBrakeNotch = 0
+    
+    SetLocoBrakePressure = 60
+    LocoBrakeNotch = 2
     
     CONSTANT = 1
     
@@ -253,6 +255,15 @@ if(first()){
     setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nEMD SD60M Desktop\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents\nTCL Sound Enhancement Equipped")
     runOnChat(1)
     timer("clk",100)
+    
+    #Notch Indicator
+    holoCreate(0)
+    holoModel(0,"models/jazzie/trains/number_wheel.mdl")
+    holoMaterial(0,"trans_train_stuff/cabstuff/indicators/jazzie_notchwheel")
+    holoPos(0,CS:toWorld(vec(4.65,8.39,31.55)))
+    holoScale(0,vec(0.05,0.07,0.05))
+    holoParent(0,CS)
+    holoDisableShading(0,1)
 }
 if(MU_Master){
             
@@ -436,7 +447,7 @@ if(clk("clk")){
             if(DynaNotch>-1){SetDynamics = dac(10,100,NumThrottleNotches,DynaNotch)}
         }elseif(Dynamics){
             if(IncreaseDynamics & (SetDynamics<100) & !DNQ){
-                SetDynamics++
+                SetDynamics+=2
                 if(SetDynamics>100){
                     SetDynamics=100
                 }elseif(SetDynamics>99){
@@ -445,7 +456,7 @@ if(clk("clk")){
                     CS:soundPlay(1,2,Lever_PowerHandleDBMax)
                 }
             }elseif(DecreaseDynamics & (SetDynamics>10) & !DNQ){
-                SetDynamics--
+                SetDynamics-=2
                 if(SetDynamics<=10){
                     SetDynamics=10
                     DNQ = 1
@@ -460,20 +471,11 @@ if(clk("clk")){
         }
     }
     
-    #Notch Indicator Holo
-    holoCreate(0)
-    holoModel(0,"models/jazzie/trains/number_wheel.mdl")
-    holoPos(0,CS:toWorld(vec(4.5,8.39,31.5)))
-    holoScale(0,vec(0.06,0.07,0.06))
-    holoParent(0,CS)
-    holoDisableShading(0,1)
-    
-    holoAng(0,CS:toWorld(ang(-47+(Notch*36),0,0)))
-    
+    #Notch Indicator
     if(!Dynamics){
-        holoMaterial(0,"jazzie/trains/numberroll")
+        holoAng(0,CS:toWorld(ang(-47+(Notch*36),0,0)))
     }elseif(Dynamics){
-        holoMaterial(0,"models/proppertextures/brakehandle")
+        holoAng(0,CS:toWorld(ang(-83,0,0)))
     }
     
     #Selector
@@ -818,7 +820,7 @@ if(clk("clk")){
         if(IncreaseLocoBrake & (SetLocoBrakePressure<60)){
             #if(BleedPressure<72){BleedPressure=72}
             if(!LBQ){LBQ=1}
-            SetLocoBrakePressure+=2
+            SetLocoBrakePressure+=4
             if(SetLocoBrakePressure>60){
                 SetLocoBrakePressure = 60
             }
