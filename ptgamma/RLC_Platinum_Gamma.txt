@@ -68,7 +68,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/na/emd_gp50"
+    #include "ptgamma/locos/generic/emd_sd40"
     
     #That's pretty much all the config you need for the RLC PT2 Chip itself!
     
