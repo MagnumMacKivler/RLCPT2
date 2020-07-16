@@ -7,7 +7,7 @@
 #Engine Config
 @persist DPM HEP HEP_Subtract HEPTYPE StartupClagDelay StartupClagDuration Startup_Mode Shutdown_Mode FuelSaverMode FuelSaverDelay NumThrottleNotches NumEngineNotches PrimerDuration
 #Engine Sounds
-@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array SoundDurations:table
+@persist [Startup_Hi Startup_Lo Shutdown_Hi Shutdown_Lo TransitionPath TransitionToLow TransitionToHigh Idle_Low]:string [Notches EngineBehavior UpDelays DownDelays UpOverrides DownOverrides]:array
 @persist EIIS_Enabled [EIIS_HigherIdle EIIS_HighToHigher EIIS_LowToHigher EIIS_HigherToHigh EIIS_HigherToLow EIIS_HigherTo2 EIIS_2ToHigher EIIS_Shutdown_Higher]:string
 #Engine Data
 @persist On1 On2 Primed1 Primed2 Priming1 Priming2 Starting1 Starting2 LowIdleTarget1 LowIdleCondition2 LowIdleActual1 LowIdling2 LowIdleWaiting1 LowIdleWaiting2 EngineNotch1 EngineNotch2 EngineSpeed1 EngineSpeed2 Throttle Notch HumpMultiplier
@@ -56,7 +56,7 @@ if(first()|dupefinished()){
 	   #Add 'All is Well' Bleep - done
     #Fix PrintProper - done
     
-    Version = "Gamma 2.0.67"
+    Version = "Gamma 2.0.68"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -68,7 +68,7 @@ if(first()|dupefinished()){
     #LOCOMOTIVE CONFIG
     
     #What locomotive do you want RLC PT2 to emulate? Look in "ptgamma/locos/" !
-    #include "ptgamma/locos/generic/emd_sd40"
+    #include "ptgamma/locos/na/emd_gp50"
     
     #That's pretty much all the config you need for the RLC PT2 Chip itself!
     
@@ -175,7 +175,7 @@ if(first()|dupefinished()){
     local CFG_Conflict = (RLCV_Major:toNumber() > CFGV_Major:toNumber()) | (CFGV_Minor:toNumber() < RLCV_Minor:toNumber())
     
     #Engine
-    LastCompatibleConfig = "2.0.67"
+    LastCompatibleConfig = "2.0.60"
     RLCVA = LastCompatibleConfig:explode(".")
     RLCV_Major = RLCVA[2,string]
     RLCV_Minor = RLCVA[3,string]
@@ -452,12 +452,8 @@ if(first()|dupefinished()){
     #CUSTOM FUNCTIONS
     function number sdr(Soundpath:string){
         #local Tick = round(1/tickInterval())
-        local DR = 0
-        if(SoundDurations:exists(Soundpath)){ # precompiled sounddurations
-            DR = SoundDurations[Soundpath,number] - 20
-        }else{
-            DR = floor(soundDuration(Soundpath)*100/SoundMultiplier)*10 - 20
-        }
+        
+        DR = floor(soundDuration(Soundpath)*100/SoundMultiplier)*10 - 20
         #print(DR)
         return DR
     }
@@ -2203,7 +2199,7 @@ if(On1|On2){
             
             WheelSlip = WheelSlipLocal | FrontPlugIn[14,number] | RearPlugIn[14,number]
             local DPMF = (On1&Isolation1) + (On2&Isolation2)
-            TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1700/8
+            TE = DPMF*sign(Reverser)*Load_Eff*(BaseSpeed/TopSpeed)*ShuntFactor*Motors*1500/8
             BlendEqualRes = FeedPressure
             
         }elseif(Dynamics & HasTM & Excitation){ #DYNAMIC BRAKE CALCULATIONS
@@ -2279,7 +2275,7 @@ if(On1|On2){
         
         #Short Time Consequences
         if(Load > MaxContLoad){
-            TM_Temp += linterp(Load,vec2(MaxContLoad,1/TM_Maxtime),vec2(MaxLoad,1/TM_Mintime))*50/2500
+            TM_Temp += linterp(Load,vec2(MaxContLoad,1/TM_Maxtime),vec2(MaxLoad,1/TM_Mintime))*50/1000
             if((TM_Temp>60) & !TM_Warning){
                 TM_Warning = 1
                 if(OverloadProtection){
@@ -2362,7 +2358,7 @@ if(On1|On2){
         if(FuelSaverMode){
             local LIB1 = (EngineNotch1==0) & (EngineSpeed1==0) #Low Idle Basic
             local LIN1 = (EngineNotch1==0) & (EngineSpeed1==0) & (Reverser==0) #Low Idle Natural
-            LowIdleTarget1 = (EIIS_Enabled & IdleOverride) ? (LIB1 ? 2 : 1) : (LIN1 ? 0 : 1) #0 for Low, 1 for High, 2 for Higher
+            LowIdleTarget1 = (EIIS_Enabled & IdleOverride) ? (LIB1 ? 2 : 1) : (LIN1 ? (FuelSaverMode==2) : 1) #0 for Low, 1 for High, 2 for Higher
             if(On1 & !Starting1){
                 if((LowIdleTarget1==0) & (LowIdleActual1!=0) & !LowIdleWaiting1){ #Go To Low Idle
                     if(FuelSaverDelay>0){
