@@ -1,0 +1,127 @@
+@name Railfolf Multipurpose Russian Text E2
+@persist A Length Pos Extra:table Height:table Kerning:table K H Num:string
+@inputs Num:string
+if(first()|duped()){
+
+#Made mostly by Railfolf | Me, Priority, barely did anything xd, only really defined the special characters and made the actual font
+
+Color = 255
+
+Text = "tem2-"+Num #ONLY PUT LOWERCASE HERE FOR NORMAL CHARACTERS, SPECIAL CHARACTERS ARE CAPITALIZED!
+#This includes random numbers, so use your handy dandy "Numplate V3 Complementary Random Number Generator" e2 to randomize th e2!
+Scale = 1
+#Valid Characters for this E2
+#All Numbers 0-9
+#a, b, d, e, f, g, h, i, k, l, m, n, o, p, r, s, t, u, v, y
+#SPECIAL CHARACTERS CAN BE FOUND HERE
+Extra["E",string] = "ee" #Long E | Capital E
+Extra["'",string] = "sh_hard" #SH Hard | Apostrophe
+Extra[";",string] = "sh_soft" #SH Soft | Semicolon
+Extra["T",string] = "ts" #Ts | Capital T    
+Extra["A",string] = "ya" #Ya | Capital A
+Extra["Y",string] = "ye" #Ye | Capital Y
+Extra["U",string] = "yu" #Yu | Capital U
+Extra["Z",string] = "zh" #Zh | Capital Z
+Extra["D",string] = "degree" #Degree Symbol | Captial D
+Extra["I",string] = "roman_numeral_i" #Roman Numeral I | Capital I
+Extra["N",string] = "roman_numeral_n" #Roman Numeral N | Capital N
+Extra["V",string] = "roman_numeral_v" #Roman Numeral V | Capital V
+Extra["X",string] = "roman_numeral_x" #Roman Numeral X | Captial X
+Extra["H",string] = "hard_sign" #Hard Sign | Capital H
+Extra["S",string] = "soft_sign" #Soft Sign | Capital S
+Extra[".",string] = "period"
+Extra["-",string] = "hyphen"
+
+
+#this allows you to change the height of characters
+Height["D",number] = -1.5
+Height[".",number] = 1.5
+
+
+#set spacing between characters, don't set lower than 2 - default is 3
+Kerning[".",number] = 2
+Kerning["-",number] = 2
+Kerning["D",number] = 2
+Kerning["1",number] = 2
+Kerning["Z",number] = 5
+Kerning["'",number] = 5
+Kerning[";",number] = 5
+Kerning["U",number] = 4
+Kerning["H",number] = 4
+Kerning["m",number] = 4
+Kerning["f",number] = 4   
+Kerning["i",number] = 4   
+       
+    
+Length = 0
+T = Text:explode("")
+E = entity() #"entity()" is this E2
+
+E:setAlpha(0) #makes the chip invisible so you can see the text
+}
+for(A=1,T:count()){ #gets length of text to determine starting position
+    
+    K = Kerning[T[A,string],number]*Scale #K = kerning
+    
+    #If the character has kerning set, use that; otherwise, add 4 units to the length.
+    if(Kerning:exists(T[A,string])){
+        Length += K
+    }
+    else{Length += 3*Scale}
+}
+
+Pos = -Length/2
+
+for(A=1,T:count()){
+    K = Kerning[T[A,string],number]*Scale #K = kerning
+    H = Height[T[A,string],number] #H = height
+    holoCreate(A)
+    holoParent(A,E)
+    holoModel(A,"plane")
+    holoColor(A,vec(Color))
+    holoAng(A,E:toWorld(ang(0,0,0)))
+    
+    
+    #If the character has kerning set, use that; otherwise, space characters 4 units apart.
+    if(Kerning:exists(T[A,string])){
+        Pos += K/2
+        holoPos(A,E:toWorld(vec(H*Scale , Pos , 0))) #Positions character
+        Pos += K/2 #Sets position to start from for next character
+    }
+    else{
+        Pos += 1.5*Scale
+        holoPos(A,E:toWorld(vec(H*Scale , Pos , 0))) #Default kerning is 3, so this adds half of 3, or 1.5.
+        Pos += 1.5*Scale
+    }
+    
+    
+    
+    
+    if(Extra:exists(T[A,string])){
+        holoMaterial(A,"models/logos/fonts/russian01/"+Extra[T[A,string],string])
+    }
+    
+    else{holoMaterial(A,"models/logos/fonts/russian01/"+T[A,string])}
+    
+    
+    holoScale(A,vec(Scale)) #Sets scale
+    
+    
+    if(T[A,string] == " "){holoDelete(A)}
+    
+
+    
+
+}
+if(~Num){reset()}
+
+
+
+
+
+
+
+
+
+    
+

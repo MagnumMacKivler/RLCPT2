@@ -1,0 +1,28 @@
+@name SA3 coupler for rus_1612-12 box wagon
+@inputs [Entity]:entity 
+@persist A
+
+if(first()|duped()){
+
+C1= vec(255)
+ 
+A=0
+holoCreate(A)
+holoModel(A,"models/akandr/russian/sa3.mdl")
+holoColor(A,C1)
+holoPos(A,Entity:toWorld(vec(305,0,1.75)))
+holoAng(A,Entity:toWorld(ang(0,90,0)))
+holoParent(A,Entity)
+holoMaterial(A,"models/props_gulch/tinycars/tc_darkgray")
+holoClipEnabled(A,1)
+holoClip(A,1, vec(0,10,0), vec(0,-1,0), 0)
+
+A++
+holoCreate(A)
+holoModel(A,"models/akandr/russian/sa3.mdl")
+holoColor(A,C1)
+holoPos(A,Entity:toWorld(vec(-272,0,1.75)))
+holoAng(A,Entity:toWorld(ang(0,-90,0)))
+holoParent(A,Entity)
+holoMaterial(A,"models/props_gulch/tinycars/tc_darkgray")
+}

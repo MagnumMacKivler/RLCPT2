@@ -1,0 +1,59 @@
+@name Russian Radio Chatter
+@inputs On
+@outputs 
+@persist T Time N
+@trigger 
+@model models/props_lab/reciever01d.mdl
+
+if(first() | duped()){
+    Time = 30 #The time, in seconds, between sounds. You can change this if you want.
+}
+interval(Time*1000)
+
+if(On){
+    N = randint(1,32)
+
+    Sound = select(N
+ 
+    ,"priority's sounds/radio/russian dispatch/radio1.wavv"
+    ,"priority's sounds/radio/russian dispatch/radio2.wav"
+    ,"priority's sounds/radio/russian dispatch/radio3.wav"
+    ,"priority's sounds/radio/russian dispatch/radio4.wav"
+    ,"priority's sounds/radio/russian dispatch/radio5.wav"
+    ,"priority's sounds/radio/russian dispatch/radio6.wav"
+    ,"priority's sounds/radio/russian dispatch/radio7.wav"
+    ,"priority's sounds/radio/russian dispatch/radio8.wav"
+    ,"priority's sounds/radio/russian dispatch/radio9.wav"
+    ,"priority's sounds/radio/russian dispatch/radio10.wav"
+    ,"priority's sounds/radio/russian dispatch/radio11.wav"
+    ,"priority's sounds/radio/russian dispatch/radio12.wav"
+    ,"priority's sounds/radio/russian dispatch/radio13.wav"
+    ,"priority's sounds/radio/russian dispatch/radio14.wav"
+    ,"priority's sounds/radio/russian dispatch/radio15.wav"
+    ,"priority's sounds/radio/russian dispatch/radio16.wav"
+    ,"priority's sounds/radio/russian dispatch/radio17.wav"
+    ,"priority's sounds/radio/russian dispatch/radio18.wav"
+    ,"priority's sounds/radio/russian dispatch/radio19.wav"
+    ,"priority's sounds/radio/russian dispatch/radio20.wav"
+    ,"priority's sounds/radio/russian dispatch/radio21.wav"
+    ,"priority's sounds/radio/russian dispatch/radio22.wav"
+    ,"priority's sounds/radio/russian dispatch/radio23.wav"
+    ,"priority's sounds/radio/russian dispatch/radio24.wav"
+    ,"priority's sounds/radio/russian dispatch/radio25.wav"
+    ,"priority's sounds/radio/russian dispatch/radio26.wav"
+    ,"priority's sounds/radio/russian dispatch/radio27.wav"
+    ,"priority's sounds/radio/russian dispatch/radio28.wav"
+    ,"priority's sounds/radio/russian dispatch/radio29.wav"
+    ,"priority's sounds/radio/russian dispatch/radio30.wav"
+    ,"priority's sounds/radio/russian dispatch/radio31.wav"
+    ,"priority's sounds/radio/russian dispatch/radio32.wav"
+
+    
+
+   
+)
+
+    entity():soundPlay(0,Time-1,Sound)
+}else{
+    soundStop(0)
+}
