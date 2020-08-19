@@ -234,7 +234,7 @@ if(first()){
     holoCreate(7,CS:toWorld(vec(19.55,-20.56,16.96)),vec(1),CS:toWorld(ang(0,0,0)),vec(255),"models/akandr/russian/engines/tem2_trainbrake_lever.mdl")
     Thetas[7,number] = 21
     #Loco Brake
-    holoCreate(8,CS:toWorld(vec(13.69,11.69,18.07)),vec(1),CS:toWorld(ang(0,0,0)),vec(255),"models/akandr/russian/engines/tem2_independent.mdl")
+    holoCreate(8,CS:toWorld(vec(13.69,11.69,18)),vec(1),CS:toWorld(ang(0,180,0)),vec(255),"models/akandr/russian/engines/tem2_independent.mdl")
     Thetas[8,number] = -45
 
     
@@ -929,11 +929,10 @@ if(clk("clk")){
     
     #Locomotive Brake
     if(SetBleeding | (LocoBrakePitch!=0)){
-        lever(8,0,5)
-        holoBodygroup(8,0,5)
+        lever(8,-180,5)
+
     }else{
-        lever(8,0 - 180*SetLocoBrakePressure/60,15)
-        holoBodygroup(8,0,4)
+        lever(8,-180 + 180*SetLocoBrakePressure/60,15)
     }
     
     #Bell
