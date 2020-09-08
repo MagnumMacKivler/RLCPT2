@@ -1,14 +1,14 @@
 @name ptgamma/engines/ALCO_L6_539
 #ENGINE CONFIG
-ENG_Version = "2.0.63"
+ENG_Version = "2.0.67"
 #For use in Early ALCO Switchers (HH600, HH660, S1, S3). Also acceptable as a 531 or 538 substitute.
 EngineType = "Alco 539 (L6)" #What is the name of the Prime Mover?
 
-Startup_Hi = "flak/alco539/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Hi = "gsgtrainsounds/alco539i6/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
 Startup_Mode = 1 #0 for Low, 1 for High
 
-Shutdown_Hi = "flak/alco539/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Hi = "gsgtrainsounds/alco539i6/shutdown.wav" #Shutdown Sound from High Idle.
 Shutdown_Lo = "" #Shutdown Sound from Low Idle.
 Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
 
@@ -23,29 +23,29 @@ Idle_Low = "" #Sound for Low Idle, if used.
 NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
 
 Notches = array(
-    "flak/alco539/idle.wav", #Idle
-    "flak/alco539/idle.wav", #Notch 1
-    "flak/alco539/notch2.wav", #Notch 2
-    "flak/alco539/notch3.wav", #And so on
-    "flak/alco539/notch4.wav",
-    "flak/alco539/notch5.wav",
-    "flak/alco539/notch6.wav",
-    "flak/alco539/notch7.wav",
-    "flak/alco539/notch8.wav"
+    "gsgtrainsounds/alco539i6/idle.wav", #Idle
+    "gsgtrainsounds/alco539i6/notch1.wav", #Notch 1
+    "gsgtrainsounds/alco539i6/notch2.wav", #Notch 2
+    "gsgtrainsounds/alco539i6/notch3.wav", #Notch 3
+    "gsgtrainsounds/alco539i6/notch4.wav", #And so On
+    "gsgtrainsounds/alco539i6/notch5.wav",
+    "gsgtrainsounds/alco539i6/notch6.wav",
+    "gsgtrainsounds/alco539i6/notch7.wav",
+    "gsgtrainsounds/alco539i6/notch8.wav"
 )
-    
-TransitionPath = "flak/alco539/transitions/"
+
+TransitionPath = "gsgtrainsounds/alco539i6/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
-EngineBehavior = array(3,  1,  1,  1,  1,  1,  1,  1)
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #0 - A/B Notching
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
 #4 - Override (Full Sweep)
-                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
-UpDelays = array(0,   1000,1000,1000,1000,1000,1000,1000)
-                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
-DownDelays = array(1000,1000,1000,1000,1000,1000,1000)
+                #0-1   1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(1790, 747, 735, 283, 592, 480, 919, 1455)
+                  #8-7  7-6  6-5  5-4   4-3   3-2  2-1  1-0
+DownDelays = array(618, 841, 974, 1264, 1005, 846, 367, 2614)
 
 UpOverrides = array(
     "", #0-1
@@ -69,18 +69,52 @@ DownOverrides = array(
     ""  #1-0
 )
 
-StartupClagDelay = 6 #Time required to hold starter for engine to turn on successfully
-StartupClagDuration = 3 #Duration for starter smoke
+StartupClagDelay = 7.5 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 2 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 
-CompressorOn = "gsgtrainsounds/misc/compressors/wh_3cdc_loop.wav"
-CompressorOff = "gsgtrainsounds/misc/compressors/wh_3cdc_end.wav"
+CompressorOn = "gsgtrainsounds/misc/compressors/wabco_2cdb_38d-6/wabco_2dcb_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/wabco_2cdb_38d-6/wabco_2dcb_end.wav"
 
-DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav" #As if a 539-powered locomotive would ever have dynamic brakes lol
-DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
+DynamicsOn = ""
+DynamicsOff = ""
 
-PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
-PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+PrimeOn = "gsgtrainsounds/alco244dv12/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/alco244dv12/prime_end.wav"
 
 PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/0-1.wav",number] = 1770
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/1-2a.wav",number] = 290
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/1-2b.wav",number] = 3430
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/2-3a.wav",number] = 1950
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/2-3b.wav",number] = 1550
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/3-4a.wav",number] = 1310
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/3-4b.wav",number] = 3150
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/4-5a.wav",number] = 1160
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/4-5b.wav",number] = 3070
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/5-6a.wav",number] = 590
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/5-6b.wav",number] = 4100
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/6-7a.wav",number] = 560
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/6-7b.wav",number] = 2770
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/7-8a.wav",number] = 1170
+SoundDurations["gsgtrainsounds/alco539i6/transitions/up/7-8b.wav",number] = 2330
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/1-0.wav",number] = 2590
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/2-1a.wav",number] = 1140
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/2-1b.wav",number] = 2090
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/3-2a.wav",number] = 700
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/3-2b.wav",number] = 2010
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/4-3a.wav",number] = 660
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/4-3b.wav",number] = 2330
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/5-4a.wav",number] = 580
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/5-4b.wav",number] = 2170
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/6-5a.wav",number] = 490
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/6-5b.wav",number] = 1820
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/7-6a.wav",number] = 390
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/7-6b.wav",number] = 1840
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/8-7a.wav",number] = 620
+SoundDurations["gsgtrainsounds/alco539i6/transitions/down/8-7b.wav",number] = 2000
+SoundDurations["gsgtrainsounds/alco539i6/startup.wav",number] = 14110
+SoundDurations["gsgtrainsounds/alco539i6/shutdown.wav",number] = 10840
