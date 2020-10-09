@@ -4,7 +4,7 @@
 @persist UseBaseOrHolo FanSpeed Theta
 @trigger 
 
-if(first()|duped()){
+if(first()|dupefinished()){
     
     UseBaseOrHolo = 1 # 1 for setting bodygroups on the base, 0 for setting bodygroups on a created hologram
     local HoloColor = vec(255) # Color of the created hologram if used.
