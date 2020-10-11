@@ -2,7 +2,11 @@
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 ForceSand BrakeCutIn EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier EC_Clamp
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SelectorUp SelectorDown IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
-@persist [Lever_ThrottleOn Lever_ThrottleOff Lever_ThrottleNotchUp Lever_ThrottleNotchDown Lever_ThrottleMax Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_ABNotch Lever_ABNotch2 Lever_ABInitial Lever_ABMove Lever_ABEmergency Lever_ABEmergencyOff AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
+@persist [Lever_ThrottleOn Lever_ThrottleOff Lever_ThrottleNotchUp Lever_ThrottleNotchDown Lever_ThrottleMax]:string
+@persist [Lever_ReverserF Lever_ReverserN Lever_ReverserB]:string
+@persist [Lever_ABEmergency Lever_ABEmergencyRecover Lever_ABSuppressionOn Lever_ABSuppressionOff Lever_ABMove Lever_ABNotch Lever_ABRelease]:string
+@persist [AirBrakeApply AirBrakeApplyInitial AirBrakeRelease]:string
+@persist [LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft]:string
 @persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
@@ -30,7 +34,7 @@ if(first()){
     #Config
     
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
-    #include "ptgamma/controls/DTG"
+    #include "ptgamma/controls/Standard"
     
     AirBrakeMode = 2
     #0 - Simple Self-Lapping (Easy)
@@ -69,20 +73,22 @@ if(first()){
     Lever_ThrottleNotchUp = "trans_train_sounds/controls/kc92/rs_throttle_notchup.wav"
     Lever_ThrottleNotchDown = "trans_train_sounds/controls/kc92/rs_throttle_notchdown.wav"
     Lever_ThrottleMax = "trans_train_sounds/controls/kc92/rs_throttle_notchupmax.wav"
+    
     Lever_ReverserF = "trans_train_sounds/controls/kc92/rs_reverser_forward.wav"      
     Lever_ReverserN = "trans_train_sounds/controls/kc92/rs_reverser_neutral.wav"
     Lever_ReverserB = "trans_train_sounds/controls/kc92/rs_reverser_reverse.wav"
     
-    Lever_ABNotch = "trans_train_sounds/controls/aar/auto_lever_notch.wav"
-    Lever_ABNotch2 = "trans_train_sounds/controls/aar/auto_lever_notch2.wav"
-    Lever_ABMove = "trans_train_sounds/controls/aar/auto_lever_move.wav"
-    Lever_ABInitial = "trans_train_sounds/controls/aar/auto_lever_hiss1.wav"
     Lever_ABEmergency = "trans_train_sounds/controls/aar/auto_lever_emergency.wav"
-    Lever_ABEmergencyOff = "trans_train_sounds/controls/aar/auto_lever_hiss3.wav"
+    Lever_ABEmergencyRecover = "trans_train_sounds/controls/aar/auto_lever_emergency_recover.wav"
+    Lever_ABSuppressionOn = "trans_train_sounds/controls/aar/auto_lever_suppression_on.wav"
+    Lever_ABSuppressionOff = "trans_train_sounds/controls/aar/auto_lever_suppression_off.wav"
+    Lever_ABMove = "trans_train_sounds/controls/aar/auto_lever_move.wav"
+    Lever_ABNotch = "trans_train_sounds/controls/aar/auto_lever_initial.wav"
+    Lever_ABRelease = "trans_train_sounds/controls/aar/auto_lever_release.wav"
     
-    AirBrakeApply = "trans_train_sounds/air/26l_apply.wav"
-    AirBrakeRelease = "trans_train_sounds/controls/aar/auto_release.wav"
-    AirBrakeDump = "gsgtrainsounds/misc/airbrakes/air_dump.wav"
+    AirBrakeApply = "trans_train_sounds/controls/aar/auto_air_apply_alt.wav"
+    AirBrakeApplyInitial = "trans_train_sounds/controls/aar/auto_air_apply_initial_alt.wav"
+    AirBrakeRelease = "trans_train_sounds/controls/aar/auto_air_release.wav"
     
     LocoBrakeFull = "trans_train_sounds/controls/aar/indy_full.wav"
     LocoBrakeReleaseSoft = "trans_train_sounds/controls/aar/indy_release_soft.wav"
@@ -212,9 +218,9 @@ if(first()){
     CtlTable["TransitionControlType",number] = TransitionControlType
     
     if(AirBrakeMode==2){#26L
-        SetBrakeNotch = 2
+        SetBrakeNotch = 6
     }elseif(AirBrakeMode>=3){#24RL/6SL
-        SetBrakeNotch = 4 
+        SetBrakeNotch = 6
         #print("Yarg")   
     }elseif(AirBrakeMode==1){#Simple ML
         SetBrakeNotch = 2
@@ -576,11 +582,11 @@ if(clk("clk")){
         if(IncreaseTrainBrake & (SetBrakeNotch < 4) & !ABQ){
             ABQ = 1
             SetBrakeNotch++
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeApply)
+                CS:soundPlay(3,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
@@ -590,11 +596,11 @@ if(clk("clk")){
             }else{
                 SetBrakeNotch--
             }
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeRelease)
+                CS:soundPlay(3,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -622,7 +628,7 @@ if(clk("clk")){
                 break
             case 4, #Service
                 if(SetEqualRes>FSP){
-                    SetEqualRes-=0.5
+                    SetEqualRes-0.5
                     if(SetEqualRes<FSP){SetEqualRes=FSP}
                 }
                 break
@@ -639,16 +645,16 @@ if(clk("clk")){
         if(IncreaseTrainBrake & (SetBrakeNotch < 4) & !ABQ){
             ABQ = 1
             SetBrakeNotch++
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeApply)
+                CS:soundPlay(3,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }elseif(SetBrakeNotch==2 & (SetEqualRes>(FeedPressure-InitialReduction))){
                 SetEqualRes = FeedPressure-InitialReduction
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeApply)
+                CS:soundPlay(3,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
@@ -658,11 +664,11 @@ if(clk("clk")){
             }else{
                 SetBrakeNotch--
             }
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABNotch)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeRelease)
+                CS:soundPlay(3,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -699,26 +705,25 @@ if(clk("clk")){
     #6-Emergency
         if(IncreaseTrainBrake){
             if(!ABQ){
-                ABQ = 1 
+                ABQ = 1
                 if(SetBrakeNotch==0){
                     Lock_26L = 1
                     SetBrakeNotch=1
-                    soundStop(1)
-                    Pod:soundPlay(1,3,Lever_ABInitial)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABNotch)
+                    CS:soundPlay(3,10,AirBrakeApplyInitial)
                     SetEqualRes = FeedPressure-InitialReduction
                 }elseif((SetBrakeNotch==1) & (SetEqualRes>FSP)){
-                    soundStop(1)
-                    Pod:soundPlay(1,5,Lever_ABMove)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABMove)
+                    HissQ = 1
+                    CS:soundPlay(3,10,AirBrakeApply)
+                    timer("EndHiss",6000)
                 }elseif((SetBrakeNotch==1) & (SetEqualRes==FSP)){
                     SetBrakeNotch=2
-                    soundStop(1)
-                    Pod:soundPlay(1,3,Lever_ABNotch2)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABSuppressionOn)
                     Suppression = 1
-                }
-                if(!HissQ & (SetEqualRes>FSP)){
-                    HissQ = 1
-                    Pod:soundPlay(2,10,AirBrakeApply)
-                    timer("EndHiss",6000)
                 }
             }
             if((SetBrakeNotch==1) & (SetEqualRes>FSP) & !Lock_26L){
@@ -730,32 +735,33 @@ if(clk("clk")){
                 ABQ = 1
                 if((SetBrakeNotch==1) & (SetEqualRes==(FeedPressure-InitialReduction))){
                     SetBrakeNotch=0
-                    soundStop(1)
-                    Pod:soundPlay(1,3,Lever_ABNotch)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABRelease)
                     SetEqualRes = FeedPressure
                     if(!HissQ){
                         HissQ = 1
-                        Pod:soundPlay(2,10,AirBrakeRelease)
+                        CS:soundPlay(3,10,AirBrakeRelease)
                         timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==1) & (SetEqualRes<FeedPressure)){
-                    soundStop(1)
-                    Pod:soundPlay(1,3,Lever_ABMove)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABMove)
                     if(!HissQ & (SetEqualRes<FeedPressure)){
                         HissQ = 1
-                        Pod:soundPlay(2,10,AirBrakeRelease)
+                        CS:soundPlay(3,10,AirBrakeRelease)
                         timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==2)){
                     Lock_26L = 1
                     SetBrakeNotch=1
-                    soundStop(1)
-                    Pod:soundPlay(1,3,Lever_ABNotch2)
+                    soundStop(2)
+                    CS:soundPlay(2,5,Lever_ABSuppressionOff)
                     Suppression = 0
                 }elseif(SetBrakeNotch==6){
                     SetBrakeNotch=2
-                    soundStop(1)
-                    Pod:soundPlay(1,5,Lever_ABEmergencyOff)
+                    soundStop(2)
+                    soundStop(3)
+                    CS:soundPlay(2,10,Lever_ABEmergencyRecover)
                     Suppression = 1
                 }
                 
@@ -779,25 +785,27 @@ if(clk("clk")){
         if(IncreaseTrainBrake & !ABQ & (SetBrakeNotch<2)){
             ABQ = 1
             SetBrakeNotch++
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABMove)
             if((SetBrakeNotch==2) & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeApply)
+                CS:soundPlay(3,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ & (SetBrakeNotch>0)){
             ABQ = 1
             if(SetBrakeNotch==6){
                 SetBrakeNotch=2
+                soundStop(2)
+                CS:soundPlay(2,10,Lever_ABEmergencyRecover)
             }else{
                 SetBrakeNotch--
             }
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABNotch)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABMove)
             if((SetBrakeNotch==0) & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeRelease)
+                CS:soundPlay(3,10,AirBrakeRelease)
                 timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -820,25 +828,25 @@ if(clk("clk")){
     #6-Emergency
         if(IncreaseTrainBrake & !ABQ){
             ABQ = 1
-            soundStop(1)
-            Pod:soundPlay(1,3,Lever_ABMove)
+            soundStop(2)
+            CS:soundPlay(2,5,Lever_ABMove)
             if((SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeApply)
+                CS:soundPlay(3,10,AirBrakeApply)
                 timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ){
             ABQ = 1
             if(SetBrakeNotch==6){
                 SetBrakeNotch = 0
-                soundStop(1)
-                Pod:soundPlay(1,3,Lever_ABNotch)
+                soundStop(2)
+                CS:soundPlay(2,10,Lever_ABEmergencyRecover)
             }else{
-                soundStop(1)
-                Pod:soundPlay(1,3,Lever_ABMove)
+                soundStop(2)
+                CS:soundPlay(2,5,Lever_ABMove)
                 if((SetEqualRes<FeedPressure) & !HissQ){
                     HissQ = 1
-                    Pod:soundPlay(2,10,AirBrakeRelease)
+                    CS:soundPlay(3,10,AirBrakeRelease)
                     timer("EndHiss",6000)
                 }
             }
@@ -863,7 +871,7 @@ if(clk("clk")){
         if(IncreaseLocoBrake & (SetLocoBrakePressure<60)){
             #if(BleedPressure<72){BleedPressure=72}
             if(!LBQ){LBQ=1}
-            SetLocoBrakePressure+=2
+            SetLocoBrakePressure+=4
             if(SetLocoBrakePressure>60){
                 SetLocoBrakePressure = 60
             }
@@ -875,7 +883,7 @@ if(clk("clk")){
             }
         }elseif(DecreaseLocoBrake & (SetLocoBrakePressure>0)){
             if(!LBQ){LBQ=1}
-            SetLocoBrakePressure-=2
+            SetLocoBrakePressure-=4
             if(SetLocoBrakePressure<0){SetLocoBrakePressure = 0}
             if(!LHissQ){
                 LHissQ = 1
@@ -943,17 +951,17 @@ if(clk("clk")){
     #Emergency Brake
     
     if(EmergencyBrake | EmBrake){
-
-        SetEqualRes = 0
         
+        if(SetBrakeNotch<6){
+            CS:soundPlay(2,0,Lever_ABEmergency)
+        }
+        
+        SetEqualRes = 0
         SetThrottle = 0
         Notch = 0
         SetDynamics = 0
         DynaNotch = 0
-        #SetLocoBrakePressure = 72
         SetBrakeNotch = 6
-        
-        CS:soundPlay(1,10,Lever_ABEmergency)
         
     }
         
@@ -997,8 +1005,23 @@ if(clk("clk")){
     }
     
     #Automatic Brake
+    if(AirBrakeMode==2){
+        if(SetBrakeNotch==0){
+            Ang = 0
+        }
+        if(SetBrakeNotch==1){
+            Ang = 135-(SetEqualRes*1.5)
+        }
+        if(SetBrakeNotch==2){
+            Ang = 150
+        }
+        if(SetBrakeNotch==6){
+            Ang = 180
+        }
+    }else{
     Ang = select(SetBrakeNotch+1, 0, 20, 41, 68, 90, 108)
-    local Speed = (SetBrakeNotch==6) ? 15 : 5
+    }
+    local Speed = (SetBrakeNotch==6) ? 30 : 15
     lever(7,Ang,Speed)
     
     #Locomotive Brake
