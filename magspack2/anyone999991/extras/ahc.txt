@@ -1,0 +1,16 @@
+@name AHC
+@inputs Pod:wirelink
+@outputs 
+@persist
+@trigger all
+interval(100)
+
+#Anti-Hijacker Code
+
+if(Pod:entity("Entity"):driver():steamID() != owner():steamID() & Pod:number("Active") >= 1) {
+
+Pod:setNumber("Terminate", 1)
+hint(Pod:entity("Entity"):driver():name()+" sat in your locomotive",1)	
+} else {
+Pod:setNumber("Terminate", 0)
+}

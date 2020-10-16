@@ -1,0 +1,30 @@
+@name Anyone's Single Windscreen Wiper
+@inputs On
+@outputs 
+@persist
+@trigger 
+ 
+    Speed = 1
+
+if(first() | dupefinished()){
+   
+    holoCreate(0)
+    holoModel(0,"models/anytrains/props/detail/wiper_single.mdl")
+    holoParent(0, entity())
+    holoPos(0,entity():toWorld(vec(0,0,-0.25)))
+    holoAng(0,entity():toWorld(ang(90,180,0)))
+    
+    
+    
+    
+    
+    
+    
+    
+}
+
+if(On){
+    holoAnim(0,1,0,Speed)
+}else{
+    holoAnim(0,0)
+}

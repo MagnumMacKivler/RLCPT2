@@ -1,0 +1,238 @@
+@name Anyone999991's MU-Linker E2
+@persist [CHIP1 CHIP2 O]:entity Stage Side1 Side2
+#otherwise known as Magic MU Coupler
+
+#inspired by Magic Crowbar Coupler & Monk's MU-Plug
+#made by Anyone999991
+
+
+#[---------------------------------  G U I D E  ---------------------------------
+
+1: Spawn this E2
+2: Take out your Stunstick (it's in the spawnmenu under Weapons>Half-Life 2
+3: Look at the first PT2 Chip you want to link
+
+4: Press EITHER Left OR Right click. Left Click corresponds to the REAR MU output. Right Corresponds to the FRONT MU output.
+
+5: You should hear a sound and see a message in chat.
+6: Look at the second PT2 Chip and repeat step 4
+7: You will see a message in chat telling you to press LEFT CLICK to confirm. Doing this will wire the MU and Current of the 2 Chips together.
+8: After the E2 is done, it can be deleted.
+
+
+Notes:
+
+-You can cancel the selection at any time by pressing R, as long as you're holding the Stunstick
+-Left Click = Rear, Right Click = Front. This applies to both Chips.
+-The E2 will automatically wire each PT2 Chip's MU and Current to the other one's MU and Current. Only 1 use required for each set of chips.
+-If you have Questions, ask me (Anyone999991)
+
+
+------------------------------   END OF GUIDE  ---------------------------------]#
+
+
+#dont touch anything below, unless you know what you're doing!
+
+
+
+if(first()|duped()){
+
+#init values
+O=owner()
+CHIP1=noentity()
+CHIP2=noentity()
+Version="1.0"
+Stage=0   #0: none linked, 1: first selected, 2: both selected and ready to link, 3: linking them
+Side1=0   #0: rear, 1: front, used when wiring
+Side2=0   # same as above, for second chip
+
+#print info on spawn
+
+print("Initialized Anyone999991's MU-Linker E2! Version: "+Version)
+print("Check inside this E2 for a Guide.")
+
+#runonkeys
+runOnKeys(O,1)
+
+#fancy holos and sounds
+
+function void marked1()
+{
+
+holoCreate(1,CHIP1:pos(),vec(1.1),CHIP1:angles(),vec4(0,255,0,127),"models/cheeze/beta/white_button.mdl")
+holoMaterial(1,"models/proppertextures/acrylic")
+holoDisableShading(1,1)
+
+O:soundPlay(1,0,"buttons/button3.wav")
+}
+
+function void marked2()
+{
+
+holoCreate(2,CHIP2:pos(),vec(1.1),CHIP2:angles(),vec4(0,255,0,127),"models/cheeze/beta/white_button.mdl")
+holoMaterial(2,"models/proppertextures/acrylic")
+holoDisableShading(2,1)
+
+O:soundPlay(2,0,"buttons/button3.wav")
+}
+
+}
+
+#only work when owner is holding stunstick
+
+if((O:weapon():type()=="weapon_stunstick")& !(O:inVehicle())) {
+
+#keypresses
+
+if(changed(O:keyPressed("mouse_left")) & O:keyPressed("mouse_left")){LMB = 1}else{LMB = 0}
+if(changed(O:keyPressed("mouse_right")) & O:keyPressed("mouse_right")){RMB = 1}else{RMB = 0}
+if(changed(O:keyPressed("r")) & O:keyPressed("r")){R = 1}else{R = 0}
+
+
+TC = owner():eyeTrace():entity() #TC (TargetChip), entity player is looking at.
+
+
+#--------------------------------------reset selection
+
+if(changed(R)&R){
+#reset values
+Stage=0
+CHIP1=CHIP2=TC=noentity()
+Side1=Side2=0
+holoDeleteAll()
+stopAllTimers()
+O:soundPlay(4,0,"buttons/button19.wav")
+hint("Selection Reset!",5)
+}
+
+
+if((TC:model()=="models/cheeze/beta/white_button.mdl")&TC:type()=="gmod_wire_expression2")  #check for pt2
+{
+#print("pt2") #debug
+#made by Anyone999991
+#--------------------------------------stage 0
+
+
+if(Stage==0&(changed(LMB)&LMB)){    #if left clicked, mark targeted chip as CHIP1, wiring the rear MU
+#print("rear") #debug
+
+timer("stage1",100)
+CHIP1=TC
+Side1=0
+
+marked1()
+
+printColor(vec(0,255,0),"Successfully marked REAR MU of first PT2 Chip! (ID: "+CHIP1:id()+")") #tell the player they marked chip 1, with the rear MU selected
+}elseif(Stage==0&(changed(RMB)&RMB)){    #if right clicked, mark targeted chip as CHIP1, wiring the front MU
+#print("front") #debug
+
+timer("stage1",100)
+CHIP1=TC
+Side1=1
+
+marked1()
+
+printColor(vec(0,255,0),"Successfully marked FRONT MU of first PT2 Chip! (ID: "+CHIP1:id()+")") #tell the player they marked chip 1, with the front MU selected
+}
+
+
+if(clk("stage1")){
+    stoptimer("stage1")
+    Stage=1
+}
+
+#--------------------------------------stage 1
+
+
+if(Stage==1&(changed(LMB)&LMB)){    #if left clicked, mark targeted chip as CHIP2, wiring the rear MU
+#print("rear") #debug
+
+
+if(TC==CHIP1){
+hint("Error: Select another PT2 Chip!",1)
+O:soundPlay(3,0,"buttons/button2.wav")
+}else{
+
+timer("stage2",100)
+CHIP2=TC
+Side2=0
+
+marked2()
+
+printColor(vec(0,255,0),"Successfully marked REAR MU of second PT2 Chip! (ID: "+CHIP2:id()+")") #tell the player they marked chip 2, with the rear MU selected
+}
+}elseif(Stage==1&(changed(RMB)&RMB)){    #if right clicked, mark targeted chip as CHIP2, wiring the front MU
+#print("front") #debug
+
+
+if(TC==CHIP1){
+hint("Error: Select another PT2 Chip!",1)
+O:soundPlay(3,0,"buttons/button2.wav")
+}
+else{
+
+timer("stage2",100)
+CHIP2=TC
+Side2=1
+
+marked2()
+
+printColor(vec(0,255,0),"Successfully marked FRONT MU of second PT2 Chip! (ID: "+CHIP2:id()+")") #tell the player they marked chip 2, with the front MU selected
+}
+}
+
+}#end of pt2 check
+
+
+if(clk("stage2")){
+    stoptimer("stage2")
+    Stage=2
+}
+
+#--------------------------------------stage 2
+
+if(changed(Stage)&Stage==2){
+
+printColor(vec(255,255,0),"Ready to link! Left Click to Confirm!") 
+
+}
+
+if(Stage==2&changed(LMB)&LMB)
+{
+    Stage=3
+    O:soundPlay(4,0,"buttons/button14.wav")
+}
+
+#made by Anyone999991
+#--------------------------------------stage 3
+
+if(Stage==3){
+
+#wire inputs to outputs
+
+CHIP1:createWire(CHIP2,Side1==1 ? "FrontPlugIn" : "RearPlugIn", Side2==1 ? "FrontPlugOut" : "RearPlugOut")
+CHIP1:createWire(CHIP2,Side1==1 ? "FrontCurrentIn" : "RearCurrentIn", Side2==1 ? "FrontCurrentOut" : "RearCurrentOut")
+CHIP2:createWire(CHIP1,Side2==1 ? "FrontPlugIn" : "RearPlugIn", Side1==1 ? "FrontPlugOut" : "RearPlugOut")
+CHIP2:createWire(CHIP1,Side2==1 ? "FrontCurrentIn" : "RearCurrentIn", Side1==1 ? "FrontCurrentOut" : "RearCurrentOut")
+
+#tell player what is being linked
+
+printColor(vec(255,127,0),"Linking "+(Side1==1 ? "Front" : "Rear")+" of Chip 1 (ID: "+CHIP1:id()+") to "+(Side2==1 ? "Front" : "Rear")+" of Chip 2 (ID: "+CHIP2:id()+") !")
+
+#reset values
+Stage=0
+CHIP1=CHIP2=TC=noentity()
+Side1=Side2=0
+holoDeleteAll()
+stopAllTimers()
+soundStop(1)
+soundStop(2)
+soundStop(3)
+}
+}
+#end of stunstick detection
+
+
+
+
+#made by Anyone999991

@@ -1,0 +1,267 @@
+@name Automatic Catenary Pole
+@outputs LSP:array Len:vector2 Z
+@persist Blocks:array E:entity O:entity LSP:array BID HID Info:table X Save:string Part F Limit L Lookup:table MaxNeighbors SpawnPole S2:string Z
+
+#Made by Anyone999991, with help from Sir Metaladon
+
+#This E2 can be used to make catenary poles.
+#To spawn poles, take out the stun-stick, look at the ground and right click.
+#you can now move the pole to your desires using the physgun on the base prop, but be aware that it will only dynamically update the wire on the last 5 poles that were created.
+#if you wish to update all poles, you can type ".refall". This will refresh all wire angles. It is recommended to save before doing this, as it may cause tick quota exceed depending on the server's tick quota.
+#to save the generated poles, type ".save <filename>". You can leave <filename> blank, and it will be named after the map and the number of holos. THIS WILL OVERRIDE E2S WITH THE SAME NAME!!!
+#save files are located in your e2 folder under "e2shared/catenary_save/"
+#to load a saved file, you do not need to have the pole spawner e2 out. Saved files are independant holo e2s that can be spawned on their own.
+
+#REMEMBER TO SAVE REGULARLY, AS THERE IS NO AUTOSAVE!!
+
+#lastly, thank you Sir Metaladon for making this possible!
+
+#	 TODO:
+
+#	-add autosave function that can be toggled on and off
+#	-figure out the command to spawn poles manually
+#	-add function to put in your own pole and wire models
+#	-add function to persist poles automatically after a while
+
+
+
+
+function string lenmdl(Distance){
+    
+    if(Distance < 256){
+        
+        return "models/trakpak2/catenaries/straights/s0256.mdl" 
+       
+    }elseif(Distance < 512){
+    
+        return "models/trakpak2/catenaries/straights/s0512.mdl"
+    
+    }elseif(Distance < 1024){
+    
+        return "models/trakpak2/catenaries/straights/s1024.mdl"
+    
+    }elseif(Distance < 2048){
+    
+        return  "models/trakpak2/catenaries/straights/s2048.mdl"
+    
+    }elseif(Distance < 3072){
+    
+        return "models/trakpak2/catenaries/straights/s3072.mdl"
+    
+    }else{
+    
+        return "models/trakpak2/catenaries/straights/s4096.mdl"
+    
+    }
+    
+}
+
+if(first()){
+    
+    E = entity()
+    O = owner()
+    propSpawnUndo(0)
+    runOnChat(1)
+    runOnKeys(O,1)
+    
+    X = 1
+    Z = 1
+    
+    #Making the first Pole
+    
+    Blocks = Blocks:add(array(propSpawn("models/sprops/cuboids/height12/size_4/cube_48x48x12.mdl",E:toWorld(vec(0,0,6)),E:toWorld(ang(0)),1)))
+    holoCreate(0,Blocks[1,entity]:toWorld(vec(0,-192,338)),vec(1),Blocks[1,entity]:toWorld(ang(0,0,0)),vec(255),"models/trakpak2/catenaries/pole_single.mdl")
+    holoParent(0,Blocks[1,entity])
+    Blocks[1,entity]:setMaterial("models/effects/vol_light001")
+    Info[1,array] = array(1,1)
+    BID = HID = 1
+    Limit = 3
+    MaxNeighbors = 3
+    Lookup[Blocks[1,entity]:id(),number] = BID
+    #SelN = 1
+
+}
+
+if(chatClk(O) & lastSpoke() == O){
+    
+    LSP = O:lastSaid():lower():trim():explode(" ")
+    
+}
+
+if(keyClk(O) == 1 & O:weapon():type()=="weapon_stunstick" & !O:inVehicle() & keyClkPressed() == "mouse_right"){
+    
+    SpawnPole = 1
+    
+}
+
+if(propCanCreate() & findCanQuery() & SpawnPole){
+    
+    findInSphere(O:aimPos()+vec(0,0,7),10000)
+    findClipToModel("models/sprops/cuboids/height12/size_4/cube_48x48x12.mdl")
+    findClipToClass("prop_physics")
+    findSortByDistance(O:aimPos()+vec(0,0,7))
+    findClipToPlayerProps(O)
+    
+    Find = findToArray()
+    
+    while(X <= Find:count() & Find[X,entity]:getAlpha() <= 255 - MaxNeighbors & minquota() > 300){
+        
+        X++
+        
+    }
+    
+    if(Find[X,entity]:getAlpha() > 255 - MaxNeighbors){
+        
+        SelN = Lookup[Find[X,entity]:id(),number]
+        Blocks[SelN,entity]:setAlpha(Blocks[SelN,entity]:getAlpha()-1)
+        
+        Blocks = Blocks:add(array(propSpawn("models/sprops/cuboids/height12/size_4/cube_48x48x12.mdl",O:aimPos()+vec(0,0,7),O:angles()+ang(0,-90,0),1)))
+        Blocks[BID+1,entity]:setMaterial("models/effects/vol_light001")
+        Blocks[BID+1,entity]:setAlpha(255-1)
+        Lookup[Blocks[BID+1,entity]:id(),number] = BID+1
+        BID++
+        
+        holoCreate(HID,Blocks[BID,entity]:toWorld(vec(0,-192,338)),vec(1),Blocks[BID,entity]:angles(),vec(255),"models/trakpak2/catenaries/pole_single.mdl")
+        holoParent(HID,Blocks[BID,entity])
+        HID++
+        
+        holoCreate(HID,vec(0,-192,338)+((Blocks[SelN,entity]:pos()/2)+(Blocks[BID,entity]:pos()/2)),vec(1),((Blocks[SelN,entity]:pos()/2)+(Blocks[BID,entity]:pos()/2)):toAngle(),vec(255),lenmdl(Blocks[SelN,entity]:pos():distance(Blocks[BID,entity]:pos())))
+        holoParent(HID,Blocks[BID,entity])
+        holoClipEnabled(HID,1,1)
+        holoClipEnabled(HID,2,1)
+        HID++
+        
+        Info[BID,array] = array(BID,HID-2,SelN,HID-1)
+        
+        LSP = array()
+        SpawnPole = 0
+        X = 1
+        
+        
+    }else{
+        
+        print("Nothing to connect to!")
+        X = 1
+        LSP = array()
+        SpawnPole = 0
+        
+    }
+    
+}
+
+if(LSP[1,string] == ".save"){
+    
+    if(Part == 0){
+        
+        Part++
+        X = 0
+        print("Writing file...")
+        Save = "
+@persist X
+#This E2 was generated by Anyone999991 and Sir Metaladon's Automatic Catenary Pole E2. Just credit where credit is due!
+"
+    }
+    
+    if(Part == 1){
+
+        while(X <= HID-1 & perf()){
+            
+            Save = Save + "if(X == "+X+" & holoCanCreate()){holoCreate("+X+",vec("+round(holoEntity(X):pos():x()*100)/100+","+round(holoEntity(X):pos():y()*100)/100+","+round(holoEntity(X):pos():z()*100)/100+"),vec("+round(holoScale(X):x()*100)/100+","+round(holoScale(X):y()*100)/100+","+round(holoScale(X):z()*100)/100+"),ang("+round(holoEntity(X):angles():pitch()*100)/100+","+round(holoEntity(X):angles():yaw()*100)/100+","+round(holoEntity(X):angles():roll()*100)/100+"),vec(255),\""+holoEntity(X):model()+"\")}
+" X++
+            
+        }
+        
+        if(Save:length() > 10000){
+            
+            S2 = S2 + Save
+            Save = ""
+            
+        }
+        
+        if(X > HID-1 & fileCanWrite()){
+            
+            X = 1
+            Save = Save + "if(X != "+HID+"){interval(1),X++}"
+            
+            if(LSP[2,string]==""){
+                fileWrite(">e2shared/catenary_save/catenary_"+map()+"_"+HID+"_holos.txt","@name Catenary Wire E2 "+HID+" holos"+S2+Save)
+                print("Wrote " + ("@name Catenary Wire E2 "+HID+" holos"+Save+S2):length() +" chars to \"e2shared/catenary_save/catenary_"+map()+"_"+HID+"_holos.txt\"")
+            }else{
+                fileWrite(">e2shared/catenary_save/"+LSP[2,string]+".txt","@name Catenary Wire E2 '"+LSP[2,string]+"' "+HID+" holos"+S2+Save)
+                print("Wrote" + ("@name Catenary Wire E2 '"+LSP[2,string]+"' "+HID+" holos"+Save+S2):length() +" chars to \"e2shared/catenary_save/"+LSP[2,string]+".txt\"")
+            }
+            
+            LSP = array()
+            Save = ""
+            S2 = ""
+            Part = 0
+            
+        }elseif(X > HID-1){
+            
+            print("Failed to write!")
+            
+        }
+        
+    }
+    
+    if(chatClk(O) & lastSpoke() == O){
+        
+        hideChat(1)
+        
+    }
+
+}
+
+if(LSP[1,string] == ".refall"){
+    
+    L = 9^9
+    Z = 1
+    
+    if(chatClk(O) & lastSpoke() == O){
+        
+        hideChat(1)
+        
+    }
+
+}
+    
+
+interval(1000)   
+Len = vec2(Save:length(),S2:length())
+
+while(Z <= clamp(Info:count(),1,L) & perf()){
+     
+    F = Info:count()-clamp(Info:count(),1,L)
+    
+    for(Y = 1, (Info[Z+F,array]:count()-2)/2){
+        
+        P1 = Blocks[Info[Z+F,array][1,number],entity]:toWorld(vec(0,-192,338))
+        P2 = Blocks[Info[Z+F,array][(Y+1)*2-1,number],entity]:toWorld(vec(0,-192,338))
+        
+        holoPos(Info[Z+F,array][(Y+1)*2,number],P1/2 + P2/2)
+        holoAng(Info[Z+F,array][(Y+1)*2,number],(P1-P2):toAngle())
+        holoModel(Info[Z+F,array][(Y+1)*2,number],lenmdl((P1:distance(P2))))
+        holoScale(Info[Z+F,array][(Y+1)*2,number],vec((P1:distance(P2))/holoEntity(Info[Z+F,array][(Y+1)*2,number]):boxSize():x(),1,1))
+    }
+    
+    Z++
+        
+}
+
+if(Z > clamp(Info:count(),1,L)){
+    
+    Z = 1
+    L = Limit
+    
+}
+
+
+
+
+
+
+
+
+
+
+

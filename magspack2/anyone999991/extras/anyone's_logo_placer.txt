@@ -1,0 +1,36 @@
+@name Anyone's Logo Placer
+@inputs 
+@outputs
+@persist
+@trigger
+
+# to get the logo material 
+# hold Q, go to "browse Materials"
+# find a logo material you want 
+# right click it
+# hit copy to clipboard
+# paste it below
+
+
+LOGO = "fonts/railroad_roman_1916/7" #material path
+
+SCALE = vec(1,1,1)    #scale of the logo
+
+COLOR = vec(255)  # color of the logo (OPTIONAL, 255 is default)
+
+GLOWING = 0 # disables shading, making it glow in the dark
+
+#dont touch things under this text
+
+A=1
+holoCreate(A)
+holoPos(A,entity():toWorld(vec(0,0,1.5)))
+holoParent(A,entity())
+holoModel(A,"plane")
+holoAng(A, entity():toWorld(ang(0,0,0)) ) 
+holoScale(A,SCALE) 
+holoMaterial(A,LOGO) 
+holoColor(A,COLOR)
+holoDisableShading(A,GLOWING)
+
+

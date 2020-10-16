@@ -1,0 +1,222 @@
+@name Anyone999991's Regulator
+@inputs Throttle
+@outputs 
+@persist E:entity AngleMultiplier
+@trigger 
+@model 
+
+if(first()|dupefinished()){
+
+
+#Config, YAY
+
+
+BarMaterial = "sprops/textures/sprops_metal1" #Material of the Bar that connects the Grip and the Mount
+MountMaterial = "" #Material of the Mount which connects the Bar to the Boiler
+GripMaterial = "sprops/textures/sprops_rubber2" #Material of the grip at the end of the Bar 
+BarColor = vec(100) #Color of the Bar that connects the Grip and the Mount
+MountColor = vec(255) #Color of the Mount which connects the Bar to the Boiler
+GripColor = vec(25) #Color of the grip at the end of the Bar
+
+AngleMultiplier = 2 #Value angle multiplier, 2 is default
+
+
+#END of Config :C
+
+
+E = entity()
+
+
+A = 1
+holoCreate(A)
+holoModel(A,"models/props_bennjo/base_1a.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,0)))
+holoAng(A,E:toWorld(ang(0,0,-90)))
+holoScale(A,vec(0.75))
+holoColor(A,MountColor)
+holoMaterial(A,MountMaterial)
+
+A = 2
+holoCreate(A)
+holoModel(A,"models/props_bennjo/base_1a.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,0)))
+holoAng(A,E:toWorld(ang(0,0,-90)))
+holoScale(A,vec(0.45,0.75,0.45))
+holoColor(A,MountColor)
+holoMaterial(A,MountMaterial)
+
+A = 3
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_2/cylinder_3x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,1.5)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoScale(A,vec(1,1,1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 4
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_2/cylinder_3x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,4.5)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoScale(A,vec(1,1,1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+holoClipEnabled(A,1,1)
+holoClip(A,1,vec(0.75,0,0),vec(1,0,0),0)
+
+A = 5
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_2/cylinder_3x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,4.5)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoScale(A,vec(1,1,1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+holoClipEnabled(A,1,1)
+holoClip(A,1,vec(-0.75,0,0),vec(-1,0,0),0)
+
+A = 6
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1_5/rect_6x6x1_5.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,4.5)))
+holoAng(A,E:toWorld(ang(90,0,0)))
+holoScale(A,vec(-1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+holoClipEnabled(A,1,1)
+holoClip(A,1,vec(0,-1.29,0),vec(0,1,0),0)
+holoClipEnabled(A,2,1)
+holoClip(A,2,vec(0,1.29,0),vec(0,-1,0),0)
+holoClipEnabled(A,3,1)
+holoClip(A,3,vec(-1.5,0,0),vec(1,0,0),0)
+holoClipEnabled(A,4,1)
+holoClip(A,4,vec(1.5,0,0),vec(-1,0,0),0)
+
+#rotato thingo
+
+A = 7
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_1/cylinder_1_5x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-10,4.5)))
+holoAng(A,E:toWorld(ang(90,0,0)))
+holoScale(A,vec(1,1,1.1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+#bar
+
+A = 8
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_2/cylinder_3x3.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,-10,4.5)))
+holoAng(A,E:toWorld(ang(90,0,0)))
+holoScale(A,vec(0.95,0.95,0.45))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 9
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x36x1_5.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,6,4.5)))
+holoAng(A,E:toWorld(ang(0,90,90)))
+holoScale(A,vec(0.9,0.7,0.7))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+#rotato thingo two electric boogaloo
+
+A = 10
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_1/cylinder_1_5x3.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,0,4.5)))
+holoAng(A,E:toWorld(ang(0,90,90)))
+holoScale(A,vec(1,1,0.5))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 11
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x6x1_5.mdl")
+holoParent(A,10)
+holoPos(A,E:toWorld(vec(-1,0,3.9)))
+holoAng(A,E:toWorld(ang(90,0,0)))
+holoScale(A,vec(0.5))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 12
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x6x1_5.mdl")
+holoParent(A,10)
+holoPos(A,E:toWorld(vec(1,0,3.9)))
+holoAng(A,E:toWorld(ang(90,0,0)))
+holoScale(A,vec(0.5))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 13
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_2/cylinder_3x12.mdl")
+holoParent(A,10)
+holoPos(A,E:toWorld(vec(0,0,-4)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoScale(A,vec(1.1))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 14
+holoCreate(A)
+holoModel(A,"models/holograms/hq_rcube.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,22,4.5)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoScale(A,vec(0.10,0.05,0.2))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+A = 15
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_1/cylinder_1_5x3.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,22.6,4.5)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoScale(A,vec(0.5,0.9,0.3))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+
+#grip
+
+A = 16
+holoCreate(A)
+holoModel(A,"models/holograms/hq_rcylinder.mdl")
+holoParent(A,7)
+holoPos(A,E:toWorld(vec(0,26,4.5)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoScale(A,vec(0.175,0.175,0.5))
+holoColor(A,GripColor)
+holoMaterial(A,GripMaterial)
+
+
+}
+Value = Throttle * AngleMultiplier
+
+interval(100)
+
+holoAng(7,E:toWorld(ang(90-Value,90,90)))
+holoAng(10,E:toWorld(ang(-Value*0.25,90,90)))
+
+

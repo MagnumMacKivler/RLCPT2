@@ -1,0 +1,30 @@
+@name Anyone's PT2 switch setup
+@inputs Driver:entity
+@outputs EngineRun GenField BrakeCutIn Key6
+@persist EngineRun GenField BrakeCutIn Key6
+@trigger 
+
+#uses numpad 7 8 9 for the control stand switches and numpad 6 for an extra switch
+
+    runOnKeys(Driver,1)
+
+if(first()|dupefinished()){
+    EngineRun = 0
+    BrakeCutIn = 0
+    GenField = 0
+    Key_6 = 0
+}
+
+
+if(changed(Driver:keyPressed("pad_7")) & Driver:keyPressed("pad_7")){
+    EngineRun = !EngineRun
+}
+if(changed(Driver:keyPressed("pad_8")) & Driver:keyPressed("pad_8")){
+    GenField = !GenField
+}
+if(changed(Driver:keyPressed("pad_9")) & Driver:keyPressed("pad_9")){
+    BrakeCutIn = !BrakeCutIn
+}
+if(changed(Driver:keyPressed("pad_6")) & Driver:keyPressed("pad_6")){
+    Key6 = !Key6
+}

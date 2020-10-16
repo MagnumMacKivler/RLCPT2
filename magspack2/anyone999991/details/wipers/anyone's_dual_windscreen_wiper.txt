@@ -1,0 +1,32 @@
+@name Anyone's Dual Windscreen Wiper
+@inputs On
+@outputs 
+@persist
+@trigger 
+ 
+    Speed = 1
+    Secondary_Mount = 0 #mount type on the left side
+    
+
+if(first() | dupefinished()){
+   
+    holoCreate(0)
+    holoModel(0,"models/anytrains/props/detail/wiper_double.mdl")
+    holoParent(0, entity())
+    holoPos(0,entity():toWorld(vec(0,0,-1.25)))
+    holoAng(0,entity():toWorld(ang(90,180,0)))
+    holoBodygroup(0,1,Secondary_Mount)
+    
+    
+    
+    
+    
+    
+    
+}
+
+if(On){
+    holoAnim(0,1,0,Speed)
+}else{
+    holoAnim(0,0)
+}

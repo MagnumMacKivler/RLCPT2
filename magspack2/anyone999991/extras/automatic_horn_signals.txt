@@ -1,0 +1,323 @@
+@name Automatic Horn Signals
+@inputs Horn LLSL LL SSS SSSS
+@outputs A Blowing CurrentSequence:string
+@persist Short Long Wait Override Blowing Chat:array H CurrentSequence:string
+@trigger all
+
+#Version 1.0
+
+#made by Anyone999991
+
+# This E2 will blow your horn for you.
+# You can use the Inputs or Chat Commands (see below)
+# "Horn" input goes to your horn button
+
+# Current Horn signals:
+# -Crossing (LLSL)(.horn LLSL | .blow LLSL)
+# -Proceeding (LL)(.horn LL | .blow LL)
+# -Backing up (SSS)(.horn SSS | .blow SSS)
+# -Calling for signals (SSSS)(.horn SSSS | .blow SSSS)
+
+# Outputs:
+# "A" - goes to your horn e2
+# "Blowing" - is 1 if horn is being controlled by e2
+# "CurrentSequence" - current horn signal (sequence) as a string (if not blowing, "NONE")
+
+# TLDR:
+# .horn OR .blow
+# LLSL,LL,SSS,SSSS (S for short, L for long
+# Currently the only 4 sequences
+
+# Example:
+
+# ".horn LLSL" - blows crossing sequence
+# ".blow SSS" - blows backing up sequence
+
+
+
+# Config Below --------------------------------------
+
+Short=1   #The amount of time, in seconds, for a short blow
+
+Long=3  #The amount of time, in seconds, for a long blow
+
+Wait=0.5  #The delay between blows, in seconds
+CrossingWait=1  #The delay between blows in the crossing sequence, in seconds
+
+Override=1  #(see below)
+
+
+#0 = block manual horn use when the e2 is doing it
+#1 = allow manual horn use and stop the e2 (default)
+#2 = allow manual horn use but continue the automatic signal afterwards
+
+
+
+
+
+
+
+# End of Config -------------------------------------
+
+#please dont look below my code is a mess thanks :)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(first()|duped()){
+    stopAllTimers()
+    Blowing=0
+    H=0
+    CurrentSequence="NONE" 
+}
+
+
+
+
+#--------------------------------chat detection--------------------------------
+
+Chat = owner():lastSaid():explode(" ")
+
+runOnChat(1)
+if(chatClk(owner()))
+{
+    if(Chat[1,string]:lower()==".horn" | Chat[1,string]:lower()==".blow")   #detect .horn command
+    {
+        hideChat(1)
+        if(Chat[2,string]:lower()=="llsl")  #detect LLSL command, crossing
+        {
+            print("Blowing L-L-S-L (Crossing)! (Total Time = " + ((3*Long)+Short+(3*CrossingWait)) + " Seconds!")
+            stopAllTimers()
+            timer("crossing",100)
+            Blowing=1
+            CurrentSequence="LLSL"
+        }
+        elseif(Chat[2,string]:lower()=="ll")  #detect LL command, proceed
+        {
+            print("Blowing L-L (Proceeding)! (Total Time = " + ((2*Long)+Wait) + " Seconds!")
+            stopAllTimers()
+            timer("proceed",100)
+            Blowing=1
+            CurrentSequence="LL"
+        }
+        elseif(Chat[2,string]:lower()=="sss")  #detect SSS command, backing
+        {
+            print("Blowing S-S-S (Backing up)! (Total Time = " + (3*Short+2*Wait) + " Seconds!")
+            stopAllTimers()
+            timer("backing",100)
+            Blowing=1
+            CurrentSequence="SSS"
+        }
+        elseif(Chat[2,string]:lower()=="ssss")  #detect SSSS command, signalrequest
+        {
+            print("Blowing S-S-S-S (Signal Request)! (Total Time = " + (3*Short+2*Wait) + " Seconds!")
+            stopAllTimers()
+            timer("signalrequest",100)
+            Blowing=1
+            CurrentSequence="SSSS"
+        }
+        
+        #
+        #
+    } #close .horn detection
+}#close chat detection
+
+#--------------------------------input detection--------------------------------
+
+if(LLSL){timer("crossing",100) Blowing=1 CurrentSequence="LLSL"}
+if(LL){timer("proceed",100) Blowing=1 CurrentSequence="LL"}
+if(SSS){timer("backing",100) Blowing=1 CurrentSequence="SSS"}
+if(SSSS){timer("signalrequest",100) Blowing=1 CurrentSequence="SSSS"}
+
+#--------------------------------crossing--------------------------------
+
+
+
+
+if(clk("crossing")){    #detect crossing start timer
+H=1
+stoptimer("crossing")
+timer("crossing1",Long*1000)
+}
+if(clk("crossing1")){    #detect crossing1 timer 
+H=0
+stoptimer("crossing1")
+timer("crossing2",CrossingWait*1000)
+}
+if(clk("crossing2")){    #detect crossing2 timer 
+H=1
+stoptimer("crossing2")
+timer("crossing3",Long*1000)
+}
+if(clk("crossing3")){    #detect crossing3 timer 
+H=0
+stoptimer("crossing3")
+timer("crossing4",CrossingWait*1000)
+}
+if(clk("crossing4")){    #detect crossing4 timer 
+H=1
+stoptimer("crossing4")
+timer("crossing5",Short*1000)
+}
+if(clk("crossing5")){    #detect crossing5 timer 
+H=0
+stoptimer("crossing5")
+timer("crossing6",CrossingWait*1000)
+}
+if(clk("crossing6")){    #detect crossing6 timer 
+H=1
+stoptimer("crossing6")
+timer("crossing7",Long*1000)
+}
+if(clk("crossing7")){    #detect crossing7 timer and end
+H=0
+stoptimer("crossing7")
+Blowing=0
+}
+
+#--------------------------------proceed--------------------------------
+
+if(clk("proceed")){    #detect proceeding start timer
+H=1
+stoptimer("proceed")
+timer("proceed1",Long*1000)
+}
+if(clk("proceed1")){    #detect proceed1 timer
+H=0
+stoptimer("proceed1")
+timer("proceed2",Wait*1000)
+}
+if(clk("proceed2")){    #detect proceed2 timer
+H=1
+stoptimer("proceed2")
+timer("proceed3",Long*1000)
+}
+if(clk("proceed3")){    #detect proceed3 timer and end
+H=0
+stoptimer("proceed3")
+Blowing=0
+}
+
+#--------------------------------backing--------------------------------
+
+if(clk("backing")){    #detect backing start timer
+H=1
+stoptimer("backing")
+timer("backing1",Short*1000)
+}
+if(clk("backing1")){    #detect backing1 timer
+H=0
+stoptimer("backing1")
+timer("backing2",Wait*1000)
+}
+if(clk("backing2")){    #detect backing2 timer
+H=1
+stoptimer("backing2")
+timer("backing3",Short*1000)
+}
+if(clk("backing3")){    #detect backing3 timer
+H=0
+stoptimer("backing3")
+timer("backing4",Wait*1000)
+}
+if(clk("backing4")){    #detect backing4 timer
+H=1
+stoptimer("backing4")
+timer("backing5",Short*1000)
+}
+if(clk("backing5")){    #detect backing5 timer and end
+H=0
+stoptimer("backing5")
+Blowing=0
+}
+
+#--------------------------------signalrequest--------------------------------
+
+if(clk("signalrequest")){    #detect signalrequest start timer
+H=1
+stoptimer("signalrequest")
+timer("signalrequest1",Short*1000)
+}
+if(clk("signalrequest1")){    #detect signalrequest1 timer
+H=0
+stoptimer("signalrequest1")
+timer("signalrequest2",Wait*1000)
+}
+if(clk("signalrequest2")){    #detect signalrequest2 timer
+H=1
+stoptimer("signalrequest2")
+timer("signalrequest3",Short*1000)
+}
+if(clk("signalrequest3")){    #detect signalrequest3 timer
+H=0
+stoptimer("signalrequest3")
+timer("signalrequest4",Wait*1000)
+}
+if(clk("signalrequest4")){    #detect signalrequest4 timer
+H=1
+stoptimer("signalrequest4")
+timer("signalrequest5",Short*1000)
+}
+if(clk("signalrequest5")){    #detect signalrequest5 timer
+H=0
+stoptimer("signalrequest5")
+timer("signalrequest6",Wait*1000)
+}
+if(clk("signalrequest6")){    #detect signalrequest6 timer
+H=1
+stoptimer("signalrequest6")
+timer("signalrequest7",Short*1000)
+}
+if(clk("signalrequest7")){    #detect signalrequest7 timer and end
+H=0
+stoptimer("signalrequest7")
+Blowing=0
+}
+
+
+
+#manual override and such
+
+
+if(Horn & Override==1 & Blowing){ #stop automatic blowing when override = 1 and horn is blown
+    Blowing=0
+    stopAllTimers()
+    H=0
+    A=Horn
+}
+elseif(Horn & Override==2 & Blowing){ #override but dont stop automatic blowing when override = 2 and horn is blown
+    A=Horn
+}
+elseif(Horn & !Blowing){ #default horn
+    A=Horn
+}
+else{
+    A=H
+}
+
+if(Blowing==0){
+H=0                         #failsafe horn stopper
+CurrentSequence="NONE"      #sequence resetter
+} 
+
+#made by anyone999991

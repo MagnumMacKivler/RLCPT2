@@ -1,0 +1,52 @@
+@name Anyone's Loadmeter
+@inputs Load1
+@outputs 
+@persist P E:entity
+@trigger 
+@model models/anytrains/props/detail/loadmeter_1.mdl
+if(first()|duped()){
+
+E = entity()
+    
+    local Scale = 1
+    
+    function void needleValue(HoloIndex, Value){
+        
+        P += (Value-P)*0.5
+        if(abs(Value-P)<1){P = Value}
+        
+        local Frac = -clamp(P/1500,-1,1)
+        local Angle = abs(Frac*114) +150 #-62
+        
+        
+        
+        holoAng(HoloIndex,E:toWorld(ang(Angle,0,-90)))
+    }
+    E:propDraw(0)
+    holoCreate(0,E:pos(),Scale*vec(1),E:angles(),vec(255),"models/anytrains/props/detail/loadmeter_1.mdl")
+    #holoSkin(0,2)
+    holoParent(0,E)
+    
+    holoCreate(2,E:toWorld(vec(0,2.9,0)),Scale*vec(0.3),E:angles(),vec(255),"plane")
+    holoMaterial(2,"models/gsgtrainprops/cab/needle_load_emd_old_white")
+    holoParent(2,E)
+    
+    
+    needleValue(2,0)
+    
+}
+timer("clk",100)
+#needleValue(2,Load > 0 ? Load : Load/2)
+needleValue(2,Load1)
+  
+if(Load1<900 & Load1>-700){holoEntity(0):setSubMaterial(4,"models/monkcabdetailpack/speedo/redlightunlit")}
+elseif(Load1>900){holoEntity(0):setSubMaterial(4,"models/monkcabdetailpack/speedo/redlightlit")}
+elseif(Load1<-700){holoEntity(0):setSubMaterial(4,"models/monkcabdetailpack/speedo/redlightlit")}
+
+
+
+
+
+
+
+#models/anytrains/props/detail/loadmeter_1.mdl

@@ -1,0 +1,243 @@
+@name Toast's Stand Detail
+@inputs Stand:entity Enable Load Run GenField Pump GaugeLights StepLights Ditch Num:string Sand LeadSand Bell WheelSlip Emergency BrakeWarn CutIn
+@inputs MainRes EqualRes Cyl BrakePipe CFM
+@outputs Modern
+@persist A Modern Stando LoadMeter SwitchSound:string RunningNumber LoadMeterNeedle CutInSwitch
+@persist Air1 Air2 Red1 Red2 White1 White2 CFM1 CFMNeedle CFMMul AFMIndicator
+@persist EqualResAng BrakePipeAng MainResAng CylAng CFMAng LoadAng
+@trigger Stand Enable
+
+#Toast
+
+if(first() | dupefinished() | ~Stand | ~Num){
+    
+    #RunningNumber = 0 #0 for 3 digits, 1 for 4 digits.
+    SwitchSound = "monkssounds/buttons/button25_on.wav"
+    AFMIndicator = 1
+    Radio = 1 #Show radio or not. Does nothing.
+    LoadMaterial = "models/gsgtrainprops/cab/gauge_amp_emd_a1500_d800_v1" #Changes the material on the load gauge. Most of them can be found in models/gsgtrainprops/cab/
+    
+    if(Stand:model()== "models/magtrainslocos/cstands_bg/emd_modern_bg.mdl"){
+        Modern = 1
+        }elseif(Stand:model()== "models/magtrainslocos/cstands_bg/emd_composite_bg.mdl"){
+        Modern = 0
+    }else{
+        error("Wrong model!")
+    }
+    
+    A = 1
+    Stando = A
+    holoCreate(Stando,Stand:toWorld(vec(0,0,0)), vec(1),
+    Stand:toWorld(ang(0,0,0)))
+    holoColor(Stando, vec4(255,255,255,255))
+    holoModel(Stando, Modern ? "models/anytrains/props/detail/cstand_emd_modern_bg_details.mdl" : "models/anytrains/props/detail/cstand_emd_composite_bg_details.mdl")
+    holoScale(Stando, vec(1,1,1))
+    holoParent(Stando, Stand)
+    holoMaterial(Stando,"")
+    #railwaylogos/generic/font_sylfaen/
+    if(Num != ""){
+        holoEntity(Stando):setSubMaterial(12,"railwaylogos/generic/font_sylfaen/"+Num[1])
+        holoEntity(Stando):setSubMaterial(13,"railwaylogos/generic/font_sylfaen/"+Num[2])
+        holoEntity(Stando):setSubMaterial(14,"railwaylogos/generic/font_sylfaen/"+Num[3])
+        holoEntity(Stando):setSubMaterial(15,"railwaylogos/generic/font_sylfaen/"+Num[4])
+    }
+    holoBodygroup(Stando,8,Num:explode(""):count() > 3 ? 1 : 0)
+    
+    A++
+    Air1 = A
+    holoCreate(Air1,Stand:toWorld(Modern ? vec(-0.05,-2.5,39.9) : vec(-0.05,-1.25,39.9)), vec(1),
+    Stand:toWorld(Modern ? ang(75,90,0) : ang(90,90,0)))
+    holoColor(Air1, vec4(255,255,255,255))
+    holoModel(Air1, "models/anytrains/props/detail/gauge_4unit.mdl")
+    holoScale(Air1, vec(1.25))
+    holoParent(Air1, Stand)
+    holoMaterial(Air1,"")
+    holoSkin(Air1,1)
+    holoEntity(Air1):setSubMaterial(3,"models/gsgtrainprops/cab/gauge_air_salem_160_black")
+    holoBodygroup(Air1,1,9)
+    
+    A++
+    White1 = A
+    holoCreate(White1,holoEntity(Air1):toWorld(vec(0,0,0)), vec(1),
+    holoEntity(Air1):toWorld(ang(0,10,0)))
+    holoColor(White1, vec4(255,255,255,255))
+    holoModel(White1, "plane")
+    holoScale(White1, vec(0.4))
+    holoParent(White1, holoEntity(Air1))
+    holoMaterial(White1,"models/gsgtrainprops/cab/needle_air_white")
+    holoSkin(White1,1)
+    
+    A++
+    Red1 = A
+    holoCreate(Red1,holoEntity(Air1):toWorld(vec(0,0,-0.05)), vec(1),
+    holoEntity(Air1):toWorld(ang(0,10,0)))
+    holoColor(Red1, vec4(255,255,255,255))
+    holoModel(Red1, "plane")
+    holoScale(Red1, vec(0.4))
+    holoParent(Red1, holoEntity(Air1))
+    holoMaterial(Red1,"models/gsgtrainprops/cab/needle_air_red")
+    holoSkin(Red1,1)
+    
+    #--
+    
+    A++
+    Air2 = A
+    holoCreate(Air2,Stand:toWorld(Modern ? vec(-5.05,-2.5,39.9) : vec(-5,-1.25,39.9)), vec(1),
+    Stand:toWorld(Modern ? ang(75,90,0) : ang(90,90,0)))
+    holoColor(Air2, vec4(255,255,255,255))
+    holoModel(Air2, "models/anytrains/props/detail/gauge_4unit.mdl")
+    holoScale(Air2, vec(1.25))
+    holoParent(Air2, Stand)
+    holoMaterial(Air2,"")
+    holoSkin(Air2,1)
+    holoEntity(Air2):setSubMaterial(3,"models/gsgtrainprops/cab/gauge_air_salem_160_black")
+    holoBodygroup(Air2,1,9)
+    
+    A++
+    White2 = A
+    holoCreate(White2,holoEntity(Air2):toWorld(vec(0,0,0)), vec(1),
+    holoEntity(Air2):toWorld(ang(0,10,0)))
+    holoColor(White2, vec4(255,255,255,255))
+    holoModel(White2, "plane")
+    holoScale(White2, vec(0.4))
+    holoParent(White2, holoEntity(Air2))
+    holoMaterial(White2,"models/gsgtrainprops/cab/needle_air_white")
+    
+    A++
+    Red2 = A
+    holoCreate(Red2,holoEntity(Air2):toWorld(vec(0,0,-0.05)), vec(1),
+    holoEntity(Air2):toWorld(ang(0,10,0)))
+    holoColor(Red2, vec4(255,255,255,255))
+    holoModel(Red2, "plane")
+    holoScale(Red2, vec(0.4))
+    holoParent(Red2, holoEntity(Air2))
+    holoMaterial(Red2,"models/gsgtrainprops/cab/needle_air_red")
+    
+    #--
+    if(AFMIndicator){
+    A++
+    CFM1 = A
+    holoCreate(CFM1,Stand:toWorld(Modern ? vec(-10.05,-2.5,39.9) : vec(-10,-1.25,39.9)), vec(1),
+    Stand:toWorld(Modern ? ang(75,90,0) : ang(90,90,0)))
+    holoColor(CFM1, vec4(255,255,255,255))
+    holoModel(CFM1, "models/anytrains/props/detail/gauge_4unit.mdl")
+    holoScale(CFM1, vec(1.15))
+    holoParent(CFM1, Stand)
+    holoMaterial(CFM1,"")
+    holoEntity(CFM1):setSubMaterial(3,"models/gsgtrainprops/cab/gauge_air_grahamwhite_cfm_green")
+    holoBodygroup(CFM1,1,6)
+    
+    A++
+    CFMNeedle = A
+    holoCreate(CFMNeedle,holoEntity(CFM1):toWorld(vec(0,0,0)), vec(1),
+    holoEntity(CFM1):toWorld(ang(0,-71,0)))
+    holoColor(CFMNeedle, vec4(255,255,255,255))
+    holoModel(CFMNeedle, "plane")
+    holoScale(CFMNeedle, vec(0.4))
+    holoParent(CFMNeedle, holoEntity(CFM1))
+    holoMaterial(CFMNeedle,"models/gsgtrainprops/cab/needle_air_white")
+    }
+    #--
+    
+    A++
+    LoadMeterMeter = A
+    holoCreate(LoadMeter,Stand:toWorld(Modern ? vec(-16,-2.2,39.975) : vec(-15,-1.25,39.9)), vec(1),
+    Stand:toWorld(Modern ? ang(75,90,0) : ang(90,90,0)))
+    holoColor(LoadMeterMeter, vec4(255,255,255,255))
+    holoModel(LoadMeter, "models/anytrains/props/detail/gauge_4unit.mdl")
+    holoScale(LoadMeter, vec(1.05))
+    holoParent(LoadMeter, Stand)
+    holoMaterial(LoadMeter,"")
+    holoEntity(LoadMeter):setSubMaterial(3,"models/gsgtrainprops/cab/gauge_amp_emd_a1500_d800_v1")
+    holoBodygroup(LoadMeterNeedle,1,9)
+    
+    A++
+    LoadMeterNeedle = A
+    holoCreate(LoadMeterNeedle,holoEntity(LoadMeter):toWorld(vec(0,0,0)), vec(1),
+    holoEntity(LoadMeter):toWorld(ang(0,-125,0)))
+    holoColor(LoadMeterNeedle, vec4(255,255,255,255))
+    holoModel(LoadMeterNeedle, "plane")
+    holoScale(LoadMeterNeedle, vec(0.3))
+    holoParent(LoadMeterNeedle, holoEntity(LoadMeter))
+    holoMaterial(LoadMeterNeedle,"models/gsgtrainprops/cab/needle_air_white")
+    
+    A++
+    CutInSwitch = A
+    holoCreate(A, Stand:toWorld(vec(11.575,10.9,30)), vec(1),
+    Stand:toWorld(ang(180,18,0)))
+    holoColor(A, vec4(127,111,63,255))
+    holoModel(A, "models/sprops/geometry/t_fdisc_12.mdl")
+    holoScale(A, vec(0.05,0.075,0.05))
+    holoParent(A, Stand)
+    holoMaterial(A,"models/proppertextures/acrylic")
+    
+    A++
+    holoCreate(A, holoEntity(CutInSwitch):toWorld(vec(0.15,0.25,0)), vec(1),
+    holoEntity(CutInSwitch):toWorld(ang(0,0,-90)))
+    holoColor(A, vec4(127,111,63,255))
+    holoModel(A, "models/sprops/geometry/t_hhex_12.mdl")
+    holoScale(A, vec(0.1,0.075,0.075))
+    holoParent(A, holoEntity(CutInSwitch))
+    holoMaterial(A,"models/proppertextures/acrylic")
+    
+    if(Radio){
+    A++
+    RadioI = A
+    holoCreate(RadioI,Stand:toWorld(vec(10,6.5,41)), vec(1),
+    Stand:toWorld(ang(0,197.5,0)))
+    holoColor(RadioI, vec4(255,255,255,255))
+    holoModel(RadioI, "models/parts/radio_msa.mdl")
+    holoScale(RadioI, vec(1))
+    holoParent(RadioI, Stand)
+    holoMaterial(RadioI,"")
+    holoEntity(RadioI):setSubMaterial(2,"models/proppertextures/acrylic_yellow")
+    }
+}
+if(Enable){
+    timer("update",150)
+    if(clk("update")){
+        if(AFMIndicator){
+            
+            CFMAng = clamp(CFMAng + (CFM - CFMAng) / 2, 0, 160)
+            holoAng(CFMNeedle,holoEntity(CFM1):toWorld(ang(0,-71-(CFMAng > 18 ? (CFMAng-18)*(CFMAng > 40 ? (CFMAng > 60 ? (CFMAng > 80 ? 1.875 : 1.65) : 1.25) : 0.9) : 0),0)))
+            #0.9,1.25,1.65,1.875
+        }
+        holoBodygroup(Stando,2,Run)
+        holoBodygroup(Stando,3,GenField)
+        holoBodygroup(Stando,4,Pump)
+        
+        holoBodygroup(Stando,5,GaugeLights)
+        holoBodygroup(Stando,6,StepLights)
+        holoBodygroup(Stando,7,Ditch)
+        
+        holoBodygroup(Stando,9,Sand)
+        holoBodygroup(Stando,10,LeadSand)
+        holoBodygroup(Stando,11,Bell)
+    
+        holoEntity(Stando):setSubMaterial(5,"models/monkcabdetailpack/indwaffle/ind_ws_" + (WheelSlip ? "lit" : "unlit"))
+        holoEntity(Stando):setSubMaterial(9,"models/monkcabdetailpack/indwaffle/ind_pcs_" + (Emergency ? "lit" : "unlit"))
+        holoEntity(Stando):setSubMaterial(10,"models/monkcabdetailpack/indwaffle/ind_brk_" + (BrakeWarn ? "lit" : "unlit"))
+        holoEntity(Stando):setSubMaterial(8,"models/monkcabdetailpack/indwaffle/ind_sd_" + ((Sand | LeadSand) ? "lit" : "unlit"))
+        
+        EqualResAng = clamp(EqualResAng + (EqualRes - EqualResAng) / 2, 0, 160)
+        holoAng(White1,holoEntity(Air1):toWorld(ang(0,10-(269*(EqualResAng/160)),0)))
+        BrakePipeAng = clamp(BrakePipeAng + (BrakePipe - BrakePipeAng) / 2, 0, 160)
+        holoAng(White2,holoEntity(Air2):toWorld(ang(0,10-(269*(BrakePipeAng/160)),0)))
+        
+        MainResAng = clamp(MainResAng + (MainRes - MainResAng) / 2, 0, 160)
+        holoAng(Red1,holoEntity(Air1):toWorld(ang(0,10-(269*(MainResAng/160)),0)))
+        CylAng = clamp(CylAng + (Cyl - CylAng) / 2, 0, 160)
+        holoAng(Red2,holoEntity(Air2):toWorld(ang(0,10-(269*(CylAng/160)),0)))
+        
+        LoadAng = clamp(LoadAng + (Load - LoadAng) / 2, -6500, 1500)
+        holoAng(LoadMeterNeedle,holoEntity(LoadMeter):toWorld(ang(0,-125-(170*(LoadAng/1500)),0)))
+        
+        holoAng(CutInSwitch,Stand:toWorld(ang(180-(180*CutIn),15,0)))
+        
+        #holoAng(CFMNeedle,holoEntity(CFM1):toWorld(ang(0,0,53-(CFM > 16 ? CFM - 16 : 0)*1.6)))
+        #clamp(CFMMul,0.9,1.8)
+        if(changed(Run | GenField | Pump | GaugeLights | StepLights | Ditch | CutIn)){
+            Stand:soundPlay(0,0,SwitchSound)  
+        }
+    }
+}

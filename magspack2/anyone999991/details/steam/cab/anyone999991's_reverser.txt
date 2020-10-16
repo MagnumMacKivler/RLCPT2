@@ -1,0 +1,281 @@
+@name Anyone999991's Reverser
+@inputs Reverser Brake
+@outputs 
+@persist E:entity
+@trigger 
+
+
+if(first()|dupefinished()){
+
+#Config
+
+BarColor = vec(130)
+BarMaterial = "sprops/textures/sprops_metal1"
+FrameColor = vec(180)
+FrameMaterial = "sprops/textures/sprops_metal1"
+GripColor = vec(255)
+GripMaterial = "sprops/textures/sprops_rubber2"
+
+#End of Config
+
+E = entity()
+
+
+#frame
+A = 1
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1_5/rect_6x18x1_5.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,0)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+
+A = 2
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1_5/rect_6x12x1_5.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,-2.8,2.25)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.5,0.5,0.25))
+
+A = 3
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1_5/rect_6x12x1_5.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,2.8,2.25)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.5,0.5,0.25))
+
+A = 4
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles/size_1_5/rect_6x12x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,2.25)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.5,0.5,1))
+
+#bar
+
+A = 5
+
+holoCreate(A)
+holoModel(A,"models/sprops/cylinders/size_1/cylinder_1_5x6.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,2.25)))
+holoAng(A,E:toWorld(ang(0,0,90)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(1,1,1))
+
+A = 6
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x18x1_5.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,2.05,10.28)))
+holoAng(A,E:toWorld(ang(90,0,90)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(1,0.75,0.5))
+
+A = 7
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x18x1_5.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,-2.05,10.25)))
+holoAng(A,E:toWorld(ang(90,0,90)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(1,0.75,0.5))
+
+A = 8
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x6x1_5.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,0,19.64)))
+holoAng(A,E:toWorld(ang(0,90,0)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(0.805,0.75,0.5))
+
+A = 9
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_1/rect_3x18x1_5.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,0,29.8)))
+holoAng(A,E:toWorld(ang(90,0,90)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(1,0.75,0.5))
+
+A = 10
+
+holoCreate(A)
+holoModel(A,"models/sprops/triangles/regular/etri_6x6.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,0,20.64)))
+holoAng(A,E:toWorld(ang(0,90,0)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(0.405,0.75,0.25))
+
+A = 11
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles_thin/size_0/rect_1_5x6x1_5.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0.59,0,41.8)))
+holoAng(A,E:toWorld(ang(90,0,90)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(1,0.75,0.5))
+
+A = 12
+
+holoCreate(A)
+holoModel(A,"models/holograms/hq_rcube.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0.59,0,42.5)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoColor(A,GripColor)
+holoMaterial(A,GripMaterial)
+holoScale(A,vec(0.13,0.1,0.45))
+
+A = 13
+
+holoCreate(A)
+holoModel(A,"models/sprops/triangles_thin/regular/t_etri_18x18.mdl")
+holoParent(A,5)
+holoPos(A,E:toWorld(vec(0,0,39.185)))
+holoAng(A,E:toWorld(ang(0,0,0)))
+holoColor(A,BarColor)
+holoMaterial(A,BarMaterial)
+holoScale(A,vec(0.125,0.5,0.048))
+
+holoClipEnabled(A,1,1)
+holoClip(A,1,vec(0,0,0),vec(-1,0,0),0)
+
+#rest of frame
+
+A = 14
+
+holoCreate(A)
+holoModel(A,"models/sprops/mechanics/sgears/spur_72t_s.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,2.25)))
+holoAng(A,E:toWorld(ang(182,0,90)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.9,0.9,1))
+
+holoClipEnabled(A,1,1)
+holoClip(A,1,vec(0,-13.15,0),vec(2,-90,0),0)
+
+holoClipEnabled(A,2,1)
+holoClip(A,2,vec(0,-4,0),vec(90,-90,0),0)
+
+holoClipEnabled(A,3,1)
+holoClip(A,3,vec(0,-4,0),vec(-88,-90,0),0)
+
+A = 15
+
+holoCreate(A)
+holoModel(A,"models/sprops/geometry/qring_36.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(0,0,13.45)))   #2.25
+holoAng(A,E:toWorld(ang(45,0,0)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.877,1,0.877))
+
+#holoClipEnabled(A,1,1)
+#holoClip(A,1,vec(0,-13,0),vec(0,0,1),0)
+
+
+A = 16
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles/size_1/rect_3x18x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(-7,0,7)))   #2.25
+holoAng(A,E:toWorld(ang(75,0,0)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.8,1,0.5))
+
+A = 17
+
+holoCreate(A)
+holoModel(A,"models/sprops/rectangles/size_1/rect_3x18x3.mdl")
+holoParent(A,E)
+holoPos(A,E:toWorld(vec(7,0,7)))   #2.25
+holoAng(A,E:toWorld(ang(-75,0,0)))
+holoColor(A,FrameColor)
+holoMaterial(A,FrameMaterial)
+holoScale(A,vec(0.8,1,0.5))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#models/sprops/misc/tubes/size_2/q_tube_24x12.mdl
+
+#models/sprops/geometry/t_hdisc_12.mdl
+
+#models/Mechanics/gears2/gear_60t1.mdl
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+interval(100)
+
+if(Brake==0){
+
+Ang=Reverser*26
+
+}elseif(Brake>0){
+
+Ang=0
+
+}
+
+
+holoAng(5,E:toWorld(ang(-Ang,0,90)))    #30,0,90
