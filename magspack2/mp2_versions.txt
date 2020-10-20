@@ -24,5 +24,5 @@ version:0.942
 version_name:Cleanup Roundup
 
 item:CPU Blame
-version:1.0
-version_name:Initialization
+version:2.0
+version_name:Highlighting the Issue
