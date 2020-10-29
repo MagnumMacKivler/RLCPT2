@@ -1,7 +1,7 @@
-@name ptgamma/engines/EMD_V16_645F3B_GP
+@name ptgamma/engines/EMD_V16_645F3B_SD
 #ENGINE CONFIG
 ENG_Version = "2.0.68"
-#For use in the EMD GP50 Locomotive (also works for the GP49)
+#For use in the EMD SD50 Locomotive (also works for the SD49)
 EngineType = "EMD 645F3B (V16)" #What is the name of the Prime Mover?
 
 Startup_Hi = "gsgtrainsounds/emd645f3bv16/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
@@ -86,8 +86,8 @@ CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 CompressorOn = "gsgtrainsounds/misc/compressors/gd_wbo_sd50_loop.wav"
 CompressorOff = "gsgtrainsounds/misc/compressors/gd_wbo_sd50_end.wav"
 
-DynamicsOn = "gsgtrainsounds/misc/delco_dynfan_loop.wav"
-DynamicsOff = "gsgtrainsounds/misc/delco_dynfan_end.wav"
+DynamicsOn = "gsgtrainsounds/misc/emd_late_dyn_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/emd_late_dyn_end.wav"
 
 PrimeOn = "gsgtrainsounds/emd645e3bv16/primer_loop.wav"
 PrimeOff = "gsgtrainsounds/emd645e3bv16/primer_end.wav"
