@@ -5,7 +5,7 @@
 #Made by Anyone999991, with help from Sir Metaladon
 
 #This E2 can be used to make catenary poles.
-#To spawn poles, take out the stun-stick, look at the ground and right click.
+#To spawn poles, take out the Crowbar, look at the ground and right click.
 #you can now move the pole to your desires using the physgun on the base prop, but be aware that it will only dynamically update the wire on the last 5 poles that were created.
 #if you wish to update all poles, you can type ".refall". This will refresh all wire angles. It is recommended to save before doing this, as it may cause tick quota exceed depending on the server's tick quota.
 #to save the generated poles, type ".save <filename>". You can leave <filename> blank, and it will be named after the map and the number of holos. THIS WILL OVERRIDE E2S WITH THE SAME NAME!!!
@@ -88,7 +88,7 @@ if(chatClk(O) & lastSpoke() == O){
     
 }
 
-if(keyClk(O) == 1 & O:weapon():type()=="weapon_stunstick" & !O:inVehicle() & keyClkPressed() == "mouse_right"){
+if(keyClk(O) == 1 & O:weapon():type()=="weapon_crowbar" & !O:inVehicle() & keyClkPressed() == "mouse_right"){
     
     SpawnPole = 1
     

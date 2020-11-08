@@ -9,7 +9,7 @@
 #[---------------------------------  G U I D E  ---------------------------------
 
 1: Spawn this E2
-2: Take out your Stunstick (it's in the spawnmenu under Weapons>Half-Life 2
+2: Take out your Crowbar (it's in the spawnmenu under Weapons>Half-Life 2
 3: Look at the first PT2 Chip you want to link
 
 4: Press EITHER Left OR Right click. Left Click corresponds to the REAR MU output. Right Corresponds to the FRONT MU output.
@@ -22,7 +22,7 @@
 
 Notes:
 
--You can cancel the selection at any time by pressing R, as long as you're holding the Stunstick
+-You can cancel the selection at any time by pressing R, as long as you're holding the Crowbar
 -Left Click = Rear, Right Click = Front. This applies to both Chips.
 -The E2 will automatically wire each PT2 Chip's MU and Current to the other one's MU and Current. Only 1 use required for each set of chips.
 -If you have Questions, ask me (Anyone999991)
@@ -80,7 +80,7 @@ O:soundPlay(2,0,"buttons/button3.wav")
 
 #only work when owner is holding stunstick
 
-if((O:weapon():type()=="weapon_stunstick")& !(O:inVehicle())) {
+if((O:weapon():type()=="weapon_crowbar")& !(O:inVehicle())) {
 
 #keypresses
 

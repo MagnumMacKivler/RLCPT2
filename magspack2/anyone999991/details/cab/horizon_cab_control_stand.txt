@@ -1,0 +1,31 @@
+@name Horizon Cab Control Stand
+@inputs CtlTable:table CStand:wirelink MU_Master
+@outputs 
+@persist 
+@trigger 
+
+#Wire to CtlTable output on your Control Reader chip.
+#Control Reader config should be using 26L Brakes, Notched Throttle (8 Notches) and no Dynamics
+
+
+
+
+if(MU_Master){
+
+    #reverser
+    CStand:entity():setBodygroup(1,CtlTable["SetReverser",number]+2)
+    #throttle
+    CStand:entity():setBodygroup(2,CtlTable["SetThrottle",number]/12.5)
+    #brake
+    if(CtlTable["SetBrakeNotch",number]==2){
+        CStand:entity():setBodygroup(3,4)
+    }else{
+        CStand:entity():setBodygroup(3,CtlTable["SetBrakeNotch",number])
+    }
+}else{
+
+CStand:entity():setBodygroup(1,0)
+CStand:entity():setBodygroup(2,0)
+CStand:entity():setBodygroup(3,5)
+
+}
