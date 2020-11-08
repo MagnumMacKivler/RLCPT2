@@ -1,0 +1,143 @@
+@name CPU Blame II
+@persist [E2Scan HoloScan Keys]:array [X Unclaimed Phase E2High HoloHigh TotalCPU]:number [N OP OE]:string [Owners Badness]:table [BC]:vector
+
+#Made by Sir Metaladon
+#Github Link: https://github.com/MagnumMacKivler/RLCPT2/tree/master/magspack2/metaladon
+#Version 2.0: Highlighting the Issue
+
+if(first()|dupefinished()){
+    
+    findByClass("gmod_wire_expression2") #Initial Scans
+    E2Scan = findToArray()
+    findByClass("gmod_wire_hologram")
+    HoloScan = findToArray()
+    
+    X = 1
+    
+    BC = vec(0,191,255) #Base Text Color
+    
+    Badness = table() #Table that defines the colors for display
+    Badness["icpu",array] = array(150,300,600)
+    Badness["pcpu",array] = array(250,500,750)
+    Badness["tcpu",array] = array(1000,2000,4000)
+    Badness["per",array] = array(0.1,0.2,0.4)
+    Badness["te2",array] = array(100,175,250)
+    Badness["ie2",array] = array(20,40,60)
+    Badness["iholo",array] = array(75,150,300)
+    Badness["tholo",array] = array(1500,2500,4000)
+    Badness["unholo",array] = array(1,50,100)
+    
+    function vector howbad(Type:string,Value){ #Function that determines the color
+        
+        if(Value < Badness[Type,array][1,number]){
+            return vec(0,225,0)
+        }elseif(Value < Badness[Type,array][2,number]){
+            return vec(255,191,0)
+        }elseif(Value < Badness[Type,array][3,number]){
+            return vec(255,93,0)
+        }elseif(Value){
+            return vec(225,0,0)
+        }
+        
+        return vec(255,0,255)
+        
+    }
+    
+}
+
+while(X <= E2Scan:count() & perf() & !Phase){ #Scanning E2s
+    
+    local N = E2Scan[X,entity]:owner():name()
+    
+    Owners[N,array] = array(Owners[N,array][1,number] + floor(E2Scan[X,entity]:cpuUsage()* 1000000),Owners[N,array][2,number] + 1,0)
+    
+    if(floor(E2Scan[X,entity]:cpuUsage()* 1000000) > E2High){ #Who's the highest?
+        
+        E2High = floor(E2Scan[X,entity]:cpuUsage()* 1000000)
+        OP = N
+        OE = E2Scan[X,entity]:getName():explode("\n")[1,string]
+        
+    }
+    
+    TotalCPU = TotalCPU + floor(E2Scan[X,entity]:cpuUsage()* 1000000)
+    X++
+    
+}
+
+if(X > E2Scan:count() & !Phase){ #Reset E2 Scan
+    
+    Phase++
+    X = 1
+    
+}
+
+while(X <= HoloScan:count() & perf() & Phase == 1){ #Scanning Holos
+    
+    N = HoloScan[X,entity]:parent():owner():name() #Check for parent
+    
+    if(N != ""){
+    
+        Owners[N,array] = array(Owners[N,array][1,number],Owners[N,array][2,number],Owners[N,array][3,number] + 1)
+        
+    }else{
+    
+        Unclaimed++
+        
+    }
+    
+    X++
+    
+}
+
+if(X > HoloScan:count() & Phase == 1){ #Reset Holo scan and Print
+    
+    printColor(BC,"------------CPU/HOLO READOUT------------")
+    printColor(BC,"Note: CPU values can fluctuate, values approximate.")
+    printColor(BC,"TOTALS: ",howbad("tcpu",TotalCPU),TotalCPU,BC," CPU, ",howbad("te2",E2Scan:count()),E2Scan:count(),BC," E2s, ",howbad("tholo",HoloScan:count()-Unclaimed),HoloScan:count()-Unclaimed,BC," Claimed Holos, and ",howbad("unholo",Unclaimed),Unclaimed,BC," Unclaimed Holos.")
+    if(OP != ""){printColor(vec(70,70,225),OP+"'s ",vec(255,191,0),"\""+OE+"\"",BC," has the highest CPU, at ",howbad("icpu",E2High),E2High,BC," CPU Time. (",howbad("per",E2High/TotalCPU),round((E2High/TotalCPU)*100)+"%",BC," of total CPU)")}
+    
+    Keys = Owners:keys()
+    Phase++
+    
+    X = 1
+    
+}
+    
+while(X <= Keys:count() & perf() & Phase == 2 & playerCanPrint()){ #Print per player
+    
+    if(Owners[Keys[X,string],array][2,number] > 0 & Keys[X,string] != ""){
+        
+        printColor(vec(70,70,225),Keys[X,string],
+        BC," has ",
+        howbad("ie2",Owners[Keys[X,string],array][2,number]),Owners[Keys[X,string],array][2,number],
+        BC," E2s (",
+        howbad("per",Owners[Keys[X,string],array][2,number]/E2Scan:count()),round((Owners[Keys[X,string],array][2,number]/E2Scan:count())*100)+"%",
+        BC, ") using ",
+        howbad("pcpu",Owners[Keys[X,string],array][1,number]),Owners[Keys[X,string],array][1,number],
+        BC," CPU (",
+        howbad("per",Owners[Keys[X,string],array][1,number]/TotalCPU),round((Owners[Keys[X,string],array][1,number]/TotalCPU)*100)+"%",
+        BC,") with ",
+        howbad("iholo",Owners[Keys[X,string],array][3,number]),Owners[Keys[X,string],array][3,number],
+        BC," Holos (",
+        howbad("per",Owners[Keys[X,string],array][3,number]/HoloScan:count()),round((Owners[Keys[X,string],array][3,number]/HoloScan:count())*100)+"%",
+        BC,").")
+        
+    }
+    
+    X++
+    
+}
+
+if(X > Keys:count() & Phase == 2){ #Delay for deletion
+    
+    timer("end",3000)
+    
+}
+
+if(clk("end")){
+    
+    selfDestruct()
+    
+}
+
+interval(100)

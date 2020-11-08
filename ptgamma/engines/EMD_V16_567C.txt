@@ -4,11 +4,11 @@ ENG_Version = "2.0.67"
 #For use in EMD Road Locomotives (FT, F9, GP7, GP18, SD9).
 EngineType = "EMD 567C (V16)" #What is the name of the Prime Mover?
 
-Startup_Hi = "gsgtrainsounds/emd567/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Hi = "gsgtrainsounds/emd567cv16/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
 Startup_Mode = 1 #0 for Low, 1 for High
 
-Shutdown_Hi = "gsgtrainsounds/emd567/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Hi = "gsgtrainsounds/emd567cv16/shutdown.wav" #Shutdown Sound from High Idle.
 Shutdown_Lo = "" #Shutdown Sound from Low Idle.
 Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
 
@@ -23,29 +23,28 @@ Idle_Low = "" #Sound for Low Idle, if used.
 NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
 
 Notches = array(
-    "gsgtrainsounds/emd567/idle.wav", #Idle
-    "gsgtrainsounds/emd567/notch1.wav", #Notch 1
-    "gsgtrainsounds/emd567/notch2.wav", #Notch 2
-    "gsgtrainsounds/emd567/notch3.wav", #Notch 3
-    "gsgtrainsounds/emd567/notch4.wav", #And so On
-    "gsgtrainsounds/emd567/notch5.wav",
-    "gsgtrainsounds/emd567/notch6.wav",
-    "gsgtrainsounds/emd567/notch7.wav",
-    "gsgtrainsounds/emd567/notch8.wav"
+    "gsgtrainsounds/emd567cv16/idle.wav", #Idle
+    "gsgtrainsounds/emd567cv16/notch1.wav", #Notch 1
+    "gsgtrainsounds/emd567cv16/notch2.wav", #Notch 2
+    "gsgtrainsounds/emd567cv16/notch3.wav", #Notch 3
+    "gsgtrainsounds/emd567cv16/notch4.wav", #And so On
+    "gsgtrainsounds/emd567cv16/notch5.wav",
+    "gsgtrainsounds/emd567cv16/notch6.wav",
+    "gsgtrainsounds/emd567cv16/notch7.wav",
+    "gsgtrainsounds/emd567cv16/notch8.wav"
 )
 
-TransitionPath = "gsgtrainsounds/emd567/transitions/"
+TransitionPath = "gsgtrainsounds/emd567cv16/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
 EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #0 - A/B Notching
 #1 - Full Sweep
 #2 - Instant Change
 #3 - No Change
-#4 - Override (Full Sweep)
-                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
-UpDelays = array(0,   430, 1200,1400,1400,1420,2150,2000)
+                #0-1  1-2   2-3  3-4  4-5  5-6  6-7   7-8 
+UpDelays = array(0,   874, 1182, 492, 916, 575, 1385, 870)
                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1
-DownDelays = array(350, 460, 750, 340, 700, 1400, 800)
+DownDelays = array(525, 508, 734, 715, 634, 918, 598)
 
 UpOverrides = array(
     "", #0-1
@@ -69,52 +68,52 @@ DownOverrides = array(
     ""  #1-0
 )
 
-StartupClagDelay = 1 #Time required to hold starter for engine to turn on successfully
-StartupClagDuration = 1 #Duration for starter smoke
+StartupClagDelay = 2.5 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 2 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 
 CompressorOn = "gsgtrainsounds/misc/compressors/gd_wbo_loop.wav"
 CompressorOff = "gsgtrainsounds/misc/compressors/gd_wbo_end.wav"
 
-DynamicsOn = "gsgtrainsounds/misc/emd_dynb_loop.wav"
-DynamicsOff = "gsgtrainsounds/misc/emd_dynb_stop.wav"
+DynamicsOn = "gsgtrainsounds/misc/delco_dynfan_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/delco_dynfan_end.wav"
 
-PrimeOn = "monkssounds/fuel pumps/fuelpump2.wav"
-PrimeOff = "monkssounds/fuel pumps/fuelpump2end.wav"
+PrimeOn = "gsgtrainsounds/emd567cv16/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/emd567cv16/prime_end.wav"
 
 PrimerDuration = randint(10,15)
 
 SoundDurations = table()
-SoundDurations["gsgtrainsounds/emd567/transitions/up/0-1.wav",number] = 1990
-SoundDurations["gsgtrainsounds/emd567/transitions/up/1-2a.wav",number] = 600
-SoundDurations["gsgtrainsounds/emd567/transitions/up/1-2b.wav",number] = 4310
-SoundDurations["gsgtrainsounds/emd567/transitions/up/2-3a.wav",number] = 490
-SoundDurations["gsgtrainsounds/emd567/transitions/up/2-3b.wav",number] = 3030
-SoundDurations["gsgtrainsounds/emd567/transitions/up/3-4a.wav",number] = 490
-SoundDurations["gsgtrainsounds/emd567/transitions/up/3-4b.wav",number] = 2840
-SoundDurations["gsgtrainsounds/emd567/transitions/up/4-5a.wav",number] = 330
-SoundDurations["gsgtrainsounds/emd567/transitions/up/4-5b.wav",number] = 2510
-SoundDurations["gsgtrainsounds/emd567/transitions/up/5-6a.wav",number] = 500
-SoundDurations["gsgtrainsounds/emd567/transitions/up/5-6b.wav",number] = 2930
-SoundDurations["gsgtrainsounds/emd567/transitions/up/6-7a.wav",number] = 240
-SoundDurations["gsgtrainsounds/emd567/transitions/up/6-7b.wav",number] = 4550
-SoundDurations["gsgtrainsounds/emd567/transitions/up/7-8a.wav",number] = 1120
-SoundDurations["gsgtrainsounds/emd567/transitions/up/7-8b.wav",number] = 3760
-SoundDurations["gsgtrainsounds/emd567/transitions/down/1-0.wav",number] = 2060
-SoundDurations["gsgtrainsounds/emd567/transitions/down/2-1a.wav",number] = 950
-SoundDurations["gsgtrainsounds/emd567/transitions/down/2-1b.wav",number] = 2880
-SoundDurations["gsgtrainsounds/emd567/transitions/down/3-2a.wav",number] = 840
-SoundDurations["gsgtrainsounds/emd567/transitions/down/3-2b.wav",number] = 2250
-SoundDurations["gsgtrainsounds/emd567/transitions/down/4-3a.wav",number] = 590
-SoundDurations["gsgtrainsounds/emd567/transitions/down/4-3b.wav",number] = 1260
-SoundDurations["gsgtrainsounds/emd567/transitions/down/5-4a.wav",number] = 720
-SoundDurations["gsgtrainsounds/emd567/transitions/down/5-4b.wav",number] = 1280
-SoundDurations["gsgtrainsounds/emd567/transitions/down/6-5a.wav",number] = 780
-SoundDurations["gsgtrainsounds/emd567/transitions/down/6-5b.wav",number] = 3060
-SoundDurations["gsgtrainsounds/emd567/transitions/down/7-6a.wav",number] = 780
-SoundDurations["gsgtrainsounds/emd567/transitions/down/7-6b.wav",number] = 2230
-SoundDurations["gsgtrainsounds/emd567/transitions/down/8-7a.wav",number] = 670
-SoundDurations["gsgtrainsounds/emd567/transitions/down/8-7b.wav",number] = 2000
-SoundDurations["gsgtrainsounds/emd567/startup.wav",number] = 11820
-SoundDurations["gsgtrainsounds/emd567/shutdown.wav",number] = 5440
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/0-1.wav",number] = 3330
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/1-2a.wav",number] = 480
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/1-2b.wav",number] = 5390
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/2-3a.wav",number] = 770
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/2-3b.wav",number] = 3650
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/3-4a.wav",number] = 360
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/3-4b.wav",number] = 3690
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/4-5a.wav",number] = 570
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/4-5b.wav",number] = 3220
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/5-6a.wav",number] = 1260
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/5-6b.wav",number] = 1850
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/6-7a.wav",number] = 1780
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/6-7b.wav",number] = 3580
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/7-8a.wav",number] = 1450
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/up/7-8b.wav",number] = 2630
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/1-0.wav",number] = 3320
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/2-1a.wav",number] = 530
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/2-1b.wav",number] = 4210
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/3-2a.wav",number] = 460
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/3-2b.wav",number] = 3870
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/4-3a.wav",number] = 680
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/4-3b.wav",number] = 3060
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/5-4a.wav",number] = 430
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/5-4b.wav",number] = 2250
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/6-5a.wav",number] = 370
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/6-5b.wav",number] = 1610
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/7-6a.wav",number] = 480
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/7-6b.wav",number] = 2800
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/8-7a.wav",number] = 580
+SoundDurations["gsgtrainsounds/emd567cv16/transitions/down/8-7b.wav",number] = 1820
+SoundDurations["gsgtrainsounds/emd567cv16/startup.wav",number] = 13970
+SoundDurations["gsgtrainsounds/emd567cv16/shutdown.wav",number] = 10410
