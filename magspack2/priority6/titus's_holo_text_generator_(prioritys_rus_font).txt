@@ -1,0 +1,231 @@
+@name Titus's Holo Text Generator (prioritys rus_font)
+@inputs Num:string
+@persist
+
+Position = 0,0,0
+Angle = 0,0,0
+Color = 36
+Scale = 1
+
+Text = "abcdefghiklmnoprstuvz':,!-%.?;~_0123456789CHEI{}STARUZLDGJ/NOFYPV<>*"+Num
+#Valid Characters:
+#Normal characters (ALL LOWERCASE; THIS TEXT IS CASE SENSITIVE): a, b, d, e, f, g, h, i, k, l, m, n, o, p, r, s, t, u, v, z
+#Normal Symbols: ', :, ,, !, -, %, ., ?, ;, ~, _
+#Numbers: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+#Normal Characters needing special case:
+#C = ch
+#H = hard_sign
+#E = ie
+#I = long_i
+#{ = sh
+#} = shch
+#S = soft_sign
+#T = ts
+#A = ya
+#R = yeru
+#U = yu
+#Z = zh
+
+#Non Russian Characters:
+#L = bel_urk_l
+#D = dz
+#G = gh_uptum
+#J = gj
+#/ = lj
+#N = nj
+#O = barred_o
+#F = ukr_ie
+#Y = yi
+
+#Special Symbols:
+#P = copyright
+#V = registered
+#< = left quotation
+#> = right quotation
+#* = degree
+
+E = entity()
+
+if(dupefinished() | duped()){ reset() }
+if(first()){
+    function textDraw(StartIndex,String:string,Font:string,TextParent:entity,TextPosition:vector,TextAngle:angle,Color:vector,Scale:vector,BoundingOverwrite,Alignment:string,BoundingOverwriteSelect:array){
+        function string checkCase(Array:array,Font:string,CCIndex){
+            if(Array[CCIndex,string] == " "){
+                return "models/proppertextures/invisible"
+            }
+            elseif(Array[CCIndex,string] == "0" || Array[CCIndex,string] == "1" || Array[CCIndex,string] == "2" || Array[CCIndex,string] == "3" || Array[CCIndex,string] == "4" || Array[CCIndex,string] == "5" || Array[CCIndex,string] == "6" || Array[CCIndex,string] == "7" || Array[CCIndex,string] == "8" || Array[CCIndex,string] == "9"){
+                return (Font+"numbers/"+Array[CCIndex,string]) # ^ this one here checks if its a number.
+            }
+            elseif(Array[CCIndex,string] == "'" || Array[CCIndex,string] == "<" || Array[CCIndex,string] == ">" || Array[CCIndex,string] == ":" || Array[CCIndex,string] == "," || Array[CCIndex,string] == "P" || Array[CCIndex,string] == "*" || Array[CCIndex,string] == "!" || Array[CCIndex,string] == "-" || Array[CCIndex,string] == "%" || Array[CCIndex,string] == "." || Array[CCIndex,string] == "?" || Array[CCIndex,string] == "V" || Array[CCIndex,string] == ";" || Array[CCIndex,string] == "~" || Array[CCIndex,string] == "M" || Array[CCIndex,string] == "_"){
+                switch(Array[CCIndex,string]){ # This switch statement determines what the output string is (the material) depending on the character. ^This one checks for the symbol characters
+                    case "'", # symbols characters overwrite
+                        return (Font+"symbols/"+"apostrophe")
+                    break
+                    case "<",
+                        return (Font+"symbols/"+"arrow_quotation_left")
+                    break
+                    case ">",
+                        return (Font+"symbols/"+"arrow_quotation_right")
+                    break
+                    case ":",
+                        return (Font+"symbols/"+"colon")
+                    break
+                    case ",",
+                        return (Font+"symbols/"+"comma")
+                    break
+                    case "P",
+                        return (Font+"symbols/"+"copyright")
+                    break
+                    case "*",
+                        return (Font+"symbols/"+"degree")
+                    break
+                    case "!",
+                        return (Font+"symbols/"+"exclamation_mark")
+                    break
+                    case "-",
+                        return (Font+"symbols/"+"hyphen")
+                    break
+                    case "%",
+                        return (Font+"symbols/"+"percentage")
+                    break
+                    case ".",
+                        return (Font+"symbols/"+"period")
+                    break
+                    case "?",
+                        return (Font+"symbols/"+"question_mark")
+                    break
+                    case "V",
+                        return (Font+"symbols/"+"registered") 
+                    break
+                    case ";",
+                        return (Font+"symbols/"+"semicolon")
+                    break
+                    case "~",
+                        return (Font+"symbols/"+"tilde")
+                    break
+                    case "M",
+                        return (Font+"symbols/"+"trademark")
+                    break
+                    case "_",
+                        return (Font+"symbols/"+"underscore")
+                    break
+                    
+                }                            
+            }
+            elseif(Array[CCIndex,string] == Array[CCIndex,string]:upper()){ # this gets the character and checks if it is the same if its is uppercase (checks if it is uppercase).
+                switch(Array[CCIndex,string]){ # This switch statement determines what the output string is (the material) depending on the character.
+                    case "C", # rus characters overwrite
+                        return (Font+""+"ch")
+                    break
+                    case "H",
+                        return (Font+""+"hard_sign")
+                    break
+                    case "E",
+                        return (Font+""+"ie")
+                    break
+                    case "I",
+                        return (Font+""+"long_i")
+                    break
+                    case "{",
+                        return (Font+""+"sh")
+                    break
+                    case "}",
+                        return (Font+""+"shch")
+                    break
+                    case "S",
+                        return (Font+""+"soft_sign")
+                    break
+                    case "T",
+                        return (Font+""+"ts")
+                    break
+                    case "A",
+                        return (Font+""+"ya")
+                    break
+                    case "R",
+                        return (Font+""+"yeru")
+                    break
+                    case "U",
+                        return (Font+""+"yu")
+                    break
+                    case "Z",
+                        return (Font+""+"zh")
+                    break
+                    case "L", # non-rus characters overwrite
+                        return (Font+"non_russian/"+"bel_ukr_i")
+                    break
+                    case "D",
+                        return (Font+"non_russian/"+"dz")
+                    break
+                    case "G",
+                        return (Font+"non_russian/"+"gh_uptum")
+                    break
+                    case "J",
+                        return (Font+"non_russian/"+"gj")
+                    break
+                    case "/",
+                        return (Font+"non_russian/"+"lj")
+                    break
+                    case "N",
+                        return (Font+"non_russian/"+"nj")
+                    break
+                    case "O",
+                        return (Font+"non_russian/"+"o_barred")
+                    break
+                    case "F",
+                        return (Font+"non_russian/"+"ukr_ie")
+                    break
+                    case "Y",
+                        return (Font+"non_russian/"+"yi")
+                    break
+                }
+            }
+            else{
+                return (Font+""+(Array[CCIndex,string]):lower())
+            }
+        }
+        # All below here is holo junk
+        switch(Alignment){
+            case "left",
+                local StringArray = String:reverse():explode("")
+                for(I=StartIndex,(StartIndex+(String:length()-1))){
+                    local Index = I
+                    local BoundingBox = holoEntity(Index):boxSize():y()
+                    local Z_Position = TextPosition:y()+((BoundingBox+(BoundingOverwrite+BoundingOverwriteSelect[(1+(Index-StartIndex)),number]))*((1+(Index-StartIndex))-1))  
+                    holoCreate(Index,TextParent:toWorld(TextPosition),Scale,TextParent:toWorld(TextAngle),Color,"plane")
+                    holoParent(Index,TextParent)
+                    holoMaterial(Index,(checkCase(StringArray,Font,(1+(Index-StartIndex)))))
+                    holoPos(Index,TextParent:toWorld(vec(TextPosition:x(),(TextPosition:y()-Z_Position),TextPosition:z())))
+                }
+            break
+            case "right",
+                local StringArray = String:explode("")
+                for(I=StartIndex,(StartIndex+(String:length()-1))){
+                    local Index = I
+                    local BoundingBox = holoEntity(Index):boxSize():y()
+                    local Z_Position = TextPosition:y()+((BoundingBox+(BoundingOverwrite+BoundingOverwriteSelect[(1+(Index-StartIndex)),number]))*((1+(Index-StartIndex))-1))  
+                    holoCreate(Index,TextParent:toWorld(TextPosition),Scale,TextParent:toWorld(TextAngle),Color,"plane")
+                    holoParent(Index,TextParent)
+                    holoMaterial(Index,(checkCase(StringArray,Font,(1+(Index-StartIndex)))))
+                    holoPos(Index,TextParent:toWorld(vec(TextPosition:x(),(TextPosition:y()+Z_Position),TextPosition:z())))
+                }
+            break
+            default,
+                local StringArray = String:explode("")
+                for(I=StartIndex,(StartIndex+(String:length()-1))){
+                    local Index = I
+                    local BoundingBox = holoEntity(Index):boxSize():y()
+                    local CenteringZ = ((BoundingBox+(BoundingOverwrite+BoundingOverwriteSelect[(1+(Index-StartIndex)),number]))*(String:length()-1))/2 
+                    local Z_Position = (TextPosition:y()+((BoundingBox+(BoundingOverwrite+BoundingOverwriteSelect[(1+(Index-StartIndex)),number]))*((1+(Index-StartIndex))-1)))
+                    holoCreate(Index,TextParent:toWorld(TextPosition),Scale,TextParent:toWorld(TextAngle),Color,"plane")
+                    holoParent(Index,TextParent)
+                    holoMaterial(Index,(checkCase(StringArray,Font,(1+(Index-StartIndex)))))
+                    holoPos(Index,TextParent:toWorld(vec(TextPosition:x(),((TextPosition:y()-CenteringZ)+Z_Position),TextPosition:z())))
+                }               
+            break
+        }
+    }
+    
+    textDraw(1,Text,"prioritys materials/rus_font/",entity(),vec(Position),ang(Angle),vec(Color),vec(Scale)*2,18,"center",array()) # If you dont understand this functions inputs, refer to line: 12.
+}
+
+if(~Num){reset()}

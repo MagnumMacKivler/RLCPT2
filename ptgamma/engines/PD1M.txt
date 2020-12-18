@@ -1,0 +1,106 @@
+@name ptgamma/engines/PD1M
+#ENGINE CONFIG
+ENG_Version = "2.0.67"
+#For use in early Alco locomotives (HH1000, S2, S4, S7, S12, RS1, RSC13, and DL103-DL110). Also acceptable as a 538T.
+EngineType = "PD1M" #What is the name of the Prime Mover?
+
+Startup_Hi = "priority's sounds/engine sounds/pd1m/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "priority's sounds/engine sounds/pd1m/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "priority's sounds/engine sounds/pd1m/idle.wav",
+    "priority's sounds/engine sounds/pd1m/notch1.wav",
+    "priority's sounds/engine sounds/pd1m/notch2.wav",
+    "priority's sounds/engine sounds/pd1m/notch3.wav",
+    "priority's sounds/engine sounds/pd1m/notch4.wav",
+    "priority's sounds/engine sounds/pd1m/notch5.wav",
+    "priority's sounds/engine sounds/pd1m/notch6.wav",
+    "priority's sounds/engine sounds/pd1m/notch7.wav",
+    "priority's sounds/engine sounds/pd1m/notch8.wav"
+)
+    
+TransitionPath = "priority's sounds/engine sounds/pd1m/transitions"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(4,  4,  4,  4,  4,  4,  4,  4)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(6131,3469,4319,5852,8636,9338,8218,6689)
+                   #8-7  7-6  6-5  5-4  4-3  3-2  2-1  1-0
+DownDelays = array(7799,8361,9193,7801,7058,6591,3808)
+
+UpOverrides = array(
+    "priority's sounds/engine sounds/pd1m/transitions/up/0-1.wav", #0-1
+    "priority's sounds/engine sounds/pd1m/transitions/up/1-2.wav", #1-2
+    "priority's sounds/engine sounds/pd1m/transitions/up/2-3.wav", #2-3
+    "priority's sounds/engine sounds/pd1m/transitions/up/3-4.wav", #3-4
+    "priority's sounds/engine sounds/pd1m/transitions/up/4-5.wav", #4-5
+    "priority's sounds/engine sounds/pd1m/transitions/up/5-6.wav", #5-6
+    "priority's sounds/engine sounds/pd1m/transitions/up/6-7.wav", #6-7
+    "priority's sounds/engine sounds/pd1m/transitions/up/7-8.wav"  #7-8
+)
+
+DownOverrides = array(
+    "priority's sounds/engine sounds/pd1m/transitions/down/8-7.wav", #8-7
+    "priority's sounds/engine sounds/pd1m/transitions/down/7-6.wav", #7-6
+    "priority's sounds/engine sounds/pd1m/transitions/down/6-5.wav", #6-5
+    "priority's sounds/engine sounds/pd1m/transitions/down/5-4.wav", #5-4
+    "priority's sounds/engine sounds/pd1m/transitions/down/4-3.wav", #4-3
+    "priority's sounds/engine sounds/pd1m/transitions/down/3-2.wav", #3-2
+    "priority's sounds/engine sounds/pd1m/transitions/down/2-1.wav", #2-1
+    "priority's sounds/engine sounds/pd1m/transitions/down/1-0.wav"  #1-0
+)
+
+StartupClagDelay = 1.7 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 3 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "priority's sounds/compressors/kt6_compressor_loop.wav"
+CompressorOff = "priority's sounds/compressors/kt6_compressor_end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
+
+PrimeOn = "priority's sounds/engine sounds/pd1m/fuelpump_loop.wav"
+PrimeOff = "priority's sounds/engine sounds/pd1m/fuelpump_end.wav"
+
+PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/0-1.wav",number] = 6131
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/1-2.wav",number] = 3468
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/2-3.wav",number] = 4319
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/3-4.wav",number] = 5852
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/4-5.wav",number] = 8635
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/5-6.wav",number] = 9337
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/6-7.wav",number] = 8217
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/up/7-8.wav",number] = 6689
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/1-0.wav",number] = 6501
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/2-1.wav",number] = 3807
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/3-2.wav",number] = 6591
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/4-3.wav",number] = 7057
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/5-4.wav",number] = 7801
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/6-5.wav",number] = 9192
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/7-6.wav",number] = 8361
+SoundDurations["priority's sounds/engine sounds/pd1m/transitions/down/8-7.wav",number] = 7799
+SoundDurations["priority's sounds/engine sounds/pd1m/startup.wav",number] = 10779
+SoundDurations["priority's sounds/engine sounds/pd1m/shutdown.wav",number] = 7847

@@ -1,0 +1,26 @@
+@name Priority's Logo Placer
+@persist A
+
+Logo = "" #Put Logo path between the quotes here
+Color = 255 #Color of Logo
+Transparency = 255 #Changes transparency  of Logo (255 is Max, 0 is invisible)
+Ang = 0,0,0 #Adjusts Angle of Holo (X,Y,Z respectively)
+Pos = 0,0,0 #Position of holo (X,Y,Z respectively)
+ScaleX = 1 #Scale of Logo on X-axis
+ScaleY = 1 #Scale of Logo on Y-axis
+
+
+if(first()|dupefinished()){
+    
+A=0
+holoCreate(A)
+holoParent(A, entity())
+holoModel(A, "plane")
+holoPos(A,entity():toWorld(vec(Pos))) 
+holoAng(A, entity():toWorld(ang(Ang)))
+holoScale(A, vec(ScaleX,ScaleY,1))
+holoMaterial(A,Logo)
+holoColor(A, vec(Color))
+holoAlpha(A,Transparency)
+
+}

@@ -1,4 +1,4 @@
-@name ptgamma/cstands_holo/cstand_tem2
+@name ptgamma/cstands_holo/cstand_tgm6a
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 ForceSand BrakeCutIn EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode SelectorUp SelectorDown IncreaseDynamics DecreaseDynamics
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
@@ -14,13 +14,16 @@
 @persist Thetas:table LocoBrakePitch
 @trigger 
 #@model models/sprops/cuboids/height06/size_1/cube_6x6x6.mdl
+
+#=====HORN1 FOR IS HORN, HORN2 IS FOR WHISTLE=====#
+
 if(duped()){
     reset()
 }
 if(first()){
     #FOR USE WITH RLC PT 2.0.66 OR OTHER COMPATIBLE VERSIONS
     CtlTable["CS_Version",string] = "2.0.66"
-    
+        
     #General Setup Instructions:
     #You will need one of these with RLC PT2. Spawn it somewhere and get wiring! See the RLC PT2 Operator's Manual for more instructions.
     #Don't neglect to check the config!
@@ -33,7 +36,6 @@ if(first()){
     #include "ptgamma/controls/Standard"
     #Pick a Control Scheme File! You can find them in "ptgamma/controls/" !
 
-    
     LocoBrakeMode = 0 #0 for Self Lapping, 1 for Manual Lapping
     
     InitialReduction = 6 #If using 24RL or 26L brake modes, the train brake will automatically drop this much pressure in First Service or Initial Reduction positions.
@@ -45,35 +47,35 @@ if(first()){
     DownRatio = 0.5 #Pull the dongle (PullLength x DownRatio) units down as well
     
     HasDynamics = 0 #1 for Has Dynamic Brakes, 0 for Doesn't Have Dynamic Brakes
-    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition (When you have don't have MU and no dynamics)
+    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition (When you have don't have MU and no dynamics)
     
     #Sounds (Don't touch unless you know what you're doing!)
     
-    Lever_ThrottleToIdle = "priority's sounds/tem2/throttle_idle.wav"
-    Lever_ThrottleToNotch1 = "priority's sounds/tem2/throttle1.wav"
-    Lever_ThrottleToMax = "priority's sounds/tem2/throttle_move.wav"
-    Lever_ThrottleUp = "priority's sounds/tem2/throttle_move.wav"
-    Lever_ThrottleDown = "priority's sounds/tem2/throttle_move.wav"
+    Lever_ThrottleToIdle = "trans_train_sounds/controls/kc92/rs_throttle_1toidle.wav"
+    Lever_ThrottleToNotch1 = "trans_train_sounds/controls/kc92/rs_throttle_idleto1.wav"
+    Lever_ThrottleToMax = "trans_train_sounds/controls/kc92/rs_throttle_notchupmax.wav"
+    Lever_ThrottleUp = "trans_train_sounds/controls/kc92/rs_throttle_notchup.wav"
+    Lever_ThrottleDown = "trans_train_sounds/controls/kc92/rs_throttle_notchdown.wav"
     
-    AirReverser_Center = "priority's sounds/tem2/revers_off.wav"
-    AirReverser_Set = "priority's sounds/tem2/revers_off.wav"
+    AirReverser_Center = ""
+    AirReverser_Set = ""
     
-    Lever_ReverserF = "priority's sounds/tem2/revers_on.wav"      
-    Lever_ReverserN = "priority's sounds/tem2/revers_on.wa"
-    Lever_ReverserB = "priority's sounds/tem2/revers_on.wav"
+    Lever_ReverserF = "monkssounds/buttons/button7.wav"      
+    Lever_ReverserN = "monkssounds/buttons/button6.wav"
+    Lever_ReverserB = "monkssounds/buttons/button4.wav"
     
     Lever_24RL = "gsgtrainsounds/misc/airbrakes/air_16m_move.wav"
     Lever_26L = "gsgtrainsounds/misc/airbrakes/air_26l_move.wav"
     
-    AirBrakeApply = "priority's sounds/tem2/brake_apply.wav"
-    AirBrakeRelease = "priority's sounds/tem2/brake_release.wav"
-    AirBrakeDump = "priority's sounds/tem2/airdump.wav"
+    AirBrakeApply = "trans_train_sounds/controls/kc92/6sl_service.wav"
+    AirBrakeRelease = "trans_train_sounds/controls/kc92/6sl_release.wav"
+    AirBrakeDump = "trans_train_sounds/air/dump.wav"
     
-    LocoBrakeFull = "priority's sounds/tem2/locobrake_apply.wav"
-    LocoBrakeReleaseSoft = "priority's sounds/tem2/locobrake_release.wav"
-    LocoBrakeReleaseHard = "priority's sounds/tem2/brake_release2.wav"
+    LocoBrakeFull = "trans_train_sounds/controls/aar/indy_full.wav"
+    LocoBrakeReleaseSoft = "trans_train_sounds/controls/aar/indy_release_soft.wav"
+    LocoBrakeReleaseHard = "trans_train_sounds/controls/aar/indy_release_full.wav"
     
-    WarningHiss = "priority's sounds/tem2/brake_hiss_loop.wav"
+    WarningHiss = "gsgtrainsounds/misc/desktop/horn_air_loop.wav"
     
     # Settings you shouldn't touch because this particular stand has absolutely no support for anything else
     
@@ -82,7 +84,7 @@ if(first()){
     NumThrottleNotches = 8
     NotchedDynamics = 0
     TransitionMode = 1
-    HornType = 1
+    HornType = 0
     
     function vector linpos(V1:vector, V2:vector, P){
         return V1 + P*(V2-V1)
@@ -122,7 +124,7 @@ if(first()){
             Pod:printDriver(Message)
         }
     }
-    
+      
     function void lever(HoloIndex,Angle,Speed){
         local Current = Thetas[HoloIndex,number]
         if(Current>Angle){
@@ -135,9 +137,26 @@ if(first()){
             if(Current>Angle){Current = Angle}
             Thetas[HoloIndex,number] = Current
             holoAng(HoloIndex,CS:toWorld(ang(0,Current,0)))
+ 
         }
     }
-    
+       function void lever3(HoloIndex,Angle,Speed){
+        local Current = Thetas[HoloIndex,number]
+        if(Current>Angle){
+            Current -= Speed
+            if(Current<Angle){Current = Angle}
+            Thetas[HoloIndex,number] = Current
+            #holoAng(HoloIndex,CS:toWorld(ang(-12.75,Current,0)))
+            holoAng(HoloIndex,holoEntity(9):toWorld(ang(0,Current,0)))
+        }elseif(Current<Angle){
+            Current += Speed
+            if(Current>Angle){Current = Angle}
+            Thetas[HoloIndex,number] = Current
+            #holoAng(HoloIndex,CS:toWorld(ang(-12.75,Current,0)))
+            holoAng(HoloIndex,holoEntity(9):toWorld(ang(0,Current,0)))
+ 
+        }
+    } 
     function void lever2(HoloIndex,Angle,Speed){ #Used for Brake Cutout
         local Current = Thetas[HoloIndex,number]
         if(Current>Angle){
@@ -224,19 +243,23 @@ if(first()){
     CS = ControlStand:entity()
     
     #Reverser
-    holoCreate(4,CS:toWorld(vec(7.359,-19.594,21.9)),vec(1),CS:angles(),vec(255),"models/akandr/russian/engines/tem2_reverser.mdl")
-    Thetas[4,number] = 0
+    #holoCreate(4,CS:toWorld(vec(0,0,0)),vec(1),CS:angles(),vec(255),"models/akandr/russian/engines/tem2_reverser.mdl")
+    #Thetas[4,number] = 0
     #Throttle
-    holoCreate(5,CS:toWorld(vec(4.35,-18.22,21.04)),vec(1),CS:toWorld(ang(0,0,0)),vec(255),"models/akandr/russian/engines/tem2_throttle.mdl")
+    holoCreate(5,CS:toWorld(vec(-190.216,-41.7683,48.3277)),vec(1),CS:toWorld(ang(-12.75,0,0)),vec(255),"models/russian/wheel_throttle.mdl")
     Thetas[5,number] = 45
 
     #Auto Brake
-    holoCreate(7,CS:toWorld(vec(19.55,-20.56,16.96)),vec(1),CS:toWorld(ang(0,0,0)),vec(255),"models/akandr/russian/engines/tem2_trainbrake_lever.mdl")
+    holoCreate(7,CS:toWorld(vec(-203.199,-22.8736,55.1953)),vec(1),CS:toWorld(ang(0,0,0)),vec(255),"models/akandr/russian/engines/tem2_trainbrake_lever.mdl")
     Thetas[7,number] = 21
     #Loco Brake
-    holoCreate(8,CS:toWorld(vec(13.69,11.69,18)),vec(1),CS:toWorld(ang(0,180,0)),vec(255),"models/akandr/russian/engines/tem2_independent.mdl")
+    holoCreate(8,CS:toWorld(vec(-204.378,-54.9416,56.2903)),vec(1),CS:toWorld(ang(0,180,0)),vec(255),"models/akandr/russian/engines/tem2_independent.mdl")
     Thetas[8,number] = -45
-
+    
+    #holoParent
+    holoCreate(9,CS:toWorld(vec(-189.995,-41.7683,47.3524)),vec(1),CS:toWorld(ang(-12.75,0,0)),vec(255),"cube")
+    holoAlpha(9,0)
+    
     
     for(N=4,8){
         holoParent(N,CS)
@@ -247,7 +270,7 @@ if(first()){
     
 
     CtlTable["CTL_Version",string] = CTL_Version
-    setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nTEM2 Stand with\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents")
+    setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nTGM6A Stand with\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents")
     runOnChat(1)
     timer("clk",100)
 }
@@ -508,8 +531,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if(SetBrakeNotch==5 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeApply)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeApply)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
             ABQ = 1
@@ -522,8 +545,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeRelease)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,6,AirBrakeRelease)
+                timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
             #soundStop(3)
@@ -571,13 +594,13 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if(SetBrakeNotch==4 & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeApply)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeApply)
+                timer("EndHiss",6000)
             }elseif(SetBrakeNotch==2 & (SetEqualRes>(FeedPressure-InitialReduction))){
                 SetEqualRes = FeedPressure-InitialReduction
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeApply)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeApply)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & (SetBrakeNotch > 0) & !ABQ){
             ABQ = 1
@@ -590,8 +613,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if(SetBrakeNotch<=1 & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,10,AirBrakeRelease)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,6,AirBrakeRelease)
+                timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
             #soundStop(3)
@@ -645,8 +668,8 @@ if(clk("clk")){
                 }
                 if(!HissQ & (SetEqualRes>FSP)){
                     HissQ = 1
-                    Pod:soundPlay(2,13,AirBrakeApply)
-                    timer("EndHiss",13000)
+                    Pod:soundPlay(2,6,AirBrakeApply)
+                    timer("EndHiss",6000)
                 }
             }
             if((SetBrakeNotch==1) & (SetEqualRes>FSP) & !Lock_26L){
@@ -663,16 +686,16 @@ if(clk("clk")){
                     SetEqualRes = FeedPressure
                     if(!HissQ){
                         HissQ = 1
-                        Pod:soundPlay(2,10,AirBrakeRelease)
-                        timer("EndHiss",10000)
+                        Pod:soundPlay(2,6,AirBrakeRelease)
+                        timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==1) & (SetEqualRes<FeedPressure)){
                     soundStop(1)
                     Pod:soundPlay(1,0.5,Lever_26L)
                     if(!HissQ & (SetEqualRes<FeedPressure)){
                         HissQ = 1
-                        Pod:soundPlay(2,10,AirBrakeRelease)
-                        timer("EndHiss",10000)
+                        Pod:soundPlay(2,6,AirBrakeRelease)
+                        timer("EndHiss",6000)
                     }
                 }elseif((SetBrakeNotch==2)){
                     Lock_26L = 1
@@ -711,8 +734,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if((SetBrakeNotch==2) & (SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeApply)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeApply)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ & (SetBrakeNotch>0)){
             ABQ = 1
@@ -725,8 +748,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_24RL)
             if((SetBrakeNotch==0) & (SetEqualRes<FeedPressure) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeRelease)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeRelease)
+                timer("EndHiss",6000)
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
             ABQ = 0
@@ -752,8 +775,8 @@ if(clk("clk")){
             Pod:soundPlay(1,0.5,Lever_26L)
             if((SetEqualRes>FSP) & !HissQ){
                 HissQ = 1
-                Pod:soundPlay(2,13,AirBrakeApply)
-                timer("EndHiss",13000)
+                Pod:soundPlay(2,6,AirBrakeApply)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseTrainBrake & !ABQ){
             ABQ = 1
@@ -766,8 +789,8 @@ if(clk("clk")){
                 Pod:soundPlay(1,0.5,Lever_26L)
                 if((SetEqualRes<FeedPressure) & !HissQ){
                     HissQ = 1
-                    Pod:soundPlay(2,13,AirBrakeRelease)
-                    timer("EndHiss",13000)
+                    Pod:soundPlay(2,6,AirBrakeRelease)
+                    timer("EndHiss",6000)
                 }
             }
         }elseif(!IncreaseTrainBrake & !DecreaseTrainBrake & ABQ){
@@ -799,7 +822,7 @@ if(clk("clk")){
                 LHissQ = 1
                 soundStop(1)
                 Pod:soundPlay(1,3,LocoBrakeFull)
-                timer("EndHiss",3000)
+                timer("EndHiss",200)
             }
         }elseif(DecreaseLocoBrake & (SetLocoBrakePressure>0)){
             if(!LBQ){LBQ=1}
@@ -807,16 +830,16 @@ if(clk("clk")){
             if(SetLocoBrakePressure<0){SetLocoBrakePressure = 0}
             if(!LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,15,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,10,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseLocoBrake & (SetLocoBrakePressure==0) & !LBQ){
             LBQ = 1
             SetBleeding = 1
             if((SetEqualRes<FeedPressure) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,15,(SetEqualRes<30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,10,(SetEqualRes<30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                timer("EndHiss",6000)
             }
         }elseif(!IncreaseLocoBrake & !DecreaseLocoBrake & LBQ){
             LBQ = 0
@@ -838,16 +861,16 @@ if(clk("clk")){
             SetLocoBrakeNotch--
             if((SetLocoBrakeNotch<=0) & (SetLocoBrakePressure>0) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,15,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,10,(SetLocoBrakePressure>30) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                timer("EndHiss",6000)
             }
         }elseif(DecreaseLocoBrake & !LBQ & (SetLocoBrakeNotch==0)){
             LBQ = 1
             SetBleeding = 1
             if((SetLocoBrakeNotch<=0) & (SetEqualRes<FeedPressure) & !LHissQ){
                 LHissQ = 1
-                Pod:soundPlay(2,15,(SetEqualRes<60) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
-                timer("EndHiss",10000)
+                Pod:soundPlay(2,10,(SetEqualRes<60) ? LocoBrakeReleaseHard : LocoBrakeReleaseSoft)
+                timer("EndHiss",6000)
             }
         }elseif(!IncreaseLocoBrake & !DecreaseLocoBrake & LBQ){
             LBQ = 0
@@ -890,28 +913,28 @@ if(clk("clk")){
     
     #Reverser
     if(SetReverser==1){
-        Ang = -45
+        CS:setBodygroup(4,1)
     }elseif(SetReverser==-1){
-        Ang = 45
+        CS:setBodygroup(4,2)
     }else{
-        Ang = 0
+        CS:setBodygroup(4,0)
     }
     lever(4,Ang,5)
     
     #Throttle and Notch Wheel
     Ang = 0 - SetThrottle*90/100
-    lever(5,Ang,5)
+    lever3(5,Ang,5)
     
     #Ang = 67.5 - SetThrottle*90/100
     #lever(9,Ang,5)
     
     #Selector and Selector Wheel
     if(SetDynamics>0){
-        Ang = 10 + (SetDynamics-10)*45/90
+        CS:setBodygroup(5,1)
     }elseif(SetSelector==0){
-        Ang = 0
+        CS:setBodygroup(5,0)
     }else{
-        Ang = -30 - SetSelector*10
+        CS:setBodygroup(5,1)
     }
     lever(6,Ang,5)
     
@@ -923,16 +946,16 @@ if(clk("clk")){
     #lever(10,Ang,5)
     
     #Automatic Brake
-    Ang = select(SetBrakeNotch+1, 0, 33.463, 52.032,  64.088, 76.754, 90, 127.636)
+    Ang = select(SetBrakeNotch+1, -180, 33.463-180, 52.032-180,  64.088-180, 76.754-180, -90, 127.636-180)
     local Speed = (SetBrakeNotch==6) ? 15 : 5
     lever(7,Ang,Speed)
     
     #Locomotive Brake
     if(SetBleeding | (LocoBrakePitch!=0)){
-        lever(8,-180,5)
+        lever(8,0,5)
 
     }else{
-        lever(8,-180 + 180*SetLocoBrakePressure/60,15)
+        lever(8,0 + 180*SetLocoBrakePressure/60,15)
     }
     
     #Bell
@@ -963,7 +986,7 @@ if(clk("clk")){
         local Ang2a = Ang2:rotateAroundAxis(Ang2:right(),-90)
         
         #holoCreate(6,linpos(Hpos1,Hpos3,0.5),vec(0.25,0.25,(Length1/60)),Ang1a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
-        #holoCreate(7,linpos(Hpos2,Hpos3,0.5),vec(0.25,0.25,(Length2/60)),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
+        #holoCreate(7,linpos(Hpos2,Hpos3,0.5),vec(0.25,0.25,(Length2/60)    ),Ang2a,vec(255,225,127),"models/sprops/cylinders/size_1/cylinder_1_5x60.mdl")
         holoScale(1,vec(0.125,0.125,(Length1/60)))
         holoScale(2,vec(0.125,0.125,(Length2/60)))
         holoPos(1,linpos(Hpos1,Hpos3,0.5))
@@ -972,7 +995,20 @@ if(clk("clk")){
         holoAng(1,Ang1a)
         holoAng(2,Ang2a)
     }else{
-        CS:setBodygroup(6,Horn1 ? 2-Quill1 : 0)
+        if(Horn1==0){
+        CS:setBodygroup(3,0)
+      }
+        else{
+        CS:setBodygroup(3,1)
+      }
+    
+            if(Horn2==0){
+        CS:setBodygroup(2,0)
+      }
+        else{
+        CS:setBodygroup(2,1)
+      }
+    
     }
     #Horn 2 Unused
     #CS:setBodygroup(1,MU_Master ? SetReverser+2 : 0)

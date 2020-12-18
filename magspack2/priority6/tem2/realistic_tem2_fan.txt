@@ -62,11 +62,11 @@ if(clk()){
     # Control system logic
     # roof shutter
     if(Temperature<10){ 
-        if(Shutter == 1){ Loco:soundPlay(2,5,"gsgtrainsounds/misc/shutters_open_02.wav") }
+        if(Shutter == 1){ Loco:soundPlay(2,5,"priority's sounds/tem2/shutters_close.wav") }
         Shutter = 0 
     }
     elseif(Temperature>25){ # 132 degrees
-        if(Shutter == 0){ Loco:soundPlay(2,5,"gsgtrainsounds/misc/shutters_open_02.wav") }
+        if(Shutter == 0){ Loco:soundPlay(2,5,"priority's sounds/tem2/shutters_open.wav") }
         Shutter = 1
     }
     # fan and shutter turn off
