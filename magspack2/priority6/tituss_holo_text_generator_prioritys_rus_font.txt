@@ -2,10 +2,10 @@
 @inputs Num:string
 @persist
 
-Position = 0,0,0
-Angle = 0,0,0
-Color = 36
-Scale = 1
+Position = vec(0,0,0)
+Angle = ang(0,0,0)
+Color = vec(255)
+Scale = vec(1,1,1)
 
 Text = "abcdefghiklmnoprstuvz':,!-%.?;~_0123456789CHEI{}STARUZLDGJ/NOFYPV<>*"+Num
 #Valid Characters:
@@ -225,7 +225,7 @@ if(first()){
         }
     }
     
-    textDraw(1,Text,"prioritys materials/rus_font/",entity(),vec(Position),ang(Angle),vec(Color),vec(Scale)*2,18,"center",array()) # If you dont understand this functions inputs, refer to line: 12.
+    textDraw(1,Text,"prioritys materials/rus_font/",entity(),Position,Angle,Color,Scale*2,18,"center",array()) # If you dont understand this functions inputs, refer to line: 12.
 }
 
 if(~Num){reset()}

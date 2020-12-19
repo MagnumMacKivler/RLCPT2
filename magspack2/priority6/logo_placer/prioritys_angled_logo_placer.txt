@@ -4,10 +4,9 @@
 if(first()|dupefinished()){
 
 Logo = "cubics_pack/logos/real/bn/bn_nose_stripe" 
-Color = 255 #Color of Logo
+Color = vec(36) #Color of Logo
 Transparency = 255 #Changes transparency  of Logo (255 is Max, 0 is invisible)
-ScaleX = 1 #Scale in the X-Axis
-ScaleY = 1 #Scale in the Y-axis
+Scale = vec(1,1,1) #Scale of Logo
 PosY = 0 #Controls Distance between each logo
 PosX = 0 #Direction of logo on X direction
 PosZ = 0 #Placement of logo on Z Dirextion
@@ -22,9 +21,9 @@ holoParent(A, entity())
 holoModel(A, "plane")
 holoPos(A,entity():toWorld(vec(PosX,PosY,PosZ))) 
 holoAng(A, entity():toWorld(ang(-X,-Y,-Z))) 
-holoScale(A, vec(ScaleX,ScaleY,1)) 
+holoScale(A,Scale) 
 holoMaterial(A,Logo) 
-holoColor(A, vec(Color))
+holoColor(A,Color)
 holoAlpha(A,Transparency)
 holoClipEnabled(A,1,1)
 holoClip(A,1, vec(0,0,0), vec(0,1,0), 0)
@@ -35,9 +34,9 @@ holoParent(A, entity())
 holoModel(A, "plane")
 holoPos(A,entity():toWorld(vec(PosX,-PosY,PosZ))) 
 holoAng(A, entity():toWorld(ang(X,Y,Z))) 
-holoScale(A, vec(ScaleX,ScaleY,1)) 
+holoScale(A,Scale) 
 holoMaterial(A,Logo) 
-holoColor(A, vec(Color))
+holoColor(A,Color)
 holoAlpha(A,Transparency)
 holoClipEnabled(A,1,1)
 holoClip(A,1, vec(0,0,0), vec(0,-1,0), 0)
