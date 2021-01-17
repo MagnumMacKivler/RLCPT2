@@ -1,0 +1,42 @@
+@name Numpad Controlled PT Switches
+@inputs Driver:entity
+@outputs EngineRun GenField BrakeCutIn Pad1 Pad2 Pad3 Pad4 Pad5 Pad6
+@persist EngineRun GenField BrakeCutIn Pad1 Pad2 Pad3 Pad4 Pad5 Pad6
+@trigger 
+
+#uses numpad 7 8 9 for the control stand switches and numpad 1-6 for extra functions
+
+    runOnKeys(Driver,1)
+
+if(first()|dupefinished()){
+    EngineRun = BrakeCutIn = GenField = Pad1 = Pad2 = Pad3 = Pad4 = Pad5 = Pad6 = 0
+}
+
+
+if(changed(Driver:keyPressed("pad_7")) & Driver:keyPressed("pad_7")){
+    EngineRun = !EngineRun
+}
+if(changed(Driver:keyPressed("pad_8")) & Driver:keyPressed("pad_8")){
+    GenField = !GenField
+}
+if(changed(Driver:keyPressed("pad_9")) & Driver:keyPressed("pad_9")){
+    BrakeCutIn = !BrakeCutIn
+}
+if(changed(Driver:keyPressed("pad_1")) & Driver:keyPressed("pad_1")){
+    Pad1 = !Pad1
+}
+if(changed(Driver:keyPressed("pad_2")) & Driver:keyPressed("pad_2")){
+    Pad2 = !Pad2
+}
+if(changed(Driver:keyPressed("pad_3")) & Driver:keyPressed("pad_3")){
+    Pad3 = !Pad3
+}
+if(changed(Driver:keyPressed("pad_4")) & Driver:keyPressed("pad_4")){
+    Pad4 = !Pad4
+}
+if(changed(Driver:keyPressed("pad_5")) & Driver:keyPressed("pad_5")){
+    Pad5 = !Pad5
+}
+if(changed(Driver:keyPressed("pad_6")) & Driver:keyPressed("pad_6")){
+    Pad6 = !Pad6
+}
