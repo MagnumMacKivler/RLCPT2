@@ -73,8 +73,8 @@ StartupClagDuration = 3 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 
-CompressorOn = "gsgtrainsounds/misc/compressors/wabco_2dcb_loop.wav"
-CompressorOff = "gsgtrainsounds/misc/compressors/wabco_2dcb_end.wav"
+CompressorOn = "gsgtrainsounds/misc/compressors/wabco_2cdb_38d-6/wabco_2dcb_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/wabco_2cdb_38d-6/wabco_2dcb_end.wav"
 
 DynamicsOn = "gsgtrainsounds/misc/ge_dyn_loop.wav"
 DynamicsOff = "gsgtrainsounds/misc/ge_dyn_end.wav"
