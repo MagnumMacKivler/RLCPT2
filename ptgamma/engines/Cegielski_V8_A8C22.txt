@@ -24,6 +24,7 @@ NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
 
 Notches = array(                                  #Sounds used for each Notch
     "gsgtrainsounds/cegielskia8c22v8/idle_notch1.wav",
+    "gsgtrainsounds/cegielskia8c22v8/idle_notch1.wav",
     "gsgtrainsounds/cegielskia8c22v8/notch2.wav",
     "gsgtrainsounds/cegielskia8c22v8/notch3.wav",
     "gsgtrainsounds/cegielskia8c22v8/notch4.wav",
@@ -35,7 +36,7 @@ Notches = array(                                  #Sounds used for each Notch
 
 TransitionPath = "gsgtrainsounds/cegielskia8c22v8/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
-EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
+EngineBehavior = array(3,  1,  1,  1,  1,  1,  1,  1)
 #0 - A/B Notching
 #1 - Full Sweep
 #2 - Instant Change
@@ -73,8 +74,8 @@ StartupClagDuration = 2 #Duration for starter smoke
 
 CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 
-CompressorOn = "gsgtrainsounds/misc/compressors/wabco_2dcb_loop.wav"
-CompressorOff = "gsgtrainsounds/misc/compressors/wabco_2dcb_end.wav"
+CompressorOn = "gsgtrainsounds/misc/compressors/gd_wbo_loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/gd_wbo_end.wav"
 
 DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav"
 DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
@@ -82,7 +83,7 @@ DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 PrimeOn = "gsgtrainsounds/cegielskia8c22v8/prime_loop.wav"
 PrimeOff = "gsgtrainsounds/cegielskia8c22v8/prime_end.wav"
 
-PrimerDuration = randint(10,15)
+PrimerDuration = randint(5,10)
 
 SoundDurations = table()
 SoundDurations["gsgtrainsounds/cegielskia8c22v8/transitions/up/1-2.wav",number] = 2260
@@ -101,4 +102,3 @@ SoundDurations["gsgtrainsounds/cegielskia8c22v8/transitions/down/7-6.wav",number
 SoundDurations["gsgtrainsounds/cegielskia8c22v8/transitions/down/8-7.wav",number] = 2940
 SoundDurations["gsgtrainsounds/cegielskia8c22v8/startup.wav",number] = 12600
 SoundDurations["gsgtrainsounds/cegielskia8c22v8/shutdown.wav",number] = 19020
-
