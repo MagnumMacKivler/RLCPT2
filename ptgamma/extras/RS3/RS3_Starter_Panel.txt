@@ -1,8 +1,8 @@
-@name RS3 Starter Panel
-@inputs Start UnlockEC ThirdPerson NextWeapon PrevWeapon Pod:entity
+@name ptgamma/extras/RS3/RS3 Starter Panel
+@inputs Start Prime Primed UnlockEC ThirdPerson NextWeapon PrevWeapon Pod:entity
 @outputs Start1 Shutdown1 Isolation1 EC_Clamp IsLookingAt EC_Position Driver:entity
-@persist Driver:entity Radius EC_Position [EC_Switch Starter_On Starter_Off]:string W:entity SQ
-@trigger NextWeapon PrevWeapon Start
+@persist Driver:entity Radius EC_Position [EC_Switch Starter_On Starter_Off AlarmOn AlarmOff]:string W:entity SQ AlarmQ
+@trigger NextWeapon PrevWeapon Start Primed1
 
 if(first()|dupefinished()){
     #Wire UnlockEC to one of three outputs:
@@ -16,6 +16,8 @@ if(first()|dupefinished()){
     Starter_On = "monkssounds/buttons/heavy buttons/heavybutton20_push.wav"
     Starter_Off = "monkssounds/buttons/heavy buttons/heavybutton20_release.wav"
     
+    AlarmOn = "gsgtrainsounds/misc/cab/alarmbell2_loop.wav"
+    AlarmOff = "gsgtrainsounds/misc/cab/alarmbell2_end.wav"
     
     EC_Position = -1
     
@@ -31,16 +33,16 @@ if(first()|dupefinished()){
     }
 
     Color1 = vec(255,0,0)
-
-    holoCreate(1,W:toWorld(vec(-31.25,102.125,75)), vec(0.75), W:toWorld(ang(90,0,-90)), Color1, "plane")
+    #-28+0.125,103.625,72.75
+    holoCreate(1,W:toWorld(vec(-28+0.125,103.625,72.75)), vec(0.6), W:toWorld(ang(90,0,-90)), Color1, "plane")
     holoParent(1,E)
     holoMaterial(1,"models/proppertextures/alco_rs3_starter")
     
-    holoCreate(2,W:toWorld(vec(-31.25,102,73.125)), vec(1), W:toWorld(ang(0,0,0)), Color1, "models/flak/part/misc/startswitch.mdl")
+    holoCreate(2,W:toWorld(vec(-28+0.125,103.5,72-0.125)), vec(1*(6/7)), W:toWorld(ang(0,0,0)), Color1, "models/flak/part/misc/startswitch.mdl")
     holoParent(2,E)
     
     local Angle = select(EC_Position+2,90,55,13,-12,-37,-59)
-    holoCreate(3,W:toWorld(vec(-31.25,102,77.25)), vec(1), W:toWorld(ang(Angle,0,0)), Color1, "models/flak/part/misc/knobswitch.mdl")
+    holoCreate(3,W:toWorld(vec(-28+0.125,103.5,74.5)), vec(1*(6/7)), W:toWorld(ang(Angle,0,0)), Color1, "models/flak/part/misc/knobswitch.mdl")
     holoParent(3,E) 
     
     timer("clk",100)
@@ -89,4 +91,12 @@ if(Start & !SQ){
     Start1 = 0
     soundPlay(0,0.5,Starter_Off)
     holoAng(2,W:toWorld(ang(0,0,0)))
+}
+#Low fuel pressure alarm
+if(Prime & !Primed & !AlarmQ){
+    AlarmQ = 1
+    soundPlay(1,0,AlarmOn)
+}elseif(AlarmQ & (!Prime | Primed)){
+    AlarmQ = 0
+    soundPlay(1,1,AlarmOff)
 }
