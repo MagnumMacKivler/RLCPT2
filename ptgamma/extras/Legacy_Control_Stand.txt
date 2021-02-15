@@ -4,7 +4,7 @@
 @outputs Bell Light Misc CONSTANT Reverser Notch DynaNotch EqualRes TB_Notch LB_Notch
 @persist CS:entity DisableHorn Type AirBrakeType LocoBrakeType DynamicsType DS:array RLCPTW:wirelink
 @trigger 
-#Beta v2.9
+#Beta v2.10 - Fixed wiremod breaking clk() when not provided an argument
 #Compatible with RLC PT 2.0.61-63
 #If you're using a normal prop instead of letting the E2 do all the work, comment out one of these lines:
 #@model models/magtrainslocos/controlstands/stand_f7.mdl
@@ -110,6 +110,7 @@ if(~Override){
     }
 }
 if(MU_Master & (Type) & clk("clk")){
+    #soundPlay(0,0,"ambient/alarms/klaxon1.wav")
     Reverser = CtlTable["SetReverser",number]
     Notch = adc(0,100,8,CtlTable["SetThrottle",number])
     local Dyn = CtlTable["SetDynamics",number]
@@ -223,10 +224,10 @@ if(MU_Master & (Type) & clk("clk")){
         setName(Line1+Line2+Line3+Line4+Line5+Line6)
     }
     
-        timer("clk",100)
+    timer("clk",100)
     
-}elseif(clk()){
-    
+}elseif(clk("clk")){
+    #soundPlay(0,0,"ambient/alarms/warningbell1.wav")
     CS:setBodygroup(1,0)#Reverser
     CS:setBodygroup(2,1)#Throttle
     CS:setBodygroup(3,1)#Dynamics
