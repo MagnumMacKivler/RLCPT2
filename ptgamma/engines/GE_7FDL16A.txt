@@ -1,0 +1,120 @@
+@name ptgamma/engines/GE_7FDL16A
+#ENGINE CONFIG
+ENG_Version = "2.0.67"
+#Early unsilenced FDL engine. Used in the U25. Also perfect for unsilenced universals.
+EngineType = "GE 7FDL16A" #What is the name of the Prime Mover?
+
+Startup_Hi = "lazpack/gefdl16a/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "lazpack/gefdl16a/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "lazpack/gefdl16a/idle.wav", #Idle 
+    "lazpack/gefdl16a/notch1.wav", #Notch 1
+    "lazpack/gefdl16a/notch2.wav", #Notch 2
+    "lazpack/gefdl16a/notch3.wav", #Notch 3
+    "lazpack/gefdl16a/notch4.wav", #And so On
+    "lazpack/gefdl16a/notch5.wav",
+    "lazpack/gefdl16a/notch6.wav",
+    "lazpack/gefdl16a/notch7.wav",
+    "lazpack/gefdl16a/notch8.wav"
+)
+
+TransitionPath = "lazpack/gefdl16a/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(1789,2259,3604,2911,2911,4386,2649,3632) 
+                  #8-7  7-6  6-5  5-4  4-3  3-2  2-1 1-0
+DownDelays = array(2438,2451,2916,2566,2714,2626,3345,1779)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 1.504 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 1 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "lazpack/misc/compressors/gardner-denver_wbo_u25b/gd_wbo_loop.wav"
+CompressorOff = "lazpack/misc/compressors/gardner-denver_wbo_u25b/gd_wbo_end.wav"
+
+DynamicsOn = "lazpack/misc/dynamics_ge_universal_early_loop.wav"
+DynamicsOff = "lazpack/misc/dynamics_ge_universal_early_end.wav"
+
+PrimeOn = "lazpack/gefdl16a/prime_loop.wav"
+PrimeOff = "lazpack/gefdl16a/prime_end.wav"
+
+PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["lazpack/gefdl16a/transitions/up/0-1.wav",number] = 1790
+SoundDurations["lazpack/gefdl16a/transitions/up/1-2a.wav",number] = 1080
+SoundDurations["lazpack/gefdl16a/transitions/up/1-2b.wav",number] = 6660
+SoundDurations["lazpack/gefdl16a/transitions/up/2-3a.wav",number] = 950
+SoundDurations["lazpack/gefdl16a/transitions/up/2-3b.wav",number] = 5490
+SoundDurations["lazpack/gefdl16a/transitions/up/3-4a.wav",number] = 580
+SoundDurations["lazpack/gefdl16a/transitions/up/3-4b.wav",number] = 6240
+SoundDurations["lazpack/gefdl16a/transitions/up/4-5a.wav",number] = 760
+SoundDurations["lazpack/gefdl16a/transitions/up/4-5b.wav",number] = 5250
+SoundDurations["lazpack/gefdl16a/transitions/up/5-6a.wav",number] = 900
+SoundDurations["lazpack/gefdl16a/transitions/up/5-6b.wav",number] = 5420
+SoundDurations["lazpack/gefdl16a/transitions/up/6-7a.wav",number] = 1290
+SoundDurations["lazpack/gefdl16a/transitions/up/6-7b.wav",number] = 5350
+SoundDurations["lazpack/gefdl16a/transitions/up/7-8a.wav",number] = 1170
+SoundDurations["lazpack/gefdl16a/transitions/up/7-8b.wav",number] = 6200
+SoundDurations["lazpack/gefdl16a/transitions/down/1-0.wav",number] = 1780
+SoundDurations["lazpack/gefdl16a/transitions/down/2-1a.wav",number] = 770
+SoundDurations["lazpack/gefdl16a/transitions/down/2-1b.wav",number] = 7840
+SoundDurations["lazpack/gefdl16a/transitions/down/3-2a.wav",number] = 1010
+SoundDurations["lazpack/gefdl16a/transitions/down/3-2b.wav",number] = 4320
+SoundDurations["lazpack/gefdl16a/transitions/down/4-3a.wav",number] = 650
+SoundDurations["lazpack/gefdl16a/transitions/down/4-3b.wav",number] = 3850
+SoundDurations["lazpack/gefdl16a/transitions/down/5-4a.wav",number] = 680
+SoundDurations["lazpack/gefdl16a/transitions/down/5-4b.wav",number] = 3600
+SoundDurations["lazpack/gefdl16a/transitions/down/6-5a.wav",number] = 490
+SoundDurations["lazpack/gefdl16a/transitions/down/6-5b.wav",number] = 4110
+SoundDurations["lazpack/gefdl16a/transitions/down/7-6a.wav",number] = 640
+SoundDurations["lazpack/gefdl16a/transitions/down/7-6b.wav",number] = 3750
+SoundDurations["lazpack/gefdl16a/transitions/down/8-7a.wav",number] = 350
+SoundDurations["lazpack/gefdl16a/transitions/down/8-7b.wav",number] = 3830
+SoundDurations["lazpack/gefdl16a/startup.wav",number] = 10190
+SoundDurations["lazpack/gefdl16a/shutdown.wav",number] = 10410
