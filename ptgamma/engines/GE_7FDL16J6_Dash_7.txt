@@ -1,7 +1,7 @@
 @name ptgamma/engines/GE_7FDL16J6_Dash_7
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
-#J series FDL 16 engine. Accurate for very late C36-7s.
+#J series FDL 16 engine without Dash 8 features. Accurate for very late C36-7s.
 EngineType = "GE 7FDL16J6" #What is the name of the Prime Mover?
 
 Startup_Hi = "lazpack/gefdl16j6/startup_high.wav" #Startup Sound to put the engine in High (Normal) Idle.
@@ -77,8 +77,8 @@ CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 CompressorOn = "lazpack/misc/compressors/wabco_3cdcbl_c39-8/wabco_3cdcbl_loop.wav"
 CompressorOff = "lazpack/misc/compressors/wabco_3cdcbl_c39-8/wabco_3cdcbl_end.wav"
 
-DynamicsOn = "lazpack/misc/dynamics_ge_dash7_early_loop.wav"
-DynamicsOff = "lazpack/misc/dynamics_ge_dash7_early_end.wav"
+DynamicsOn = ""
+DynamicsOff = ""
 
 PrimeOn = "lazpack/gefdl16j6/prime_loop.wav"
 PrimeOff = "lazpack/gefdl16j6/prime_end.wav"

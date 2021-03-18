@@ -1,7 +1,7 @@
 @name ptgamma/engines/GE_7FDL16E19
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
-#E series FDL16 with a silenced exhaust. Accurate for 16 cyl Dash 7's.
+#E series FDL16 with a silenced exhaust. Accurate for early 16 cyl Dash 7's without CHEC excitation.
 EngineType = "GE 7FDL16E19" #What is the name of the Prime Mover?
 
 Startup_Hi = "lazpack/gefdl16e19/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
@@ -77,8 +77,8 @@ CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 CompressorOn = "lazpack/misc/compressors/gardner-denver_wbo_b23-7/gd_wbo_loop.wav"
 CompressorOff = "lazpack/misc/compressors/gardner-denver_wbo_b23-7/gd_wbo_end.wav"
 
-DynamicsOn = "lazpack/misc/dynamics_ge_dash7_early_loop.wav"
-DynamicsOff = "lazpack/misc/dynamics_ge_dash7_early_end.wav"
+DynamicsOn = ""
+DynamicsOff = ""
 
 PrimeOn = "lazpack/gefdl16e19/prime_loop.wav"
 PrimeOff = "lazpack/gefdl16e19/prime_end.wav"

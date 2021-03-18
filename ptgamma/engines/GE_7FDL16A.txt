@@ -77,8 +77,8 @@ CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
 CompressorOn = "lazpack/misc/compressors/gardner-denver_wbo_u25b/gd_wbo_loop.wav"
 CompressorOff = "lazpack/misc/compressors/gardner-denver_wbo_u25b/gd_wbo_end.wav"
 
-DynamicsOn = "lazpack/misc/dynamics_ge_universal_early_loop.wav"
-DynamicsOff = "lazpack/misc/dynamics_ge_universal_early_end.wav"
+DynamicsOn = ""
+DynamicsOff = ""
 
 PrimeOn = "lazpack/gefdl16a/prime_loop.wav"
 PrimeOff = "lazpack/gefdl16a/prime_end.wav"
