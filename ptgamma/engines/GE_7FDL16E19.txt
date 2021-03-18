@@ -1,7 +1,7 @@
 @name ptgamma/engines/GE_7FDL16E19
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
-#E series FDL16 with a silenced exhaust. Accurate for early 16 cyl Dash 7's without CHEC excitation.
+#E series FDL16 with a silenced exhaust. First found in the U33C. Superceeded by the FDL16F when the U36 was released. 
 EngineType = "GE 7FDL16E19" #What is the name of the Prime Mover?
 
 Startup_Hi = "lazpack/gefdl16e19/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
