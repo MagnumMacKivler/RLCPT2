@@ -1,0 +1,236 @@
+@name Anyone's Bell E2
+@inputs Bell Cordparent1:entity Cordparent2:entity 
+@outputs BellAng ClapperAng Fade Sound:string
+@persist E:entity MaxAng Speed BellAng Fade FadeoutTime ClapperAng Sound:string Pitch PitchVariation Volume SoundLevel EnablePullCord #[Direction Slack]# BO BN RopeWidth DisableCord2
+#@model models/freight/bellmount_bottom.mdl
+
+#made by Anyone999991
+
+#[-Required Addons:
+    -Steam Locomotive Parts Pack    |   https://steamcommunity.com/sharedfiles/filedetails/?id=2205061794
+    -Daylight106's Pack             |   https://steamcommunity.com/sharedfiles/filedetails/?id=717695559
+    -Anyone's Trainbuild Models     |   https://steamcommunity.com/sharedfiles/filedetails/?id=1839466548
+    -Prop2Mesh                      |   https://steamcommunity.com/sharedfiles/filedetails/?id=2458909924
+    
+    -Scott's Train Sounds (Only for the default sound, I dont know which one, he has like 5 sound packs, just change the sound if you can't hear it) 
+
+
+---Stuff this E2 does:
+    -Does not use looped sounds, that means you need a sound clip of the bell ringing once.
+    -Sound plays whenever the clapper hits the bell side. That means the sound and the animation are synced.
+    -Sound has an option for pitch variation. This changes the pitch every time the clapper hits. Use small values. Set to 0 by default.
+    -SoundLevel option. If the soundLevel is set to 0, or the server doesn't support the soundLevel function, it will be disabled (the e2 will still work).
+    -Fadein/-out, the bell doesnt instantly reach maximum velocity. It starts swinging slowly, and swings a little bit after releasing the bell key. You can configure the fade time.
+    -Adjustable angle and speed. You can change the maximum angle of the bell (yes it can go round in circles) and the speed of the bell.
+    -NO calculations when the bell is stationary. After it stops swinging, ops go to 0.
+    -Bell cord which follows a wired entity. (cord only moves when bell swings, so if you move the parent entity, refresh the bell or ring it once.
+    -In-Cab section of the bell cord. Uses the other cord parent entity. Does not move. Movement can be enabled below, but its off by default because it looks like shit.
+    
+    --Scroll down for the config--
+]#
+
+#if you want to see the bottom bell mount, uncomment the 5th line (the @model...) line.
+
+#IMPORTANT: As stated above, this E2 does not use looped bell sounds. The sound specified in the config is played every time the clapper hits the side of the bell. Using a looped sound may cause hilarious (or sad) results
+
+
+if(first()){
+
+#---------------Config
+
+#materials and colors
+
+MainMaterial = "models/proppertextures/enamel_black"    #Material of the top of the bell mount.
+BellMaterial = "models/proppertextures/brass"           #Material of the bell (duh).
+ClapperMaterial = "models/proppertextures/brass"        #Material of the clapper (or "ringer", "hammer", whatever you want to call it).
+RopeMaterial = "models/proppertextures/enamel_black"    #if you remove this material, the rope will look like the default gmod rope.
+
+MainColor = vec(255)
+BellColor = vec(255)
+ClapperColor = vec(255)
+RopeColor = vec(255)
+
+#techical stuff
+
+EnablePullCord = 1 #enable pull cord (Requires AT LEAST "Cordparent1" to be wired, Increases holo count by 2, if you wire both Cordparents it increases by 3)
+DisableCord2 = 1 #disable the movement of the in-cab cord, because it looks like shit.
+RopeWidth = 1.5 #rope width/diameter in source units (increases slack due to the nature of the rope model) -Default: 2
+
+MaxAng = 90    #max angle of the bell in each direction -Default: 90
+Speed = 160   #speed of the bell (relative to max angle) -Default: 160
+FadeoutTime = 3   #time it takes for the bell to stop swinging  -Default: 3
+
+Sound = "scotttrains/bells/prr_steambell_end.wav" #sound of the bell. THIS MUST BE A SINGLE BELL RING SOUND, NOT A CONTINUOS LOOP!!!! -Default: "scotttrains/bells/prr_steambell_end.wav"
+Pitch = 100   #pitch of the bell. -Default 100.
+PitchVariation = 0 #random pitch variation, if you want it. Set this to a large number for funny results. -Default: 1
+Volume = 1  #bell volume. 0 = 0%, 1 = 100%  -Default: 1
+SoundLevel = 0  #soundlevel, set to 0 to disable it. (the e2 will still work on servers which don't support soundlevel()) If you use this and get yelled at, it's not my fault. -Default: 0
+
+
+#---------------End of Config
+
+
+
+
+
+#dont touch below unless you know what you're doing.
+
+
+#[cord function (unused because it was causing errors)
+function void cord() {
+    
+    holoAng(4,-heading(holoEntity(4):pos(),ang(),Cordparent1:pos()))
+    #holoPos(5,holoEntity(4):toWorld(vec( (holoEntity(4):pos():distance(Cordparent1:pos()))/2 ,0,0)))
+    holoPos(5,holoEntity(4):pos()+((Cordparent1:pos()-holoEntity(4):pos())/2))
+    holoScale(5,vec( RopeWidth , (holoEntity(4):pos():distance(Cordparent1:pos()))/120 , RopeWidth #1+clamp((BN*Direction)/(Speed*0.1)*0.5,-0.25,0.5) ))
+    
+    #holoPos(6,holoEntity(5):pos()-vec(0,0, Slack+((BN*Direction)/(Speed*0.1))*2 ))
+    
+    if(Cordparent2){
+        
+        holoScale(7,vec(RopeWidth,(Cordparent1:pos():distance(Cordparent2:pos()))/120, RopeWidth + (DisableCord2 ? 0 : (Bell ? RopeWidth * (BN>=0 ? 0.25 : -0.25) : 0)) #RopeWidth*clamp((BN)/Speed,-0.75,0.75)))
+        
+    }
+}
+]#
+
+#Mount
+
+A=1
+E=entity()
+holoCreate(A,E:pos()+vec(0,0,15),vec(1),E:angles(),MainColor,"models/freight/bellmount_top.mdl")
+holoParent(A,E)
+holoMaterial(A,MainMaterial)
+
+#Bell
+
+P2M=p2mCreate(1,E:pos()+vec(0,0,15+1.7),E:angles())
+P2M:p2mSetParent(holoEntity(1))
+P2M:p2mSetColor(1,BellColor)
+P2M:p2mSetMaterial(1,BellMaterial)
+
+P2M:p2mPushModel(1,"models/anytrains/props/detail/12in_emd_bell_brass.mdl",vec(),ang(),vec(1.25),0,0,1)
+P2M:p2mPushModel(1,"models/zexciv_train_stuff/misc/details/radius_bar.mdl",array(1),vec(),ang(),vec(1,1.5,1),0,0,1,array(vec(0,0,1.25),vec(0,0,-1)))
+
+P2M:p2mBuild()
+
+#Clapper
+
+A=3
+holoCreate(A,E:pos()+vec(0,0,15+1.7),vec(1.25),E:angles(),ClapperColor,"models/anytrains/props/detail/gong_horizontal.mdl")
+holoParent(A,1)
+holoMaterial(A,ClapperMaterial)
+
+if(EnablePullCord){
+
+#pullcord parent bell
+
+A=4
+holoCreate(A,E:toWorld(vec(0,-13.875,24)),vec(0.1,0.1,0.1),E:angles(),vec(255),"models/holograms/cube.mdl")
+holoParent(A,1)
+holoAlpha(A,0)
+
+A=5
+holoCreate(A,E:pos(),vec(1,1,1),holoEntity(4):toWorld(ang(0,90,0)),RopeColor,"models/anytrains/props/detail/rope_120.mdl")
+holoParent(A,4)
+holoMaterial(A,RopeMaterial)
+
+#A=6
+#holoCreate(A,E:toWorld(vec(0,-13.875,24)),vec(0.1,0.1,0.1),E:angles(),vec(255),"models/holograms/cube.mdl")
+#holoParent(A,E)
+
+    if(Cordparent2){    #in-cab pullcord
+        A=7
+        holoCreate(A,E:pos(),vec(1,1,1),E:angles(),RopeColor,"models/anytrains/props/detail/rope_120.mdl")
+        holoParent(A,Cordparent1)
+        holoMaterial(A,RopeMaterial)
+        
+        holoPos(7,Cordparent1:pos()-(Cordparent1:pos()-Cordparent2:pos())/2)
+        holoAng(7,ang((heading(Cordparent1:pos(),ang(0,0,0),Cordparent2:pos())):roll(), -(heading(Cordparent1:pos(),ang(0,0,0),Cordparent2:pos())):yaw()+90, -(heading(Cordparent1:pos(),ang(0,0,0),Cordparent2:pos())):pitch()))
+        
+    }
+
+}
+
+#cord()
+}
+
+#bell angle stuff, fadein/fadeout
+
+if(Bell & Fade<1 ){
+    interval(100)
+
+    Fade = Fade + 0.25
+    Sin = sin(curtime() * Speed) * MaxAng * Fade
+
+}elseif(Bell & Fade>=1 ){
+    interval(100)
+
+    Sin = sin(curtime() * Speed) * MaxAng
+    Fade = 1
+
+}elseif(!Bell & Fade>0 ){
+    interval(100)
+
+    Fade = Fade - (1/FadeoutTime)/10
+    Sin = sin(curtime() * Speed) * MaxAng * Fade
+    
+}
+BellAng = Sin
+ClapperAng = clamp(-Sin*0.4,-28,28) #stop the clapper going through the bell
+
+
+#sound stuff, sound plays when clapper hits side of the bell
+
+if(changed(ClapperAng) & (ClapperAng == 28 | ClapperAng == -28)){
+    
+   
+    E:soundPlay(0,0,Sound)
+    soundPitch(0,Pitch+randint(-PitchVariation,PitchVariation))
+    soundVolume(0,Volume)
+    
+    if(SoundLevel>0){
+        #ifdef soundLevel(number, number)
+            soundLevel(0,SoundLevel)
+        #endif
+    }
+}
+
+#setting the actual holo angles
+
+holoAng(1,E:toWorld(ang(BellAng,0,0)))
+holoAng(3,holoEntity(1):toWorld(ang(ClapperAng,0,0)))
+
+#cord stuff
+
+if(EnablePullCord){
+    
+    BN = BellAng-BO   #check which way bell is going
+    BO = BellAng    #get old bell ang for above code
+    
+    holoAng(4,-heading(holoEntity(4):pos(),ang(),Cordparent1:pos()))
+    #holoPos(5,holoEntity(4):toWorld(vec( (holoEntity(4):pos():distance(Cordparent1:pos()))/2 ,0,0)))
+    holoPos(5,holoEntity(4):pos()+((Cordparent1:pos()-holoEntity(4):pos())/2))
+    holoScale(5,vec( RopeWidth , (holoEntity(4):pos():distance(Cordparent1:pos()))/120 , RopeWidth #[1+clamp((BN*Direction)/(Speed*0.1)*0.5,-0.25,0.5)]# ))
+    
+    #holoPos(6,holoEntity(5):pos()-vec(0,0, Slack+((BN*Direction)/(Speed*0.1))*2 ))
+    
+    if(Cordparent2){
+        
+        holoScale(7,vec(RopeWidth,(Cordparent1:pos():distance(Cordparent2:pos()))/120, RopeWidth + (DisableCord2 ? 0 : (Bell ? RopeWidth * (BN>=0 ? 0.25 : -0.25) : 0)) #[RopeWidth*clamp((BN)/Speed,-0.75,0.75)]#))
+        
+    }
+    
+    #cord() #function which does the above code. dont use this its fucked up.
+    
+}
+
+if(dupefinished()){
+    reset()
+}
+
+
+
+
+
+
