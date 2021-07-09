@@ -1,0 +1,1799 @@
+@name Magnums Intermodal Randomizer (NOW FEATURING Patman's Texture Tune-Up)
+@inputs Units:array
+@outputs Flat89s:array
+@persist O:entity Automatic CarLength Brackets [BaseChance Flat89TypeChance Flat89Chance TwentyChance FortyChance FortyEightChance FiftyThreeChance SkinOverride SubmatGroups SubmatMap ExtraSkins]:table
+@persist Height BaseSum Flat89TypeSum Flat89Sum TwentySum FortySum FortyEightSum FiftyThreeSum [Bottoms Bottoms2 Wells Flat89s FlatType F89L1]:array H Iteration E:entity ShortOverLongChance TripleHitchChance
+@trigger none
+
+#Note: Make Rear-Center Trailer Wheel more likely
+#Note: Randomize Intermodal Tanker DOT Placards
+
+#V1.10
+#Instructions:
+#1- Configure Settings Below
+#2- Place onto a wellcar (and create an Adv. Entity Marker if Automatic mode is not used!)
+#(3)- Link the Adv. Entity Marker to all the well cars in the consist and Wire Units[ARRAY] to the Adv. Entity Marker
+#(4) - Reload the E2 or type .randomize
+if(first()|dupefinished()){
+    runOnChat(1)
+    O = owner()
+    function void holoSkinEx(Index, SkinID, Model:string){}
+}
+if(first() | dupefinished() | clk("reload")){
+    
+    Automatic = 1 #If set to 1, will automatically generate containers on all wellcars in the consist, if 0, uses Entity Marker to manually mark cars.
+    
+    CarLength = 40 #Nominal length of your container cars (40, 48, 53). This is ignored if "Automatic" is set!
+    Brackets = 0 #Is it that one bracketed wellcar (wellcar_40b)?
+    
+    BaseChance = table() #Ignore
+    Flat89TypeChance = table()
+    Flat89Chance = table()
+    TwentyChance = table()
+    FortyChance = table()
+    FortyEightChance = table()
+    FiftyThreeChance = table()
+    SkinOverride = table()
+    
+    #Container Length Probability Distributions. Each number represents the likelihood of picking a particular car length.
+    #Actual Probability depends on the total sum of the numbers below. ("Marbles in a bag...")
+    
+    BaseChance["Empty",number] = 0
+    BaseChance["1x20",number] = 0
+    BaseChance["2x20",number] = 7
+    BaseChance["40",number] = 8
+    BaseChance["45",number] = 5
+    BaseChance["48",number] = 1
+    BaseChance["53",number] = 8
+    
+    #Car Type Probabilities for 89' Flatcars
+    
+    Flat89TypeChance["240",number] = 1
+    Flat89TypeChance["240C",number] = 2
+    Flat89TypeChance["245",number] = 4
+    Flat89TypeChance["245C",number] = 4
+    Flat89TypeChance["328",number] = 2
+    Flat89TypeChance["328C",number] = 4
+    Flat89TypeChance["C",number] = 2 
+    
+    #Load Probabilities for 89' Flatcars
+    
+    Flat89Chance["Empty",number] = 0
+    Flat89Chance["1x20",number] = 0
+    Flat89Chance["2x20",number] = 4
+    Flat89Chance["1x40",number] = 4
+    Flat89Chance["48T",number] = 0
+    Flat89Chance["53T",number] = 0
+    
+    #Individual Container Types, works the same as the Length Probability Config
+    
+    #20'
+    TwentyChance["Dryvan",number] = 30
+    TwentyChance["Opentop",number] = 1
+    TwentyChance["Flatrack",number] = 1
+    TwentyChance["Drybulk",number] = 2
+    TwentyChance["Tanker",number] = 4
+    #40'
+    FortyChance["Dryvan",number] = 20
+    FortyChance["Hicube",number] = 15
+    FortyChance["Opentop",number] = 1
+    FortyChance["Flatrack",number] = 1
+    #48'
+    FortyEightChance["Ribbed",number] = 6
+    FortyEightChance["Smooth",number] = 1
+    #53'
+    FiftyThreeChance["Ribbed",number] = 17
+    FiftyThreeChance["Smooth",number] = 1
+    
+    #Skin Overrides: Set to 0 to pick a random skin, otherwise forces the skin of all containers of that type to the specified number.
+    
+    SkinOverride["models/magtrains/intermodal/container_20.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_20_opentop.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_40_opentop.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_45_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_48_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_48_hc_smooth.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_53_hc.mdl",number] = 0
+    SkinOverride["models/magtrains/intermodal/container_53_hc_smooth.mdl",number] = 0
+    
+    #Extra Container Skins
+    
+    SubmatGroups = table()
+    ExtraSkins = table()
+    
+    #Each Submat Group has a SkinName, a base material, a 20' material, and a 40'+ material. Multiple Models can reference the same submat group.
+    #SubmatGroups["SkinName",array] = array("base_material", "20_material", "40_material")
+
+    SubmatGroups["abf",array] = array("models/patman/containers/abf_base","","models/patman/containers/abf_40")
+    SubmatGroups["acl",array] = array("models/patman/containers/acl_base","models/patman/containers/acl_20","models/patman/containers/acl_40")
+    SubmatGroups["adu",array] = array("models/patman/containers/adu_base","","models/patman/containers/adu_40")
+    SubmatGroups["alliedwaste",array] = array("models/patman/containers/alliedwaste_base","","models/patman/containers/alliedwaste_40")
+    SubmatGroups["amazonprime",array] = array("models/patman/containers/amazonprime_base","","models/patman/containers/amazonprime_40")
+    SubmatGroups["apl",array] = array("models/patman/containers/apl_base","models/patman/containers/apl_20","models/patman/containers/apl_40")
+    SubmatGroups["axsun",array] = array("models/patman/containers/axsun_base","","models/patman/containers/axsun_40")
+    SubmatGroups["bms",array] = array("models/patman/containers/bms_base","models/patman/containers/bms_20","models/patman/containers/bms_40")
+	SubmatGroups["bmshc",array] = array("models/patman/containers/bms_base","","models/patman/containers/bms_40hc")
+	SubmatGroups["bms40+",array] = array("models/patman/containers/bms_base","","models/patman/containers/bms_40+")
+	SubmatGroups["bn",array] = array("models/patman/containers/bn_base","","models/patman/containers/bn_40")
+    SubmatGroups["bnsf",array] = array("models/patman/containers/bnsf_base","","models/patman/containers/bnsf_40")
+    SubmatGroups["bushnell",array] = array("models/patman/containers/bushnell_base","","models/patman/containers/bushnell_40")
+    SubmatGroups["cai",array] = array("models/patman/containers/cai_base","models/patman/containers/cai_20","models/patman/containers/cai_40")
+    SubmatGroups["capital",array] = array("models/patman/containers/capital_base","models/patman/containers/capital_20","models/patman/containers/capital_40")
+    SubmatGroups["cast",array] = array("models/patman/containers/cast_base","models/patman/containers/cast_20","models/patman/containers/cast_40")
+    SubmatGroups["cdntire",array] = array("models/patman/containers/cdntire_base","","models/patman/containers/cdntire_40")
+    SubmatGroups["charged",array] = array("models/patman/containers/charged_base","","models/patman/containers/charged_40")
+    SubmatGroups["chemso",array] = array("models/patman/containers/chemso_base","","models/patman/containers/chemso_40")
+    SubmatGroups["chrobinson",array] = array("models/patman/containers/chrobinson_base","","models/patman/containers/chrobinson_40")
+    SubmatGroups["cmacgm",array] = array("models/patman/containers/cmacgm_base","models/patman/containers/cmacgm_20","models/patman/containers/cmacgm_40")
+    SubmatGroups["cn",array] = array("models/patman/containers/cn_base","","models/patman/containers/cn_40")
+	SubmatGroups["conrail48",array] = array("models/patman/containers/conrail_48_base","","models/patman/containers/conrail_48")
+    SubmatGroups["conrail53",array] = array("models/patman/containers/conrail_53_base","","models/patman/containers/conrail_53")
+    SubmatGroups["cosco",array] = array("models/patman/containers/cosco_base","models/patman/containers/cosco_20","models/patman/containers/cosco_40")
+    SubmatGroups["cp",array] = array("models/patman/containers/cp_base","","models/patman/containers/cp_40")
+    SubmatGroups["cpships",array] = array("models/patman/containers/cpships_base","models/patman/containers/cpships_20","models/patman/containers/cpships_40")
+    SubmatGroups["cpships2",array] = array("models/patman/containers/cpships_base","models/patman/containers/cpships_20_alt","models/patman/containers/cpships_40_alt")
+    SubmatGroups["crowley",array] = array("models/patman/containers/crowley_base","models/patman/containers/crowley_20","models/patman/containers/crowley_40")
+    SubmatGroups["crowley_53",array] = array("models/patman/containers/crowley_base_53","","models/patman/containers/crowley_53")
+    SubmatGroups["cs",array] = array("models/patman/containers/cs_base","models/patman/containers/cs_20","models/patman/containers/cs_40")
+    SubmatGroups["csx",array] = array("models/patman/containers/csx_base","","models/patman/containers/csx_40")
+    SubmatGroups["csx2",array] = array("models/patman/containers/csx_base_alt","","models/patman/containers/csx_40_alt")
+    SubmatGroups["csxboxcar",array] = array("models/patman/containers/csx_base_boxcar","","models/patman/containers/csx_40_boxcar")
+    SubmatGroups["ctn",array] = array("models/patman/containers/ctn_base","","models/patman/containers/ctn_40")
+    SubmatGroups["dart",array] = array("models/patman/containers/dart_base","","models/patman/containers/dart_40")
+    SubmatGroups["deboer",array] = array("models/patman/containers/deboer_base","","models/patman/containers/deboer_40")
+    SubmatGroups["dhl",array] = array("models/patman/containers/dhl_base","","models/patman/containers/dhl_40")
+    SubmatGroups["dong",array] = array("models/patman/containers/dong_base","models/patman/containers/dong_20","models/patman/containers/dong_40")
+    SubmatGroups["emp",array] = array("models/patman/containers/emp_base","","models/patman/containers/emp_40")
+    SubmatGroups["estes",array] = array("models/patman/containers/estes_base","","models/patman/containers/estes_53")
+    SubmatGroups["fec",array] = array("models/patman/containers/fec_base","","models/patman/containers/fec_40")
+    SubmatGroups["fec2",array] = array("models/patman/containers/fec_base","","models/patman/containers/fec_40_alt")
+    SubmatGroups["fedex",array] = array("models/patman/containers/fedex_base","","models/patman/containers/fedex_40")
+    SubmatGroups["florens",array] = array("models/patman/containers/florens_base","models/patman/containers/florens_20","models/patman/containers/florens_40")
+    SubmatGroups["fxe",array] = array("models/patman/containers/fxe_base","","models/patman/containers/fxe_40")
+	SubmatGroups["geseaco",array] = array("models/patman/containers/geseaco_base","models/patman/containers/geseaco_20","models/patman/containers/geseaco_40")
+    SubmatGroups["gold",array] = array("models/patman/containers/gold_base", "models/patman/containers/gold_20", "models/patman/containers/gold_40")
+	SubmatGroups["hanjin",array] = array("models/patman/containers/hanjin_base","models/patman/containers/hanjin_20","models/patman/containers/hanjin_40")
+    SubmatGroups["hl",array] = array("models/patman/containers/hl_base","models/patman/containers/hl_20","models/patman/containers/hl_40")
+    SubmatGroups["horizon",array] = array("models/patman/containers/horizon_base","","models/patman/containers/horizon_40")
+    SubmatGroups["hs",array] = array("models/patman/containers/hs_base_alt","models/patman/containers/hs_20_alt","models/patman/containers/hs_40_alt")
+    SubmatGroups["hub",array] = array("models/patman/containers/hub_base","","models/patman/containers/hub_40")
+    SubmatGroups["hyundai",array] = array("models/patman/containers/hyundai_base","models/patman/containers/hyundai_20","models/patman/containers/hyundai_40")
+    SubmatGroups["kienhung",array] = array("models/patman/containers/kienhung_base", "models/patman/containers/kienhung_20", "models/patman/containers/kienhung_40")
+	SubmatGroups["kline",array] = array("models/patman/containers/kline_base","models/patman/containers/kline_20","models/patman/containers/kline_40")
+    SubmatGroups["magellan",array] = array("models/patman/containers/magellan_base","models/patman/containers/magellan_20","models/patman/containers/magellan_40")
+	SubmatGroups["marten",array] = array("models/patman/containers/marten_base","","models/patman/containers/marten_40")
+    SubmatGroups["matson",array] = array("models/patman/containers/matson_20n40_base","models/patman/containers/matson_20","models/patman/containers/matson_40")
+    SubmatGroups["matson_53",array] = array("models/patman/containers/matson_53_base","","models/patman/containers/matson_53")
+    SubmatGroups["mol",array] = array("models/patman/containers/mol_base","models/patman/containers/mol_20","models/patman/containers/mol_40")
+    SubmatGroups["mol_new",array] = array("models/patman/containers/mol_base_alt","models/patman/containers/mol_20_alt","models/patman/containers/mol_40_alt")
+    SubmatGroups["msc",array] = array("models/patman/containers/msc_base","models/patman/containers/msc_20","models/patman/containers/msc_40")
+    SubmatGroups["mystic",array] = array("models/patman/containers/mysticrail_base","","models/patman/containers/mysticrail_40")
+	SubmatGroups["mystic2",array] = array("models/patman/containers/mysticrail_base","","models/patman/containers/mysticrail_53")
+	SubmatGroups["nacs",array] = array("models/patman/containers/nacs_base","","models/patman/containers/nacs_40")
+	SubmatGroups["namerail",array] = array("models/patman/containers/nacs_base","models/patman/containers/namerail_20","")
+	SubmatGroups["nfi",array] = array("models/patman/containers/nfi_base","","models/patman/containers/nfi_40")
+	SubmatGroups["nol",array] = array("models/patman/containers/nol_base","models/patman/containers/nol_20","models/patman/containers/nol_40")
+    SubmatGroups["np",array] = array("models/patman/containers/np_base","","models/patman/containers/np_40")
+    SubmatGroups["nyk",array] = array("models/patman/containers/nyk_base","models/patman/containers/nyk_20","models/patman/containers/nyk_40")
+    SubmatGroups["one",array] = array("models/patman/containers/one_base","models/patman/containers/one_20","models/patman/containers/one_40")
+    SubmatGroups["oocl",array] = array("models/patman/containers/oocl_base","models/patman/containers/oocl_20","models/patman/containers/oocl_40")
+    SubmatGroups["oops",array] = array("models/patman/containers/oops_base","models/patman/containers/oops_20","models/patman/containers/oops_40")
+	SubmatGroups["pacerstacktrain",array] = array("models/patman/containers/pacerstacktrain_base","","models/patman/containers/pacerstacktrain_40")
+    SubmatGroups["pasha",array] = array("models/patman/containers/pasha_base","","models/patman/containers/pasha_40")
+    SubmatGroups["patrick",array] = array("models/patman/containers/patrick_base","models/patman/containers/patrick_20","models/patman/containers/patrick_40")
+	SubmatGroups["pil",array] = array("models/patman/containers/pil_base","models/patman/containers/pil_20","models/patman/containers/pil_40")
+    SubmatGroups["po",array] = array("models/patman/containers/po_base","models/patman/containers/po_20","models/patman/containers/po_40")
+    SubmatGroups["poned",array] = array("models/patman/containers/poned_base","models/patman/containers/poned_20","models/patman/containers/poned_40")
+    SubmatGroups["ponyexpress",array] = array("models/patman/containers/ponyexpress_base_alt_3","","models/patman/containers/ponyexpress_40_alt_3")
+    SubmatGroups["ra",array] = array("models/patman/containers/ra_base","models/patman/containers/ra_20","models/patman/containers/ra_40")
+	SubmatGroups["republic",array] = array("models/patman/containers/republic_base","","models/patman/containers/republic_40")
+    SubmatGroups["safmarine",array] = array("models/patman/containers/safmarine_base","models/patman/containers/safmarine_20","models/patman/containers/safmarine_40")
+    SubmatGroups["santafe",array] = array("models/patman/containers/santafe_base","","models/patman/containers/santafe_40")
+    SubmatGroups["scrops",array] = array("models/patman/containers/scrops_base","","models/patman/containers/scrops_40")
+    SubmatGroups["sealand",array] = array("models/patman/containers/sealand_base","","models/patman/containers/sealand_40")
+    SubmatGroups["seastar",array] = array("models/patman/containers/seastar_base_1","models/patman/containers/seastar_20","models/patman/containers/seastar_48")
+    SubmatGroups["seastar_40",array] = array("models/patman/containers/seastar_base_3","","models/patman/containers/seastar_40")
+    SubmatGroups["seastar_53",array] = array("models/patman/containers/seastar_base_2","","models/patman/containers/seastar_53")
+    SubmatGroups["sellgoods",array] = array("models/patman/containers/sellgoods_base","","models/patman/containers/sellgoods_40")
+    SubmatGroups["senator",array] = array("models/patman/containers/senator_base","","models/patman/containers/senator_40")
+    SubmatGroups["sp",array] = array("models/patman/containers/sp_base","","models/patman/containers/sp_40")
+    SubmatGroups["stax",array] = array("models/patman/containers/stax_base","","models/patman/containers/stax_40")
+	SubmatGroups["swift",array] = array("models/patman/containers/swift_base","","models/patman/containers/swift_40")
+    SubmatGroups["tex",array] = array("models/patman/containers/tex_base","models/patman/containers/tex_20","models/patman/containers/tex_40")
+    SubmatGroups["tmm",array] = array("models/patman/containers/tmm_base","","models/patman/containers/tmm_40")
+    SubmatGroups["tote",array] = array("models/patman/containers/tote_base","","models/patman/containers/tote_53")
+	SubmatGroups["transtack",array] = array("models/patman/containers/transtack_base","models/patman/containers/transtack_20","models/patman/containers/transtack_40")
+    SubmatGroups["triplecrown",array] = array("models/patman/containers/triplecrown_base","","models/patman/containers/triplecrown_40")
+    SubmatGroups["triton",array] = array("models/patman/containers/triton_base","models/patman/containers/triton_20","models/patman/containers/triton_40")
+    SubmatGroups["tropical",array] = array("models/patman/containers/tropical_base","models/patman/containers/tropical_20","models/patman/containers/tropical_40")
+    SubmatGroups["uasc",array] = array("models/patman/containers/uasc_base","models/patman/containers/uasc_20","models/patman/containers/uasc_40")
+    SubmatGroups["ues",array] = array("models/patman/containers/ues_base","models/patman/containers/ues_20","models/patman/containers/ues_40")
+	SubmatGroups["umax",array] = array("models/patman/containers/umax_base","","models/patman/containers/umax_40")
+    SubmatGroups["uniglory",array] = array("models/patman/containers/uniglory_base","models/patman/containers/uniglory_20","models/patman/containers/uniglory_40")
+    SubmatGroups["up",array] = array("models/patman/containers/up_base","","models/patman/containers/up_40")
+	SubmatGroups["wallbert",array] = array("models/patman/containers/wallbert_base","","models/patman/containers/wallbert_40")
+    SubmatGroups["wanhai",array] = array("models/patman/containers/wanhai_base","models/patman/containers/wanhai_20","models/patman/containers/wanhai_40")
+    SubmatGroups["werner",array] = array("models/patman/containers/werner_base","","models/patman/containers/werner_40")
+	SubmatGroups["wallbert",array] = array("models/patman/containers/wlamrat_base","","models/patman/containers/wlamrat_40")
+	SubmatGroups["xines",array] = array("models/patman/containers/xines_base","models/patman/containers/xines_20","models/patman/containers/xines_40")
+    SubmatGroups["xpo",array] = array("models/patman/containers/xpo_base","","models/patman/containers/xpo_40")
+    SubmatGroups["yangming",array] = array("models/patman/containers/yangming_base","models/patman/containers/yangming_20","models/patman/containers/yangming_40")
+    SubmatGroups["yrc",array] = array("models/patman/containers/yrc_base","","models/patman/containers/yrc_40")
+    SubmatGroups["zim",array] = array("models/patman/containers/zim_base","models/patman/containers/zim_20","models/patman/containers/zim_40")
+    SubmatGroups["bvar",array] = array("containers/bvar/branchwood_valley_and_rockfort_base","containers/bvar/branchwood_valley_and_rockfort_20ft","containers/bvar/branchwood_valley_and_rockfort_40ft")
+    SubmatGroups["ccsd",array] = array("containers/ccsd/base","containers/ccsd/20","containers/ccsd/40")
+    SubmatGroups["dcrw",array] = array("containers/dcrw/dc_rail_works_base","containers/dcrw/dc_rail_works_20ft","containers/dcrw/dc_rail_works_40ft")
+    SubmatGroups["gasw",array] = array("containers/gasw/grampains_and_south_western_base","containers/gasw/grampains_and_south_western_20ft","containers/gasw/grampains_and_south_western_40ft")
+    SubmatGroups["rura",array] = array("containers/rura/rustys_rails_base","containers/rura/rustys_rails_20ft","containers/rura/rustys_rails_40ft")
+    SubmatGroups["tdw",array] = array("containers/tdw/trinidad_denver_and_western_base","containers/tdw/trinidad_denver_and_western_20ft","containers/tdw/trinidad_denver_and_western_40ft")
+    
+	#Extra Skin List. Each model can use one of the Submat Groups (defined above) as an additional skin, referenced by the SkinName.
+    
+    ExtraSkins["models/magtrains/intermodal/container_20.mdl",array] = array(
+    
+    "acl", 
+    "apl",
+	"bms",
+    "cai",
+    "capital",
+    "cast",
+    "cmacgm",
+    "cosco",
+    "cpships",
+    "cpships2",
+    "crowley",
+    "cs",
+    "cs",
+    "dong",
+    "florens",
+    "geseaco",
+	"gold",
+    "hanjin",
+    "hl",        
+    "hs",
+    "hyundai",
+	"kienhung",
+    "kline",
+	"magellan",
+    "matson",
+    "mol",
+    "mol_new",
+    "msc",
+	"namerail",
+    "nol",
+    "nyk",
+    "one",
+    "oocl",
+	"patrick",
+    "pil",
+    "po",
+    "poned",
+	"ra",
+    "safmarine",
+    "seastar",
+    "tex",
+    "transtack",
+    "triton",
+    "uasc",
+	"ues",
+    "uniglory",
+    "wanhai",
+    "xines",
+    "yangming",
+    "zim",
+    "bvar",
+    "ccsd",
+    "dcrw",
+    "gasw",
+    "rura",
+    "tdw"
+
+    )
+    ExtraSkins["models/magtrains/intermodal/container_20_opentop.mdl",array] = array(
+            
+    )
+    ExtraSkins["models/magtrains/intermodal/container_40.mdl",array] = array(
+           
+    "acl", 
+    "adu",
+    "apl",
+	"bms",
+    "cai",
+    "capital",
+    "cast",
+    "cmacgm",
+    "cosco",
+    "cpships",
+    "cpships2",
+    "crowley",
+    "cs",
+    "dhl",
+    "dong",
+    "florens",
+    "geseaco",
+	"gold",
+    "hanjin",
+    "hl",
+    "horizon",
+    "hs",
+    "hyundai",
+	"kienhung",
+    "kline",
+	"magellan",
+    "matson",
+    "mol",
+    "mol_new",
+    "msc",
+    "nol",
+    "np",
+    "nyk",
+    "one",
+    "oocl",
+    "pasha",
+    "pil",
+    "po",
+    "poned",
+	"ra",
+    "safmarine",
+    "sealand",
+    "seastar_40",
+    "senator",
+    "tex",
+    "tmm",
+    "transtack",
+    "triton",
+    "uasc",
+	"ues",
+    "uniglory",
+    "wanhai",
+    "xines",
+    "yangming",
+    "zim",
+    "bvar",
+    "ccsd",
+    "dcrw",
+    "gasw",
+    "rura",
+    "tdw"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_40_hc.mdl",array] = array(
+
+    "acl",
+    "adu",
+    "apl",
+	"bmshc",
+    "capital",
+    "cmacgm",
+    "cosco",
+    "cs",
+    "dhl",
+    "dong",
+    "florens",
+    "geseaco",
+	"gold",
+    "hanjin",
+    "hl",
+    "horizon",
+    "hs",
+    "hyundai",
+	"kienhung",
+    "kline",
+	"magellan",
+    "mol",
+    "mol_new",
+    "msc",
+	"mystic",
+    "nol",
+    "nyk",
+    "one",
+    "oocl",
+    "pasha",
+	"patrick",
+    "pil",
+    "po",
+    "poned",
+    "safmarine",
+    "sealand",
+    "senator",
+    "tex",
+    "tmm",
+    "transtack",
+    "triton",
+    "uasc",
+	"ues",
+    "uniglory",
+    "xines",
+	"yangming",
+    "zim",
+    "bvar",
+    "ccsd",
+    "dcrw",
+    "rura",
+    "tdw"
+
+    )
+    ExtraSkins["models/magtrains/intermodal/container_40_opentop.mdl",array] = array(
+    
+    "alliedwaste",
+    "republic"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_45.mdl",array] = array(
+    
+    "adu",
+    "apl",
+	"bms40",
+    "cai",
+    "cmacgm",
+    "crowley",
+    "cs",
+    "ctn",
+    "dhl",
+    "dong",
+    "florens",
+    "geseaco",
+    "hanjin",
+    "hl",
+    "horizon",
+    "hyundai",
+    "kline",
+    "matson",
+    "mol",
+    "mol_new",
+    "msc",
+    "nol",
+    "nyk",
+    "one",
+    "oocl",
+    "pasha",
+    "po",
+    "poned",
+    "safmarine",
+    "sealand",
+    "textainer",
+    "transtack",
+    "triton",
+	"ues",
+    "uniglory",
+    "wanhai",
+    "yangming",
+    "zim",
+    "ccsd",
+    "dcrw",
+    "gasw",
+    "tdw"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_48_hc.mdl",array] = array(
+    
+    "adu",
+    "apl",
+	"cn",
+    "csx",
+    "csx2",
+	"nacs",
+    "pacerstacktrain",
+    "seastar",
+    "transtack",
+    "ccsd",
+    "tdw"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_48_hc_smooth.mdl",array] = array(
+    
+    "bn",
+    "bnsf",
+    "conrail48",
+	"csx2",
+	"nacs",
+    "santafe",
+    "sp",
+    "transtack",
+    "triplecrown",
+    "tdw",
+	"up"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_53_hc.mdl",array] = array(
+    
+    "abf",
+    "adu",
+    "amazonprime",
+    "apl",
+    "axsun",
+    "bushnell",
+    "cdntire",
+    "charged",
+    "chemso",
+    "chrobinson",
+    "cp",
+    "crowley_53",
+    "csx",
+    "csx2",
+    "csxboxcar",
+    "dart",
+    "emp",
+    "estes",
+    "fec",
+    "fec2",
+    "fedex",
+	"fxe",
+    "hub",
+    "marten",
+    "matson_53",
+	"mystic2",
+	"nacs",
+	"nfi",
+	"oops",
+    "pacerstacktrain",
+	"patrick",
+    "ponyexpress",
+    "scrops",
+    "seastar_53",
+    "sellgoods",
+    "stax",
+	"swift",
+	"tote",
+    "transtack",
+    "umax",
+    "wallbert",
+	"werner",
+	"wlamrat",
+    "xpo",
+    "yrc",
+    "ccsd",
+    "tdw"
+    
+    )
+    ExtraSkins["models/magtrains/intermodal/container_53_hc_smooth.mdl",array] = array(
+    
+    "bn",
+    "bnsf",
+    "cdntire",
+    "conrail53",
+    "csx",
+	"csx2",
+    "dart",
+    "deboer",
+	"nacs",
+    "santafe",
+    "sp",
+    "swift",
+    "transtack",
+    "tdw"
+    
+    )
+   
+    #Probability that, if needed, the randomizer will put a shorter container on top of a longer one.
+    #Value is expressed as a Percent (%)!
+    ShortOverLongChance = 5
+    
+    #End of Config
+    SubmatMap = table()
+    
+    SubmatMap["models/magtrains/intermodal/container_20.mdl",array] = array(1,6)
+    SubmatMap["models/magtrains/intermodal/container_20_opentop.mdl",array] = array(1,6)
+    SubmatMap["models/magtrains/intermodal/container_40.mdl",array] = array(1,0,6)
+    SubmatMap["models/magtrains/intermodal/container_40_hc.mdl",array] = array(1,0,7)
+    SubmatMap["models/magtrains/intermodal/container_40_opentop.mdl",array] = array(1,0,6)
+    SubmatMap["models/magtrains/intermodal/container_45_hc.mdl",array] = array(1,0,7)
+    SubmatMap["models/magtrains/intermodal/container_48_hc.mdl",array] = array(1,0,7)
+    SubmatMap["models/magtrains/intermodal/container_48_hc_smooth.mdl",array] = array(2,0,7)
+    SubmatMap["models/magtrains/intermodal/container_53_hc.mdl",array] = array(1,0,7)
+    SubmatMap["models/magtrains/intermodal/container_53_hc_smooth.mdl",array] = array(2,0,7)
+    
+    function void holoSkinEx(Index, SkinID, Model:string){
+        local H = holoEntity(Index)
+        local NumSkins = H:getSkinCount()
+        if(SkinID < NumSkins){ #Use one of the model's existing skins
+            holoSkin(Index,SkinID)
+        }else{ #Use one of the extra skins
+            local NewSkindex = SkinID - NumSkins + 1
+            local Name = ExtraSkins[Model,array][NewSkindex,string]
+            local MatArray = SubmatGroups[Name,array]
+            local Map = SubmatMap[Model,array]
+            for(MatIndex=1,3){
+                local SubMatIndex = Map[MatIndex,number]
+                if(SubMatIndex>0){
+                    local Mat = MatArray[MatIndex,string]
+                    H:setSubMaterial(SubMatIndex, Mat)
+                    #print("Model "+Model+" Submat "+SubMatIndex+" Value "+Mat)
+                }
+            }
+        }
+    }
+    
+    Height = -24
+    
+    BaseSum = 0
+    foreach(K,V:number=BaseChance){
+        BaseSum += V
+    }
+    Flat89TypeSum = 0
+    foreach(K,V:number=Flat89TypeChance){
+        Flat89TypeSum += V
+    }
+    Flat89Sum = 0
+    foreach(K,V:number=Flat89Chance){
+        Flat89Sum += V
+    }
+    TwentySum = 0
+    foreach(K,V:number=TwentyChance){
+        TwentySum += V
+    }
+    FortySum = 0
+    foreach(K,V:number=FortyChance){
+        FortySum += V
+    }
+    FortyEightSum = 0
+    foreach(K,V:number=FortyEightChance){
+        FortyEightSum += V
+    }
+    FiftyThreeSum = 0
+    foreach(K,V:number=FiftyThreeChance){
+        FiftyThreeSum += V
+    }
+    H = 0
+    Car = noentity()
+    Holo = noentity()
+    
+    Iteration = 1
+    
+    Bottoms = array()
+    Bottoms2 = array()
+    F89L1 = array()
+    Wells = array()
+    Flat89s = array()
+    if(Automatic){
+        local Base = rangerOffset(8,entity():pos(),-entity():up()):entity()
+        local Props = array(Base):add(Base:getConstraints())
+        local CI = 1
+        local FI = 1
+        foreach(K,V:entity = Props){
+            local Mdl = V:model()
+            if(Mdl:find("wellcar")){
+                Wells[CI,entity] = V
+                CI++
+            }elseif(Mdl:find("flatcar_f89")){
+                Flat89s[FI,entity] = V
+                FI++
+            }
+        }
+    }else{
+        Wells = Units
+    }
+    timer("singlestack",100)
+}
+if(clk("singlestack")){
+    if(Wells:count()>0){
+        if(Automatic){
+            local Mdl = Wells[Iteration,entity]:model()
+            if(Mdl:find("40")){
+                CarLength = 40
+            }elseif(Mdl:find("48")){
+                CarLength = 48
+            }elseif(Mdl:find("53")){
+                CarLength = 53
+            }else{
+                CarLength = 40
+            }
+            #print(CarLength)
+        }
+        local Rand = randint(1,BaseSum)
+        local BaseType = ""
+        Rand -= BaseChance["Empty",number]
+        if(Rand<=0){
+            BaseType = "Empty"
+        }else{
+            Rand -= BaseChance["1x20",number]
+            if(Rand<=0){
+                BaseType = "1x20"
+            }else{
+                Rand -= BaseChance["2x20",number]
+                if(Rand<=0){
+                    BaseType = "2x20"
+                }else{
+                    Rand -= BaseChance["40",number]
+                    if(Rand<=0){
+                        BaseType = "40"
+                    }else{
+                        Rand -= BaseChance["45",number]
+                        if(Rand<=0){
+                            BaseType = (CarLength>=45) ? "45" : "2x20"
+                        }else{
+                            Rand -= BaseChance["48",number]
+                            if(Rand<=0){
+                                BaseType = (CarLength>=48) ? "48" : "40"
+                            }else{
+                                BaseType = (CarLength>=53) ? "53" : "40"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #print(BaseType)
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,((random()>0.5)*2 - 1)*120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+            
+            
+                
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-120,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "45",
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,"models/magtrains/intermodal/container_45_hc.mdl")
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "48",
+                Rand = random()
+                if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                    CType = "models/magtrains/intermodal/container_48_hc.mdl"
+                }else{
+                    CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "53",
+                Rand = random()
+                if(Rand<=(FiftyThreeChance["Ribbed",number]/FiftyThreeSum)){
+                    CType = "models/magtrains/intermodal/container_53_hc.mdl"
+                }else{
+                    CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            default,
+                break
+        }
+    }
+    Iteration++
+    if(Iteration>Wells:count()){
+        Iteration = 1
+        timer("transition",100)
+    }else{
+        timer("singlestack",100)
+    }
+}elseif(clk("doublestack")){
+    if(Wells:count()>0){
+        if(Automatic){
+            local Mdl = Wells[Iteration,entity]:model()
+            if(Mdl:find("40b")){
+                CarLength = 40
+            }elseif(Mdl:find("40")){
+                CarLength = 48
+            }elseif(Mdl:find("48")){
+                CarLength = 53
+            }elseif(Mdl:find("53")){
+                CarLength = 53
+            }else{
+                CarLength = 48
+            }
+            #print(CarLength)
+        }
+    
+        local Rand = randint(1,BaseSum)
+        local BaseType = ""
+        if(Bottoms[Iteration,entity] & (!Bottoms[Iteration,entity]:model():find("20") | Bottoms2[Iteration,entity])){
+            Rand -= BaseChance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= BaseChance["40",number]
+                if(Rand<=0 | (CarLength==40)){
+                    if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40")){
+                        BaseType = "40"
+                    }elseif(CarLength==40){
+                        BaseType = "Empty"
+                    }elseif(Bottoms[Iteration,entity]:model():find("smooth")){
+                        BaseType = "48"
+                    }else{
+                        BaseType = (random()<(ShortOverLongChance/100)) ? "40" : "48"
+                    }
+                }else{
+                    Rand -= BaseChance["45",number]
+                    if(Rand<=0){
+                        if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40") | Bottoms[Iteration,entity]:model():find("45")){
+                            BaseType = "45"
+                        }else{
+                            BaseType = (!Bottoms[Iteration,entity]:model():find("smooth") & (random()<(ShortOverLongChance/100))) ? "45" : "48"
+                        }
+                    }else{
+                        Rand -= BaseChance["48",number]
+                        if(Rand<=0){
+                            if(Bottoms[Iteration,entity]:model():find("20") | Bottoms[Iteration,entity]:model():find("40") | Bottoms[Iteration,entity]:model():find("45") |Bottoms[Iteration,entity]:model():find("48")){
+                                BaseType = "48"
+                            }else{
+                                BaseType = (random()<(ShortOverLongChance/100)) ? "48" : "53"
+                            }
+                        }else{
+                            if(CarLength==48){
+                                BaseType = "48"
+                            }else{
+                                BaseType = "53"
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            BaseType = "Empty"
+        }
+        
+        switch(BaseType){
+            case "40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                H++
+                
+                break
+            case "45",
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,"models/magtrains/intermodal/container_45_hc.mdl")
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "48",
+                if(Bottoms[Iteration,entity]:model():find("smooth")){
+                    CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                }else{
+                    Rand = random()
+                    if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                        CType = "models/magtrains/intermodal/container_48_hc.mdl"
+                    }else{
+                        CType = "models/magtrains/intermodal/container_48_hc_smooth.mdl"
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            case "53",
+                if(Bottoms[Iteration,entity]:model():find("smooth")){
+                    CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                }else{
+                    Rand = random()
+                    if(Rand<=(FortyEightChance["Ribbed",number]/FortyEightSum)){
+                        CType = "models/magtrains/intermodal/container_53_hc.mdl"
+                    }else{
+                        CType = "models/magtrains/intermodal/container_53_hc_smooth.mdl"
+                    }
+                }
+                Car = Wells[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,0,-24+Bottoms[Iteration,entity]:boxSize():z() - 0.5)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),vec(255),CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            default,
+                break
+        }
+    }
+    Iteration++
+    if(Iteration>Wells:count()){
+        timer("flat89_1",100)
+        Iteration = 1
+    }else{
+        timer("doublestack",100)
+    }
+
+
+
+}elseif(clk("flat89_1")){
+    if(Flat89s:count()>0){
+        
+        local Rand = randint(1,Flat89TypeSum)
+        local FType = ""
+        Rand -= Flat89TypeChance["240",number]
+        if(Rand<=0){
+            FType = "240"
+        }else{
+            Rand -= Flat89TypeChance["240C",number]
+            if(Rand<=0){
+                FType = "240C"
+            }else{
+                Rand -= Flat89TypeChance["245",number]
+                if(Rand<=0){
+                    FType = "245"
+                }else{
+                    Rand -= Flat89TypeChance["245C",number]
+                    if(Rand<=0){
+                        FType = "245C"
+                    }else{
+                        Rand -= Flat89TypeChance["328",number]
+                        if(Rand<=0){
+                            FType = "328"
+                        }else{
+                            Rand -= Flat89TypeChance["328C",number]
+                            if(Rand<=0){
+                                FType = "328C"
+                            }else{
+                                FType = "C"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        FlatType[Iteration,string] = FType
+        local ContCapable = FType:find("C")
+        local ContOnly = FType=="C"
+        
+        local BaseType = ""
+        if(ContCapable){
+            local Rand = randint(1,ContOnly ? Flat89Sum - Flat89Chance["48T",number] - Flat89Chance["53T",number] : Flat89Sum)
+            #if(ContOnly){Rand -= (Flat89Chance["48T",number] + Flat89Chance["53T",number])}
+            Rand -= Flat89Chance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= Flat89Chance["1x20",number]
+                if(Rand<=0){
+                    BaseType = "1x20"
+                }else{
+                    Rand -= Flat89Chance["2x20",number]
+                    if(Rand<=0){
+                        BaseType = "2x20"
+                    }else{
+                        Rand -= Flat89Chance["1x40",number]
+                        if(Rand<=0){
+                            BaseType = "1x40"
+                        }else{
+                            Rand -= Flat89Chance["48T",number]
+                            if(Rand<=0){
+                                BaseType = "48T"
+                            }else{
+                                BaseType = "53T"
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            local Rand = randint(1,Flat89Chance["Empty",number] + Flat89Chance["48T",number] + Flat89Chance["53T",number])
+            Rand -= Flat89Chance["Empty",number]
+            if(Rand<=0){
+                BaseType = "Empty"
+            }else{
+                Rand -= Flat89Chance["48T",number]
+                if(Rand<=0){
+                    BaseType = "48T"
+                }else{
+                    BaseType = "53T"
+                }
+            }
+        }
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                H++
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "1x40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,-272,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "48T",
+                local HitchType = FType:find("240") ? 1 : 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_48.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-228,4)),vec(1),Car:toWorld(ang(0,180,1)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-261,4)),vec(1),Car:toWorld(ang(0,180,1)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                break
+            case "53T",
+                local HitchType = FType:find("240") ? 1 : 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_53.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-198,4)),vec(1),Car:toWorld(ang(0,180,0.75)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,-230,4)),vec(1),Car:toWorld(ang(0,180,0.75)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                break
+            default,
+                break
+        }
+        F89L1[Iteration,string] = BaseType
+        Car = Flat89s[Iteration,entity]
+        for(N=1,10){
+            Car:setBodygroup(N,0)
+        }
+        #print(FType + " " + BaseType)
+    }
+    Iteration++
+    if(Iteration>Flat89s:count()){
+        timer("flat89_2",100)
+        Iteration = 0
+    }else{
+        timer("flat89_1",100)
+    }
+}elseif(clk("flat89_2")){
+    if(Flat89s:count()>0){
+        local Load1 = F89L1[Iteration,string]
+        local Trailered1 = (Load1:find("48T") | Load1:find("53T"))
+        local Nort = Load1:find("Empty") & (FlatType[Iteration,string]:find("240"))
+        local FType = FlatType[Iteration,string]
+        local ContCapable = FType:find("C")
+        local ContOnly = FType=="C"
+        local NoTrailers = !(Load1=="Empty" | Load1=="1x20")
+        
+        local BaseType = ""
+        
+        if(!Trailered1){
+            if(ContCapable){
+                local Rand = randint(1,(ContOnly | NoTrailers) ? Flat89Sum - Flat89Chance["48T",number] - Flat89Chance["53T",number] : Flat89Sum)
+                #if(ContOnly | NoTrailers){Rand -= (Flat89Chance["48T",number] + Flat89Chance["53T",number])}
+                Rand -= Flat89Chance["Empty",number]
+                if(Rand<=0){
+                    BaseType = "Empty"
+                }else{
+                    Rand -= Flat89Chance["1x20",number]
+                    if(Rand<=0){
+                        BaseType = "1x20"
+                    }else{
+                        Rand -= Flat89Chance["2x20",number]
+                        if(Rand<=0){
+                            BaseType = "2x20"
+                        }else{
+                            Rand -= Flat89Chance["1x40",number]
+                            if(Rand<=0){
+                                BaseType = "1x40"
+                            }else{
+                                Rand -= Flat89Chance["48T",number]
+                                if(Rand<=0){
+                                    BaseType = Nort ? "Empty" : "48T"
+                                }else{
+                                    BaseType = Nort ? "Empty" : "53T"
+                                }
+                            }
+                        }
+                    }
+                }
+            }else{
+                local Rand = randint(1,Flat89Chance["Empty",number] + Flat89Chance["48T",number] + Flat89Chance["53T",number])
+                Rand -= Flat89Chance["Empty",number]
+                if(Rand<=0){
+                    BaseType = "Empty"
+                }else{
+                    Rand -= Flat89Chance["48T",number]
+                    if(Rand<=0){
+                        BaseType = "48T"
+                    }else{
+                        BaseType = "53T"
+                    }
+                }
+            }
+        }elseif(ContCapable){
+            BaseType = "1x20"
+        }else{
+            BaseType = "Empty"
+        }
+        switch(BaseType){
+            case "1x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                break
+            case "2x20",
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260+132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                local Color = vec(255)
+                Rand = randint(1,TwentySum)
+                local CType = ""
+                Rand -= TwentyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_20.mdl"
+                }else{
+                    Rand-=TwentyChance["Opentop",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_20_opentop.mdl"
+                    }else{
+                        Rand-=TwentyChance["Flatrack",number]
+                        if(Rand<0){
+                            CType = "models/magtrains/intermodal/flatrack_20.mdl"
+                            Color = randvec(50,200)
+                        }else{
+                            Rand-=TwentyChance["Drybulk",number]
+                            if(Rand<0){
+                                CType = "models/magtrains/intermodal/container_20_bulk.mdl"
+                                Color = randvec(50,200)
+                            }else{
+                                CType = "models/magtrains/intermodal/tank_20.mdl"
+                                Color = randvec(50,200)
+                            }
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,260-132,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms2[Iteration,entity] = Holo
+                H++
+                break
+            case "1x40",
+                local Color = vec(255)
+                Rand = randint(1,FortySum)
+                local CType = ""
+                Rand -= FortyChance["Dryvan",number]
+                if(Rand<=0){
+                    CType = "models/magtrains/intermodal/container_40.mdl"
+                }else{
+                    Rand-=FortyChance["Hicube",number]
+                    if(Rand<=0){
+                        CType = "models/magtrains/intermodal/container_40_hc.mdl"
+                    }else{
+                        Rand-=FortyChance["Opentop",number]
+                        if(Rand<=0){
+                            CType = "models/magtrains/intermodal/container_40_opentop.mdl"
+                        }else{
+                            CType = "models/magtrains/intermodal/flatrack_40.mdl"
+                            Color = randvec(50,200)
+                        }
+                    }
+                }
+                Car = Flat89s[Iteration,entity]
+                Holo = holoCreate(H,Car:toWorld(vec(0,272,11)),vec(1),(random()>0.5) ? Car:angles() : Car:toWorld(ang(0,180,0)),Color,CType)
+                holoParent(H,Car)
+                if(SkinOverride[Holo:model(),number]!=0){
+                    holoSkinEx(H,SkinOverride[Holo:model(),number],CType)
+                }else{
+                    holoSkinEx(H,randint(1,Holo:getSkinCount() + ExtraSkins[CType,array]:count() - 1),CType)
+                }
+                holoBodygroup(H,1,1)
+                #Bottoms[Iteration,entity] = Holo
+                H++
+                
+                break
+            case "48T",
+                local HitchType = 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_48.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,228,4)),vec(1),Car:toWorld(ang(0,0,1)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,261,4)),vec(1),Car:toWorld(ang(0,0,1)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                #F89L1[Iteration,number] = 2
+                break
+            case "53T",
+                local HitchType = 2
+                
+                local Color = vec(255)
+                local Reefer = random()>0.5
+                local WheelPos = randint(1,3) - 1
+                local CType = "models/magtrains/intermodal/trailer_53.mdl"
+                
+                Car = Flat89s[Iteration,entity]
+                if(HitchType==1){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,198,4)),vec(1),Car:toWorld(ang(0,0,0.75)),Color,CType)   
+                }elseif(HitchType==2){
+                    Holo = holoCreate(H,Car:toWorld(vec(0,230,4)),vec(1),Car:toWorld(ang(0,0,0.75)),Color,CType) 
+                }
+                holoParent(H,Car)
+                
+                holoBodygroup(H,3,Reefer)
+                holoBodygroup(H,4,WheelPos)
+                H++
+                #F89L1[Iteration,number] = 2
+                break
+            default,
+                break
+        }
+        
+        Car = Flat89s[Iteration,entity]
+        local Trailered2 = BaseType:find("48T") | BaseType:find("53T")
+
+        switch(FType){
+            case "240",
+                Car:setBodygroup(1,1+Trailered1)
+                Car:setBodygroup(2,1+Trailered2)
+                Car:setBodygroup(6,1)
+                break
+            case "240C",
+                Car:setBodygroup(1,1+Trailered1)
+                Car:setBodygroup(2,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "245",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,2)
+                break
+            case "245C",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "328",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(4,1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,3)
+                break
+            case "328C",
+                Car:setBodygroup(3,1+Trailered1)
+                Car:setBodygroup(4,1)
+                Car:setBodygroup(5,1+Trailered2)
+                Car:setBodygroup(6,4)
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : 0)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : 0)
+                break
+            case "C",
+                local TLFA = 0
+                local TLFB = 0
+                if(Load1=="Empty" & BaseType=="Empty"){
+                    TLFA = randint(1,2)
+                    TLFB = randint(1,2)
+                }
+                Car:setBodygroup(7,Load1:find("x20") ? 1 : Load1:find("1x40") ? 2 : TLFA)
+                Car:setBodygroup(8,Load1:find("2x20") ? 1 : Load1:find("1x40") ? 2 : TLFA)
+                Car:setBodygroup(9,BaseType:find("2x20") ? 1 : BaseType:find("1x40") ? 2 : TLFB)
+                Car:setBodygroup(10,BaseType:find("x20") ? 1 : BaseType:find("1x40") ? 2 : TLFB)
+                break
+        }
+        
+    }
+    
+    Iteration++
+    if(Iteration>Flat89s:count()){
+        timer("finalize",100)
+    }else{
+        timer("flat89_2",100)
+    }
+}elseif(clk("transition")){
+    BaseSum = BaseSum - BaseChance["1x20",number] - BaseChance["2x20",number]
+    timer("doublestack",100)
+}elseif(clk("finalize")){
+    E = entity()
+    if(!E:parent():isValidPhysics()){
+        E:parentTo(E:isWeldedTo())
+        E:constraintBreak("weld")
+    }
+    print("[Intermodal] Randomized " + Wells:count() + " Wells and " + Flat89s:count() + " 89' Flatcars!")
+}
+    
+    
+    
+
+
+if(chatClk(O)){
+    if(O:lastSaid()==".randomize"){
+        holoDeleteAll()
+        hideChat(1)
+        print("[Intermodal] Randomizing Cars...]")
+        timer("reload",1000)
+    }elseif(O:lastSaid()==".unloadall"){
+        hideChat(1)
+        holoDeleteAll()
+        print("[Intermodal] Unloading All Cars...]")
+        
+        for(Iteration=1,Flat89s:count()){
+            local Car = Flat89s[Iteration,entity]
+            local FType = FlatType[Iteration,string]
+            switch(FType){
+                case "240",
+                    Car:setBodygroup(1,1)
+                    Car:setBodygroup(2,1)
+                    break
+                case "240C",
+                    Car:setBodygroup(1,1)
+                    Car:setBodygroup(2,1)
+                    break
+                case "245",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "245C",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "328",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(4,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "328C",
+                    Car:setBodygroup(3,1)
+                    Car:setBodygroup(4,1)
+                    Car:setBodygroup(5,1)
+                    break
+                case "C",
+                    break
+            }
+        }
+    }
+}
