@@ -1,0 +1,120 @@
+@name ptgamma/engines/ALCO_V16_251B
+#ENGINE CONFIG
+ENG_Version = "2.0.67"
+#Mid production F series FDL12 engine with an unsilenced exhaust. Accurate for early 12 cylinder Dash 7s.
+EngineType = "ALCO 16-251B" #What is the name of the Prime Mover?
+
+Startup_Hi = "lazpack/alco251bv16/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "lazpack/alco251bv16/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "lazpack/alco251bv16/idle.wav", #Idle 
+    "lazpack/alco251bv16/notch1.wav", #Notch 1
+    "lazpack/alco251bv16/notch2.wav", #Notch 2
+    "lazpack/alco251bv16/notch3.wav", #Notch 3
+    "lazpack/alco251bv16/notch4.wav", #And so On
+    "lazpack/alco251bv16/notch5.wav",
+    "lazpack/alco251bv16/notch6.wav",
+    "lazpack/alco251bv16/notch7.wav",
+    "lazpack/alco251bv16/notch8.wav"
+)
+
+TransitionPath = "lazpack/alco251bv16/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(2364,709,758,497,7753,12865,3072,1666) 
+                  #8-7  7-6  6-5  5-4  4-3  3-2  2-1 1-0
+DownDelays = array(1003,1294,1202,1447,2470,3138,1738,2387)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 1.127 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 3.053 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "lazpack/misc/compressors/wabco_3cdc_rs27/loop.wav"
+CompressorOff = "lazpack/misc/compressors/wabco_3cdc_rs27/end.wav"
+
+DynamicsOn = "lazpack/misc/dynamics_mliner_loop.wav"
+DynamicsOff = "lazpack/misc/dynamics_mliner_end.wav"
+
+PrimeOn = "gsgtrainsounds/alco251fv16/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/alco251fv16/prime_end.wav"
+
+PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["lazpack/alco251bv16/transitions/up/0-1.wav",number] = 2360
+SoundDurations["lazpack/alco251bv16/transitions/up/1-2a.wav",number] = 540
+SoundDurations["lazpack/alco251bv16/transitions/up/1-2b.wav",number] = 3780
+SoundDurations["lazpack/alco251bv16/transitions/up/2-3a.wav",number] = 770
+SoundDurations["lazpack/alco251bv16/transitions/up/2-3b.wav",number] = 4090
+SoundDurations["lazpack/alco251bv16/transitions/up/3-4a.wav",number] = 610
+SoundDurations["lazpack/alco251bv16/transitions/up/3-4b.wav",number] = 2710
+SoundDurations["lazpack/alco251bv16/transitions/up/4-5a.wav",number] = 660
+SoundDurations["lazpack/alco251bv16/transitions/up/4-5b.wav",number] = 10390
+SoundDurations["lazpack/alco251bv16/transitions/up/5-6a.wav",number] = 620
+SoundDurations["lazpack/alco251bv16/transitions/up/5-6b.wav",number] = 16350
+SoundDurations["lazpack/alco251bv16/transitions/up/6-7a.wav",number] = 630
+SoundDurations["lazpack/alco251bv16/transitions/up/6-7b.wav",number] = 4190
+SoundDurations["lazpack/alco251bv16/transitions/up/7-8a.wav",number] = 1070
+SoundDurations["lazpack/alco251bv16/transitions/up/7-8b.wav",number] = 2550
+SoundDurations["lazpack/alco251bv16/transitions/down/1-0.wav",number] = 2380
+SoundDurations["lazpack/alco251bv16/transitions/down/2-1a.wav",number] = 640
+SoundDurations["lazpack/alco251bv16/transitions/down/2-1b.wav",number] = 2760
+SoundDurations["lazpack/alco251bv16/transitions/down/3-2a.wav",number] = 650
+SoundDurations["lazpack/alco251bv16/transitions/down/3-2b.wav",number] = 4300
+SoundDurations["lazpack/alco251bv16/transitions/down/4-3a.wav",number] = 640
+SoundDurations["lazpack/alco251bv16/transitions/down/4-3b.wav",number] = 3460
+SoundDurations["lazpack/alco251bv16/transitions/down/5-4a.wav",number] = 640
+SoundDurations["lazpack/alco251bv16/transitions/down/5-4b.wav",number] = 2160
+SoundDurations["lazpack/alco251bv16/transitions/down/6-5a.wav",number] = 550
+SoundDurations["lazpack/alco251bv16/transitions/down/6-5b.wav",number] = 2630
+SoundDurations["lazpack/alco251bv16/transitions/down/7-6a.wav",number] = 630
+SoundDurations["lazpack/alco251bv16/transitions/down/7-6b.wav",number] = 2290
+SoundDurations["lazpack/alco251bv16/transitions/down/8-7a.wav",number] = 440
+SoundDurations["lazpack/alco251bv16/transitions/down/8-7b.wav",number] = 1820
+SoundDurations["lazpack/alco251bv16/startup.wav",number] = 8410
+SoundDurations["lazpack/alco251bv16/shutdown.wav",number] = 14220
