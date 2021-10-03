@@ -1,7 +1,7 @@
 @name ptgamma/engines/ALCO_V16_251B
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
-#Mid production F series FDL12 engine with an unsilenced exhaust. Accurate for early 12 cylinder Dash 7s.
+#ALCO's first production V-16 251. Used in the RS-27, RSD-15, RSD-17, and the C424.
 EngineType = "ALCO 16-251B" #What is the name of the Prime Mover?
 
 Startup_Hi = "lazpack/alco251bv16/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
