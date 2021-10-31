@@ -1,0 +1,30 @@
+@name EMD Air Gauge 2
+@inputs On BrakeCyl BrakePipe
+@outputs 
+@persist BrakeCyl1 BrakePipe1
+@trigger On
+@model models/gsgtrainprops/parts/cab/anim/gauge_air_anim.mdl
+#Toast
+
+#R   W
+#MR,ER
+#BC,BP
+
+if(first() | dupefinished()){
+    GaugeMat = "models/gsgtrainprops/cab/gauge_air_salem_160_green"
+    
+    
+    entity():setSubMaterial(3,GaugeMat)
+    entity():setBoneAngle(1,ang(-46,0,0))
+    entity():setBoneAngle(2,ang(-46,0,0))
+}
+
+if(On){
+    interval(150)
+    #-46,-314
+    BrakePipe1 = BrakePipe1 + ((BrakePipe) - BrakePipe1) / 2
+    entity():setBoneAngle(1,ang(-46-(268*(BrakePipe1/160)),0,0))
+    
+    BrakeCyl1 = BrakeCyl1 + ((BrakeCyl) - BrakeCyl1) / 2
+    entity():setBoneAngle(2,ang(-46-(268*(BrakeCyl1/160)),0,0))
+}

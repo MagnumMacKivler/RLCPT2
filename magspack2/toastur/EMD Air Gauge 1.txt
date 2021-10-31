@@ -1,0 +1,31 @@
+@name EMD Air Gauge 1
+@inputs On MainRes EqualRes
+@outputs 
+@persist MainRes1 EqualRes1
+@trigger On
+@model models/gsgtrainprops/parts/cab/anim/gauge_air_anim.mdl
+#Toast
+
+#R   W
+#MR,ER
+#BC,BP
+
+if(first() | dupefinished()){
+    GaugeMat = "models/gsgtrainprops/cab/gauge_air_salem_160_green"
+    
+    
+    entity():setSubMaterial(3,GaugeMat)
+    entity():setBoneAngle(1,ang(-46,0,0))
+    entity():setBoneAngle(2,ang(-46,0,0))
+}
+
+if(On){
+    interval(150)
+    #-46,-314
+    
+    EqualRes1 = EqualRes1 + ((EqualRes) - EqualRes1) / 2
+    entity():setBoneAngle(1,ang(-46-(268*(EqualRes1/160)),0,0))
+    
+    MainRes1 = MainRes1 + ((MainRes) - MainRes1) / 2
+    entity():setBoneAngle(2,ang(-46-(268*(MainRes1/160)),0,0))
+}

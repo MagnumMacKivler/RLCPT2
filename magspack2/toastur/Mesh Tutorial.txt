@@ -1,0 +1,48 @@
+@name Mesh Tutorial
+@inputs Base:entity
+@outputs 
+@persist P2M1:entity
+@trigger 
+
+#Toast
+
+if(first() | dupefinished()){
+    
+    #This is intended to be a tutorial, something to refer back to. Please start a new E2 and copy+paste what you need.
+    
+    #If you need the bodygroup number, spawn the prop and give it the desired bodygroups.
+    #Point your crosshair and it and run 'prop2mesh_debug_bodygroups'
+    
+    if(!->Base){ #If base isn't wired, set it to the chip model.
+        Base = entity()
+    }
+    
+    P2MID = 1 #The index number of the P2M controller, just like holo indexing.
+    P2M1 = p2mCreate(P2MID,
+    Base:toWorld(vec(0)),  #Position of controller.
+    Base:toWorld(ang(0)))  #Angle
+    
+    P2M1:p2mPushModel(P2MID,table(
+        "model" = "models/props_c17/oildrum001.mdl",
+        "pos" = vec(0,0,0),
+        "ang" = ang(0,0,0),
+        "scale" = vec(1,1,1),
+        
+        "bodygroup" = 0,      #'prop2mesh_debug_bodygroups'
+        "submodels" = array(), #Blacklist for submeshes. Do bodygroups FIST as changing BG's will push the subeshes around.
+        "submodelswl" = 1,     #Turns the submodels list in to a whitelist.
+        
+        "flat" = 0,  #Render flat.
+        "inside" = 0, #Render inside.
+        
+        "clips" = array(vec(0,0,0),vec(0,0,0)) #Must always have an even number of vectors. (clip position,clip direction) Works exactly like holoclip.
+    ))
+    #Just copy and paste everything in p2mPushModel to create more to the mesh.
+    
+    P2M1:p2mBuild() #Builds the mesh.
+    
+    P2M1:p2mSetUV(P2MID,48)                         #How big the UV (texture) is, 48 is a good number.
+    P2M1:p2mSetMaterial(P2MID,"sprops/sprops_grid") #Material of the controller.
+    P2M1:p2mSetColor(P2MID,vec(255,255,255))        #Color of the controller.
+    P2M1:parentTo(Base)                             #Where the controller gets parented to.
+}
