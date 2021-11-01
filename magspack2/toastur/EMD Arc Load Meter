@@ -1,0 +1,20 @@
+@name EMD Arc Load Meter
+@inputs On Load
+@outputs 
+@persist Load1
+@trigger On
+@model models/gsgtrainprops/parts/cab/anim/gauge_load_arc_late_anim.mdl
+
+if(first() | dupefinished()){
+    GaugeMat = "models/gsgtrainprops/cab/gauge_amp_emd_a1500_arc_v5"
+
+    entity():setSubMaterial(3,GaugeMat)
+    entity():setBoneAngle(1,ang(0,0,0))
+}
+
+if(On){
+    interval(100)
+    Load1 = Load1 + ((Load) - Load1) / 2
+
+    entity():setBoneAngle(1,ang((Load1/1500)*-170,0,0))
+}
