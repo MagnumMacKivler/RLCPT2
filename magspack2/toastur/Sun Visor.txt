@@ -1,0 +1,16 @@
+@name Cab Sun Visor
+@inputs 
+@outputs 
+@persist 
+@trigger 
+@model models/gsgtrainprops/parts/cab/sun_visor_anim.mdl
+
+if(first() | dupefinished()){
+    entity():setBoneAngle(1,ang(-10,0,0))
+    
+    entity():setBoneAngle(2,ang(0,150,0))
+    
+    entity():setBoneAngle(3,ang(10,0,0))
+    
+    entity():setBoneAngle(4,ang(110,0,0))
+}
