@@ -9,12 +9,12 @@ if(first() | dupefinished()){
     GaugeMat = "models/gsgtrainprops/cab/gauge_amp_emd_a1500_arc_v5"
 
     entity():setSubMaterial(3,GaugeMat)
-    entity():setBoneAngle(1,ang(0,0,0))
+    entity():setBoneAngle(1,ang(37,0,0))
 }
 
 if(On){
     interval(100)
-    Load1 = Load1 + ((Load) - Load1) / 2
-
-    entity():setBoneAngle(1,ang((Load1/1500)*-170,0,0))
+    Load1 = Load1 + (abs(Load) - Load1) / 2
+    
+    entity():setBoneAngle(1,ang(37-(Load1/1500)*+(37*2),0,0))
 }
