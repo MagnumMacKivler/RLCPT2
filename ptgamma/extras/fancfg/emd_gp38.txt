@@ -1,0 +1,64 @@
+@name fancfg/emd_gp38
+
+IdleHeat = 25 #Percent of full heat load produced by the engine at idle.
+AmbientLoss = 10 #Percent of full heat load dissipated naturally when the engine is off.
+FanOn = "gsgtrainsounds/misc/delco_radfan_loop.wav" #Sound played when a radiator fan turns on.
+FanOff = "gsgtrainsounds/misc/delco_radfan_end.wav" #Sound played when a radiator fan turns off.
+
+FanType = array() #Number: 1 (Radiator) or 2 (Dynamic Brake).
+FanPos = array() #Vector: Position local to model.
+FanAngle = array() #Vector: Starting Angle local to model, typically 0 0 0.
+FanMat = array() #String: Material for fan to use.
+FanSize = array() #Number: Radius of fan in inches.
+FanRPM = array() #Number: Maximum fan speed in RPM. 60 RPM means 1 Revolution per second.
+FanAccel = array() #Number: Fan acceleration in RPM per second.
+#The following variables ONLY matter for Radiator Fans.
+FanVolume = array() #Number: Volume for fan sounds.
+FanThresholdsUp = table() #Array of Numbers: Temperature thresholds for increasing fan speed or turning the fan on.
+FanThresholdsDn = table() #Array of Numbers: Temperature thresholds for decreasing fan speed or turning the fan off.
+
+#Radiator Fans:
+
+X = 1
+
+FanType[X,number] = 1
+FanPos[X,vector] = vec(190,0,136)
+FanAngle[X,angle] = ang(0,0,0)
+FanMat[X,string] = "models/proppertextures/fan_generic"
+FanSize[X,number] = 48
+FanRPM[X,number] = 120
+FanAccel[X,number] = 12
+FanVolume[X,number] = 0.25
+FanThresholdsUp[X,array] = array(40)
+FanThresholdsDn[X,array] = array(20)
+
+X = 2
+
+FanType[X,number] = 1
+FanPos[X,vector] = vec(260.5,0,136)
+FanAngle[X,angle] = ang(0,0,0)
+FanMat[X,string] = "models/proppertextures/fan_generic"
+FanSize[X,number] = 48
+FanRPM[X,number] = 120
+FanAccel[X,number] = 12
+FanVolume[X,number] = 0.25
+FanThresholdsUp[X,array] = array(60)
+FanThresholdsDn[X,array] = array(40)
+
+#Dynamic Brake Fans:
+
+X = 3
+
+FanType[X,number] = 2
+FanPos[X,vector] = vec(42,0,136)
+FanAngle[X,angle] = ang()
+FanMat[X,string] = "models/proppertextures/fan_generic"
+FanSize[X,number] = 48
+FanRPM[X,number] = 120
+FanAccel[X,number] = 12
+FanVolume[X,number] = 0
+FanThresholdsUp[X,array] = array()
+FanThresholdsDn[X,array] = array()
+
+
+

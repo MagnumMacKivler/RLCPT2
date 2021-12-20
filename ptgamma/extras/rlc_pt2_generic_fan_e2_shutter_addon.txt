@@ -1,0 +1,122 @@
+@name RLC PT2 Generic Fan E2 shutter addon
+@inputs Base:entity On Temperature Dynamics
+@persist RadiatorClosed RadiatorOpen DynamicsClosed DynamicsOpen HI [Shutter FanUpAry FanDnAry]:array
+@persist DynQ [FanThresholdsUp FanThresholdsDn]:table On Temperature Dynamics #L:entity
+
+if(first() | dupefinished()){
+    timer("load",2000)
+    runOnChat(1)
+    
+    O = entity():owner()  
+} 
+if(O:lastSaid()== ".reset" & chatClk(O)){hideChat(1),reset()   } 
+if(clk("load")){
+   
+    local Version = "V1.0"
+    L = Base
+    L:setAlpha(0)
+
+    #Pick a Fan Config:
+    #include "ptgamma/extras/fancfg/alco_rs3"
+
+    FanUpAry = FanThresholdsUp[1,array]
+    FanDnAry = FanThresholdsDn[1,array]
+    
+    #Bodygroup IDs for each state:
+    RadiatorClosed = 0
+    RadiatorOpen = 1
+    
+    DynamicsClosed = 1
+    DynamicsOpen = 2
+    
+    #Radiator Shutter, put holoclips here! (Use Index 1+)   
+    #LocalAxis = vec(-1,0,-0.5):normalized(), A = 0, B = 1 #GSG
+    LocalAxis = vec(0,-1,-0.5):normalized(), A = 1, B = 0 #Magtrains & Rika
+
+    Front = -206
+    Back = 0
+    Top = 74
+    
+    #Color
+    Color1 = vec(30)
+    Color2 = vec(72)
+    Color3 = vec(255)
+    
+    LocalAxis2 = LocalAxis*vec(-1,-1,-1)   
+     
+    HI=1
+    holoCreate(HI,L:pos(),vec(1),L:angles(),Color1,"models/rika/part/misc/shutter_rs3.mdl")
+    holoParent(HI,L)
+    holoClipEnabled(HI,1,1)
+    holoClip(HI, 1, vec((Front-2)*B,(Front-2)*A,0), LocalAxis, 0)
+    
+    HI=2
+    holoCreate(HI,L:pos(),vec(1),L:angles(),Color3,"models/rika/part/misc/shutter_rs3.mdl")
+    holoParent(HI,L)
+    holoClipEnabled(HI,1,1)
+    holoClipEnabled(HI,2,1)
+    holoClipEnabled(HI,3,1)
+    holoClip(HI, 1, vec(0,0,Top+2), vec(0,0,-1), 0)
+    holoClip(HI, 2, vec((Front-2)*B,(Front-2)*A,0), LocalAxis2, 0)
+    holoClip(HI, 3, vec(Front*B,Front*A,0), LocalAxis, 0)
+    
+    HI=3
+    holoCreate(HI,L:pos(),vec(1),L:angles(),Color2,"models/rika/part/misc/shutter_rs3.mdl")
+    holoParent(HI,L)
+    holoClipEnabled(HI,1,1)
+    holoClipEnabled(HI,2,1)
+    holoClip(HI, 1, vec(0,0,Top), vec(0,0,-1), 0)
+    holoClip(HI, 2, vec(Front*B,Front*A,0), LocalAxis2, 0)
+    
+    HI=4
+    holoCreate(HI,L:pos(),vec(1),L:angles(),Color3,"models/rika/part/misc/shutter_rs3.mdl")
+    holoParent(HI,L)
+    holoClipEnabled(HI,1,1)
+    holoClipEnabled(HI,2,1)
+    holoClipEnabled(HI,3,1)
+    holoClip(HI, 1, vec(0,0,Top), vec(0,0,1), 0)
+    holoClip(HI, 2, vec(0,0,Top+2), vec(0,0,-1), 0)
+    holoClip(HI, 3, vec((Front-2)*B,(Front-2)*A,0), LocalAxis2, 0)
+    
+    HI=5
+    holoCreate(HI,L:pos(),vec(1),L:angles(),Color1,"models/rika/part/misc/shutter_rs3.mdl")
+    holoParent(HI,L)
+    holoClipEnabled(HI,1)
+    holoClip(HI, 1, vec(0,0,Top+2), vec(0,0,1), 0)
+    
+    
+    
+    #End of Shutters Code
+    Shutters = array()
+    for(N=1,HI){
+        Shutters[N,entity] = holoEntity(N)
+    }
+    
+    setName("RLC PT2 Generic Fan E2 shutter addon "+Version)
+    timer("check",100)
+}
+
+if(clk("check")){
+    
+    if(Temperature>FanUpAry[1,number]){
+        for(N=1,HI){
+            holoBodygroup(N,1,RadiatorOpen)
+        }
+    }elseif(Temperature<FanDnAry[1,number]){
+        for(N=1,HI){
+            holoBodygroup(N,1,RadiatorClosed)
+        }
+    }
+    
+    if(Dynamics){
+        for(N=1,HI){
+            holoBodygroup(N,2,DynamicsOpen)
+        }
+    }elseif(!Dynamics){
+        for(N=1,HI){
+            holoBodygroup(N,2,DynamicsClosed)
+        }
+    }
+    
+    timer("check",100)
+}

@@ -1,0 +1,226 @@
+@name RLC PT2 Generic Fan E2
+@inputs Base:entity On Reverser Throttle Dynamics Vents:array
+@outputs Temperature HeatThrottle HeatAdded HeatRemoved FanSpeed:array IdleOverride
+@persist [FanType FanPos FanAngle FanModel FanMat FanSize FanRPM FanAccel FanVolume]:array [FanThresholdsUp FanThresholdsDn]:table [FanOn FanOff ShutterSoundOn ShutterSoundOff]:string
+@persist [RadiatorFans DynamicFans FanAxes FanVel Thetas NumFanSpeeds FanSpeed]:array NumRadFans NumDynFans IdleHeat AmbientLoss HeatPerFan Temperature HeatThrottle
+@persist RadiatorBodygroupID RadiatorBodygroupOff RadiatorBodygroup:table CurrentRadiatorBG
+@persist DynamicBodygroupID DynamicBodygroupOn DynamicBodygroupOff CurrentDynamics ShutterQ
+@trigger On Vents
+
+if(first()|dupefinished()){
+    
+    local Version = "V1.3"
+    
+    #Pick a Fan Config:
+    #include "ptgamma/extras/fancfg/alco_rs3"
+    
+    HasDynamics = 0
+    
+    Temperature = 0
+    
+    RadiatorFans = array()
+    DynamicFans = array()
+    Thetas = array()
+    
+    for(N=1,FanType:count()){
+        local MakeHolo = 1
+        #Assign indices to lists of each fan
+        if(FanType[N,number]==1){ 
+            RadiatorFans[RadiatorFans:count()+1,number] = N
+            NumFanSpeeds[N,number] = FanThresholdsUp[N,array]:count() #Get number of fan speeds based on threshold information
+            FanSpeed[N,number] = 0
+        }elseif((FanType[N,number]==2) & HasDynamics){
+            DynamicFans[DynamicFans:count()+1,number] = N
+        }elseif((FanType[N,number]==2) & !HasDynamics){
+            MakeHolo = 0
+        }
+        if(MakeHolo){
+            local Radius = FanSize[N,number]
+            holoCreate(N,Base:toWorld(FanPos[N,vector]),vec(Radius/12, Radius/12, 1),Base:toWorld(FanAngle[N,angle]),vec(255),FanModel[N,string]) #Generate Holo
+            holoMaterial(N,FanMat[N,string]) #Texture it
+            holoParent(N,Base) #Parent it
+            FanAxes[N,vector] = FanAngle[N,angle]:up() #Define Rotation Axes
+        }
+        
+        Thetas[N,number] = 0 #Init Theta
+        FanVel[N,number] = 0 #Init Ang Vel
+        
+        
+    }
+    NumRadFans = RadiatorFans:count() #Get total number of radiator fans
+    NumDynFans = DynamicFans:count()
+    if(NumRadFans>0){ #Decide how much heat gets dissipated per fan
+        HeatPerFan = 100/NumRadFans
+    }else{
+        HeatPerFan = 0
+    }
+    
+    CurrentRadiatorBG = -1
+    CurrentDynamics = -1
+    
+    setName("RLC PT2 Generic Fan E2 "+Version)
+}
+
+#Throttle Smoothing
+
+if(HeatThrottle < Throttle){
+    HeatThrottle += 0.5
+    if(HeatThrottle>Throttle){HeatThrottle=Throttle}
+}elseif(HeatThrottle>Throttle){
+    HeatThrottle += -0.5
+    if(HeatThrottle<Throttle){HeatThrottle=Throttle}
+}
+
+#Radiator Heat Balance
+
+HeatAdded = On*(IdleHeat + ((abs(Reverser) & !Dynamics) ? 1 : 0.5)*(100-IdleHeat)*HeatThrottle/100)
+HeatRemoved = !On*AmbientLoss
+for(N=1,NumRadFans){
+    local Index = RadiatorFans[N,number]
+    local Heat = HeatPerFan*FanVel[Index,number]/(FanRPM[Index,number]*6)
+    
+    HeatRemoved += Heat
+}
+Temperature += (HeatAdded-HeatRemoved)/300
+Temperature = clamp(Temperature,0,100)
+
+#Radiator Fan Control
+
+local FOMS = 0 #Is a Fan On Max Speed?
+local RadiatorBG = RadiatorBodygroupOff
+local AnyFansOn = 0
+
+for(N=1,NumRadFans){
+    local Index = RadiatorFans[N,number]
+    
+    local UpShiftThreshold = 101
+    local DnShiftThreshold = -1
+    if(FanSpeed[Index,number]<NumFanSpeeds[Index,number]){
+        local FTU = FanThresholdsUp[Index,array]
+        UpShiftThreshold = FTU[FanSpeed[Index,number]+1,number]
+    }
+    if(FanSpeed[Index,number]>0){
+        local FTD = FanThresholdsDn[Index,array]
+        DnShiftThreshold = FTD[FanSpeed[Index,number],number]
+    }
+    
+    if(On){
+        if(Temperature>UpShiftThreshold){
+            if((FanSpeed[Index,number]==0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,0,FanOn)
+                soundVolume(N,FanVolume[N,number])
+            }
+            FanSpeed[Index,number] = FanSpeed[Index,number] + 1
+        }elseif(Temperature<DnShiftThreshold){
+            FanSpeed[Index,number] = FanSpeed[Index,number] - 1
+            if((FanSpeed[Index,number]==0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,10,FanOff)
+                soundVolume(N,FanVolume[N,number])
+            }
+        }
+        if(FanSpeed[Index,number]>0){AnyFansOn = 1}
+    }else{
+        if((FanSpeed[Index,number]>0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,10,FanOff)
+                soundVolume(N,FanVolume[N,number])
+            }
+        FanSpeed[Index,number] = 0
+    }
+    
+    #FOMS
+    if(FanSpeed[Index,number]==NumFanSpeeds[Index,number]){
+        FOMS = 1
+    }
+    
+    #Vent Bodygroup from Fan Speed - Highest fan takes priority
+    local Speen = FanSpeed[Index,number] #Speen. I am Speen.
+    if(Speen > 0){
+        RadiatorBG = RadiatorBodygroup[Index,array][Speen,number]
+    }
+    
+    
+    #Fan Acceleration
+    
+    local FanTargetVel = FanRPM[Index,number]*6*FanSpeed[Index,number]/NumFanSpeeds[Index,number]
+    local FV = FanVel[Index,number]
+    if(FV<FanTargetVel){
+        FV += FanAccel[Index,number]*0.6
+        if(FV>FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }elseif(FV>FanTargetVel){
+        FV += -FanAccel[Index,number]*0.6
+        if(FV<FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }
+    
+    #Fan Rotation
+    
+    local T = Thetas[Index,number]
+    T += FV/10
+    if(T>360){T += -360}
+    Thetas[Index,number] = T
+    
+    holoAng(Index,Base:toWorld(FanAngle[Index,angle]:rotateAroundAxis(FanAxes[Index,vector],-T)))
+}
+
+IdleOverride = FOMS
+
+#Shutter sound
+if(AnyFansOn & !ShutterQ){
+    ShutterQ = 1
+    if(ShutterSoundOn!=""){Base:soundPlay(0,1,ShutterSoundOn)}
+}elseif(!AnyFansOn & ShutterQ){
+    ShutterQ = 0
+    if(ShutterSoundOff!=""){Base:soundPlay(0,1,ShutterSoundOff)}
+}
+
+#Set Radiator Bodygroup
+
+if((CurrentRadiatorBG != RadiatorBG) | ~Vents){
+    CurrentRadiatorBG = RadiatorBG
+    foreach(K,V:entity = Vents){
+        V:setBodygroup(RadiatorBodygroupID,RadiatorBG)
+    }
+}
+
+#Dynamic Fan Control/Acceleration
+    
+for(N=1,NumDynFans){
+    local Index = DynamicFans[N,number]
+    local FanTargetVel = On*Dynamics*FanRPM[Index,number]*6
+    local FV = FanVel[Index,number]
+    
+    if(FV<FanTargetVel){
+        FV += FanAccel[Index,number]*0.6
+        if(FV>FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }elseif(FV>FanTargetVel){
+        FV += -FanAccel[Index,number]*0.6
+        if(FV<FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }
+    
+    #Dynamic Fan Rotation
+    
+    local T = Thetas[Index,number]
+    T += FV/10
+    if(T>360){T += -360}
+    Thetas[Index,number] = T
+    
+    holoAng(Index,Base:toWorld(FanAngle[Index,angle]:rotateAroundAxis(FanAxes[Index,vector],-T)))
+    
+}
+
+#Dynamic Brake BG
+if((CurrentDynamics!=Dynamics) | ~Vents){
+    CurrentDynamics = Dynamics
+    foreach(K,V:entity = Vents){
+        V:setBodygroup(DynamicBodygroupID,Dynamics ? DynamicBodygroupOn : DynamicBodygroupOff)
+    }
+}
+
+
+#Timer
+if(On | Temperature>0){
+    timer("clk",100)
+}
