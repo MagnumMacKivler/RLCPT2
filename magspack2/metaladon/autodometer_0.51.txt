@@ -1,0 +1,472 @@
+@name Autodometer 0.51
+@inputs Locomotive:entity
+@outputs Miles Hours Topspeed
+@persist Data:table [LocomotiveName FileName]:string Trac:entity [TextColor LastPosition]:vector Loaded Int SaveInt Master Sort Miles Hours
+
+if(first() | dupefinished()){
+    
+    
+    LocomotiveName = "Unselected Locomotive" 
+    
+    
+    Sort = 3 #Set to 1 for Sort by Hours, set to 2 for Sort by Miles, set to 3 for Sort by Last Used, set to 0 for Unsorted.
+    
+    
+    #Beyond this line, the code begins!
+    ################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################
+    ################################################################################################################################################################################################################################################################
+    #Don't edit anything, else the E2 might die.
+    
+    Int = 1000 #How often the data is collected (1 second by default)
+    SaveInt = 100000 #How often the data is saved (100 seconds by default)
+    
+    TextColor = vec(255,191,0)*0.8
+    FileName = "autodometer_data" #File to save to.
+    
+    if(Locomotive:isValidPhysics()){ #Mechanism for getting and determining the Locomotive body prop.
+    
+        Trac = Locomotive
+        
+    }elseif(Locomotive:parent():isValidPhysics()){
+    
+        Trac = Locomotive:parent()
+        
+    }elseif(entity():parent():isValidPhysics()){
+        
+        Trac = entity():parent()
+        
+    }elseif(entity():isWeldedTo():isValidPhysics()){
+        
+        Trac = entity():isWeldedTo()
+        
+    }
+    
+    if(!Trac:isValidPhysics()){ #Error to prevent bad stuff
+        
+        error("No tracking entity found! Wire the input on the E2 to your locomotive base, then refresh the chip by hitting R on it with the E2 tool.")
+        
+    }
+    
+    function string toDT(Last){ #Number to Date encoder.
+        
+        Last = Last - 1
+        
+        local Y = floor(Last/(32*12*24))
+        Last = Last - Y*(32*12*24)
+        
+        local M = floor(Last/(32*24))
+        Last = Last - M*(32*24)
+        
+        local D = floor(Last/(24))
+        Last = Last - D*(24)
+        
+        local H = floor(Last)
+        Last = Last - H
+        
+        local N = floor(Last*60)
+        
+        local Min = N:toString()
+        if(N <= 9){Min = "0" + Min}
+        
+        local Hr = (H%12)+1
+        
+        return M+"/"+D+"/"+Y+" @ "+Hr+":"+Min+" "+(H > 12 ? "PM" : "AM")
+        
+    }
+    
+    function number toN(Ar:string){ #Date-to-Number encoder
+        
+        local T = Ar:explode(" ")
+        
+        local Date = T[1,string]:explode("/")
+        local Time = T[3,string]:explode(":")
+            
+        local M = Date[1,string]:toNumber()*24*32
+        local D = Date[2,string]:toNumber()*24
+        local Y = Date[3,string]:toNumber()*24*32*12
+            
+        local Hr = Time[1,string]:toNumber() + (T[4,string] == "AM" ? 0 : 12)
+        local Mn = Time[2,string]:toNumber()/60
+        
+        return M+D+Y+Hr+Mn
+        
+    }
+    
+    function string start(Alt){ #Function that spits out either a string of the current time or an encoded number used for comparisons.
+        
+        local DtInf = date()
+        local M = DtInf["min",number]
+        local H = ((DtInf["hour",number]-1)%12 + 1)
+        local Hour = H:toString()
+        local Min = M:toString()
+        if(M <= 9){Min = "0" + Min}
+        
+        local AM = DtInf["hour",number] > 12 ? "PM" : "AM"
+        
+        if(!Alt){
+            
+            return DtInf["month",number]+"/"+DtInf["day",number]+"/"+DtInf["year",number]+" @ "+Hour+":"+Min+" "+AM
+            
+        }else{
+            
+            return toN(DtInf["month",number]+"/"+DtInf["day",number]+"/"+DtInf["year",number]+" @ "+Hour+":"+Min+" "+AM):toString()
+            
+        }
+    
+    }
+    
+    Data = table()
+    
+    interval(100)
+    runOnLast(1)
+    runOnFile(1)
+    timer("save",SaveInt)
+    
+    LocomotiveName = LocomotiveName:trim():replace(">","?"):replace("|","?"):replace("\n","?") #Prevents parsing errors later on.
+    
+    Loaded = Master = Miles = Hours = Topspeed = 0
+    
+    if(LocomotiveName == "Unselected Locomotive"){ #Idiot Check
+        
+        error("Please open the E2 interface and select a locomotive name to save to. Edit the \"LocomotiveName\" variable on line 9 near the top of the E2.")
+        
+    }
+    
+    if(Sort > 3 | Sort < 1){Sort = 0}else{Sort = round(Sort)} #Hone the Sort input.
+    
+    dsJoinGroup(owner():name()+"-autodometer") #Datasignal group
+    
+    local Test = dsProbe(owner():name()+"-autodometer",1):count() #Am I alone?
+    
+    local Dat = array(LocomotiveName,Trac,0,Trac:pos(),0,0,0,start(0),0,0) #Blank data file
+    
+    if(!Test){ #If alone, I AM THE MASTER
+        
+        Master = 1
+        timer("retry",50)
+        Data[entity():id():toString(),array] = Dat
+        
+    }else{ #If not, check in!
+    
+        dsSend("checkin",owner():name()+"-autodometer",array(entity():id():toString()):add(Dat))
+        printColor(TextColor,"Autometer Initialized at "+start(0)+"\nSaving to the locomotive \""+LocomotiveName+"\" @ expression2/e2shared/"+FileName+" via another E2.\nTo change the locomotive, edit \"LocomotiveName\" near the top of the E2.")
+        
+    }
+    
+    LastPosition = Trac:pos()
+    
+    setName("Autodometer V0.51\nTracking \""+LocomotiveName+"\" @ expression2/e2shared/"+FileName+"\nMade by Sir Metaladon") #Shmancy Name
+    
+}
+
+if(clk("retry")){ #Get the File. Triggered by the "I AM THE MASTER" thing.
+    
+    fileLoad(">e2shared/"+FileName+".txt")
+    timer("retry",4000)
+    
+}
+
+if(dsClk("checkin") & Master){ #If master and recieve a checkin, add it to the tracker.
+        
+    local Dat = dsGetArray()
+    local Adr = Dat[1,string]
+    Dat:remove(1)
+    
+    Data[Adr,array] = Dat
+    
+}elseif(last() & Master){ #If master and about to not exist, pack up and send the data to somebody else who checked in.
+    
+    Data[entity():id():toString(),array][10,number] = 1
+    
+    if(Miles > 0.1){
+            
+        printColor(TextColor,"Finished run with loco \""+LocomotiveName+"\", traveled "+round(Miles,1)+" miles over "+round(Hours,2)+" hours, top speed "+round(Topspeed)+" MPH on "+start(0))
+            
+    }
+    
+    local K1 = "file"
+    local K = 1
+    
+    while((K1 == "file" | K1 == entity():id():toString()) & K <= Data:keys():count()){
+        
+        K1 = Data:keys()[K,string]
+        K++
+        
+    }
+    
+    if(K <= Data:keys():count()){dsSendDirect("backup",entity(K1:toNumber()),Data)}
+    
+}elseif(dsClk("out") & Master){ #If recieving a signal checkout, set the corresponding data entry to "inactive"
+
+    local DS = dsGetString()
+    
+    Data[DS,array][10,number] = 1
+    
+}elseif(last()){ #If dying and NOT master, send a checkout signal.
+    
+    dsSend("out",owner():name()+"-autodometer",entity():id():toString())
+    
+    if(Miles > 0.1){
+            
+        printColor(TextColor,"Finished run with loco \""+LocomotiveName+"\", traveled "+round(Miles,1)+" miles over "+round(Hours,2)+" hours, top speed "+round(Topspeed)+" MPH on "+start(0))
+            
+    }
+    
+}elseif(dsClk("backup")){ #If recieving the recovery files from a dead master, become the new master.
+    
+    Data:clear()
+    Data = dsGetTable()
+    Master = Loaded = 1
+    interval(100)
+    timer("save",SaveInt)
+    
+}
+
+if(fileClk() & !Loaded){ #File Loader and Parser to "File" aka Data["file",table]
+    
+    if(fileLoaded()){
+        
+        stoptimer("retry")
+        
+        local F = fileRead():explode(">") #Broke up by Locomotive Entry
+        
+        File = Data["file",table] = table()
+        
+        for(X = 2,F:count()){ #Put it back together in readable form sans opening paragraph.
+            
+            local G = F[X,string]:explode("|")
+            local Name = G[1,string]:trim()
+            
+            File[Name,array] = array(">"+F[X,string]:trim())
+            
+        }
+        
+        if(!File[LocomotiveName,array]:count()){ #Is there already an entry to save to?
+                
+            printColor(TextColor,"Autometer Initialized at "+start(0)+"\nNo data entry found, Saving to the locomotive \""+LocomotiveName+"\" @ expression2/e2shared/"+FileName+"\nTo change the locomotive, edit \"LocoName\" near the top of the E2.")
+            
+        }else{
+            
+            printColor(TextColor,"Autometer Initialized at "+start(0)+"\nSaving to the locomotive \""+LocomotiveName+"\" @ expression2/e2shared/"+FileName+"\nTo change the locomotive, edit \"LocoName\" near the top of the E2.")
+            
+        }
+        
+        local K = File:keys()
+        
+        for(X = 1,K:count()){ #For every locomotive, break it up into it's component data and save that to "file"
+            
+            local Dat = File[K[X,string],array][1,string]
+            
+            local Tot = Dat:explode("|")[2,string]:trim():explode("\n")[1,string]:trim():explode(" ")
+            
+            File[K[X,string],array][2,number] = Tot[2,string]:toNumber()
+            File[K[X,string],array][3,number] = Tot[4,string]:toNumber()
+            
+            File[K[X,string],array][4,number] = toN(Tot[8,string]+" @ "+Tot[10,string]+" "+Tot[11,string])
+            
+        }
+        
+    }else{
+    
+        printColor(TextColor,"No file \""+FileName+"\" found, creating a new file."+"\nSaving to the locomotive \""+LocomotiveName+"\" @ expression2/e2shared/"+FileName+"\nTo change the locomotive, edit \"LocoName\" near the top of the E2.")
+        
+    }
+    
+    Loaded = 1
+    
+}
+
+
+if(clk()){
+    
+    interval(Int)
+    
+    Miles = Miles + (Trac:pos():distance(LastPosition)/(5280*12)) #Recording "fake" data for use in local display.
+    LastPosition = Trac:pos()
+    Hours = Hours + Int/(1000*60*60)
+    if((60*60)*Trac:vel():length()/(5280*12) > Topspeed){Topspeed = (60*60)*Trac:vel():length()/(5280*12)}
+    
+    if(Master){ #Records data for every single currently "living" data entry.
+    
+        local K = Data:keys()
+        
+        for(X = 1,K:count()){ #For every data entry, use the data supplied to take readings.
+            
+            if(K[X,string] == "file" | Data[K[X,string],array][10,number] == 1){continue}
+            
+            local D = Data[K[X,string],array]
+            
+            local Loc = D[1,string]
+            local Trg = D[2,entity]
+            
+            D[3,number] = D[3,number] + Trg:pos():distance(D[4,vector])
+            D[4,vector] = Trg:pos()
+            
+            D[5,number] = D[5,number] + Int/1000
+            
+            local Spd = Trg:vel():length()
+            
+            if(Spd > 20){
+        
+                D[6,number] = D[6,number] + Int/1000
+                
+                if(D[7,number] < Spd){D[7,number] = Spd}
+                
+            }
+            
+            #8 is reserved for start time, don't overwrite it.
+            
+            D[9,number] = start(1):toNumber()
+            
+        }
+        
+    }
+    
+    if(!Trac:isValidPhysics()){ #So it dies when you remove the train. Should trigger the saving process, too!
+    
+        selfDestruct()
+        
+    }
+    
+}
+
+if((clk("save") | last()) & Loaded & Master){ #If having the inclination to save
+    
+    SavingData = table()
+    
+    local K = Data:keys()
+    local Ord = ""
+    local Order = array()
+    local Changed = 1
+    
+    for(X = 1,K:count()){ #For all entries in the data storage sans "file"
+        
+        if(K[X,string] == "file"){continue}
+        
+        local Loco = Data[K[X,string],array]
+        
+        local Time = Loco[5,number]
+        local Dist = Loco[3,number]
+        local Top = Loco[7,number]
+        local Moving = Loco[6,number]
+        local Start = Loco[8,string]
+        
+        if(Dist < 5280*12/10){continue} #If length is less than 1/10th of a mile, ignore this entry.
+        
+        if(SavingData[Loco[1,string],array]:count() == 0){
+            SavingData[Loco[1,string],array] = array()
+        }
+        
+        if(!Ord:find("&"+Loco[1,string])){
+            
+            Order:pushString(Loco[1,string])
+            Ord = Ord + "&"+Loco[1,string]
+            
+        }
+    
+        #Create a modified "SavingData" table which carries things more concicely, and compiled by locomotive name.
+        
+        SavingData[Loco[1,string],array][1,string] = SavingData[Loco[1,string],array][1,string] + "\n"+ceil(Time/60/60,2)+" hours, "+round(Dist/5280/12,1)+" miles, "+round(100*(Time-Moving)/Time,0)+"% idle, "+round((Top/5280/12)*60*60,0)+" MPH top speed, started "+Start+" on \""+hostname():explode("-")[1,string]:explode("|")[1,string]:trim()+"\""
+        
+        SavingData[Loco[1,string],array][2,number] = SavingData[Loco[1,string],array][2,number] + ceil(Time/60/60,2)
+        SavingData[Loco[1,string],array][3,number] = SavingData[Loco[1,string],array][3,number] + round(Dist/5280/12,1)
+        SavingData[Loco[1,string],array][4,number] = max(SavingData[Loco[1,string],array][4,number],Loco[9,number])
+        
+        Changed++
+        
+    }
+    
+    if(Changed){ #Originally it wouldn't save unless there was a data entry to save, but later I added the resorting system and figured nobody will notice if it saves a little more often.
+    
+        local File = "Locomotive Autodometer Data Sheet\n"+
+        "This file is a record of all sessions where the tracker was \"active\", meaning the locomotive traveled more than a tenth of a mile.\n"+
+        "This page is "+select(Sort+1,"Unsorted","sorted by Total Hours","sorted by Total Miles","sorted by Recently Used")+". To change the sorting method, change the variable Sort at the top of the e2.\n"+
+        "Editing this doccument is not reccomended, it might corrupt the data."
+        
+        K = Data["file",table]:keys()
+        
+        for(X = 1,K:count()){ #Create the Ordering strings, with ones that are being edited in this iteration being first (redundant in retrospect?)
+            
+            if(!Ord:find("&"+K[X,string])){
+                
+                Order:pushString(K[X,string])
+                Ord = Ord + "&"+K[X,string]
+                
+            }
+            
+        }
+        
+        local NewOrder = array()
+        
+        if(Sort >= 1 & Sort <= 3){ #Sort the entries! Uses Insertion sort, if I'm not mistaken.
+                
+            for(X = 1,Order:count()){
+                
+                local Y = 1
+                
+                local T = Sort + 1
+                
+                local DF1 = Data["file",table][Order[X,string],array]
+                local THrs1 = SavingData[Order[X,string],array][T,number] + DF1[T,number]
+                
+                local DF2 = Data["file",table][NewOrder[Y,string],array]
+                local THrs2 = SavingData[NewOrder[Y,string],array][T,number] + DF2[T,number]
+                
+                while(THrs1 < THrs2){
+                    
+                    Y++
+                    DF2 = Data["file",table][NewOrder[Y,string],array]
+                    THrs2 = SavingData[NewOrder[Y,string],array][T,number] + DF2[T,number]
+                    
+                }
+                
+                NewOrder:insertString(Y,Order[X,string])
+                
+            }
+            
+        }else{
+            
+            NewOrder = Order
+            
+        }
+        
+        for(X = 1,NewOrder:count()){ #Finally, compile the NewOrder entries into strings ready for writing.
+            
+            local DF = Data["file",table][NewOrder[X,string],array]
+            
+            local THrs = SavingData[NewOrder[X,string],array][2,number] + DF[2,number]
+            local TMi = SavingData[NewOrder[X,string],array][3,number] + DF[3,number]
+            
+            local Last = max(SavingData[NewOrder[X,string],array][4,number],DF[4,number])
+            
+            local End = toDT(Last)
+            
+            local Ses = ""
+            
+            local Parse = DF[1,string]:trim():explode("\n")
+            
+            for(X = 2,Parse:count()){
+                
+                Ses = Ses + "\n"+Parse[X,string]
+                
+            }
+            
+            File = File + "\n\n>"+NewOrder[X,string]+" | Total: "+THrs+" hours, "+TMi+" miles, last used "+End+". Sessions:"+SavingData[NewOrder[X,string],array][1,string]+Ses
+            
+        }
+        
+        #[local F = File:explode("\n") #Uncomment this if you want to print a readout of what the file looks like (mostly, it's barebones) to console.
+        for(X = 1,F:count()){
+            
+            print(1," "+F[X,string])
+            
+        }]]#
+        
+        if(!fileCanWrite()){timer("save",2000)}else{timer("save",SaveInt)} #If we're not expected to be able to write the file, come back later.
+        fileWrite(">e2shared/"+FileName+".txt",File)
+        
+    }else{timer("save",SaveInt)}
+
+}
