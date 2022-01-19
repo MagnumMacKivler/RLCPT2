@@ -1,0 +1,136 @@
+@name E2M Curvestripe by Sir Metaladon
+@inputs E:entity 
+
+if(first() | dupefinished()){
+    
+    #Welcome to Sir Metaladon's E2M Curve Striper!
+    #Here's how to work it. Put in a material, a width, and a color. Make more copies of these 3 objects in that order (see below, and you will get rings of each of those colors.
+    #NOTE: Make sure you have at least 2 colors, or the E2 will bark at you due to the fact you can't make a curve with 1 color.
+    #Note 2: Technically the width of the last item in the Stripes list doesn't actually do anything. Just a note.
+    #Note 3: This is configured (by default) for a funky demo skin for Grove's base SD70M. This E2 was based on some code I aquired from Raptor of NAT, who I believe got it from CubicRevolution. Credit where credit is due, although I mostly made this myself.
+    #Note 4: Feel free to cannibalize this. This E2 is less of an all-in-one for meshes and more of a quick-and-dirty demo that gives people the tools they need to curve with meshes.
+    #Feel more than free to take this, rip it to bits, and reassemble it in the form of a Picasso painting. Open source technology, man! Just make sure to credit me. Thanks!
+
+    Stripes = array(
+        
+        #Example: 
+        #"wtp/metal_5",20,vec(255,191,0),
+        #"models/props_gulch/tinycars/tc_colorable",5,vec(255,191,0)
+        
+        "models/proppertextures/acrylic",348,vec(255,191,0)*0.8 +vec(20),
+        "models/proppertextures/acrylic",22,vec(255,93,0)*0.9+vec(10),
+        "models/proppertextures/acrylic_red",18,vec(255,0,0),
+        "models/proppertextures/acrylic",1,vec(90)
+        
+    )
+    
+    OuterCuts = array(vec(0,0,13),vec(0,0,1),vec(0,0,123),vec(0,0,-1)) #Add extra cuts here to hem in the main "curve" section. 
+    #Use this if you're integrating the curve into a larger design.
+    
+    Center = vec(0,90,-300) #The point at which the curve rotates around.
+    Scale = vec(1,1,1) #The "scale" of the curve. You can use this to bend the shape of it, or rescale it.
+    
+    StartAng = -90 #The starting angle of the curve
+    Angle = 40 #How far the curve will go after the starting angle.
+      
+    ExcludeSubmodels = array() #List of submodels to exclude. Leave blank to include all, else keep adding numbers like 1,2,3,4 etc until you remove the ones you want.
+    
+    Off = 0 #Set this to 1 if the curve is on the wrong end of the locomotive IE the front instead of the side or vice-versa
+    
+    Bodygroup = 9360 #[This is difficult to explain. Basically, imagine the Bodygroups of a model like an old-school flipclock. 
+    When the number on the end (the 1's place of the minutes) reaches 9, the next flip will make that same slot 0 and the next slot over 1.
+    If you wanted to make a clock read 2:00, you would keep adding minutes until both of the previous slots tick over.
+    You would need to add 10 minutes to tick over the 2nd slot, times 6 to tick over the 3rd slot, time 2 to tick it over again, or 2*6*10.
+    The same goes for Bodygroups, except the number of "minutes" you need to tick over each slot is determined by the total quantity of bodygroups in each slot.
+    Say, for example, you have a model with 3 bodygroup options in the first slot, and 2 options (a toggle) on the 2nd slot.
+    To make the bodygroup combination 2,2, you would need to click up the 2nd slot once, which requires 1 loop of the previous bodygroup, therefore 3*1.
+    Add to that the quantity for the first bodygroup (just 1, since 2 is the first option after the default, and you get 3 + 1 = 4 Therefore, 2,2 = 4 with limits of 3, 1.
+    This might not totally explain it, and there's some fiddly bits that might mess it up, but overall that should do it.
+    #why did I write a massive tutorial for 1 variable
+    
+    ]#
+        
+    ################################
+    
+    if(!E:isValidPhysics()){ #check for a valid E
+        
+        print("Make sure to wire E to your locomotive body!\n -Curvestripe")
+        
+    }elseif(Stripes:count() >= 6 & Stripes:count() % 3 == 0){ #check for a valid Stripes info
+        
+        if(Off != 0){Rot = 90}else{Rot = 0} #convert Off to the internal rotation
+        
+        EModel = E:model() #model of the p2m mesh
+        
+        local P2M = p2mCreate(32,E:pos(),E:angles()) #main E2M mesh entity
+        
+        for(X = 1, Stripes:count()/3){ #Loop that configures each index in the mesh entity relative to the settings in the stripes
+            
+            P2M:p2mSetMaterial(X,Stripes[X*3-2,string])
+            P2M:p2mSetColor(X,Stripes[X*3,vector])
+        
+        }
+        
+        Ar = array() #placeholder array for clipping the innermost circle (since it doesn't require separate sections)
+        Steps = ceil(Angle/7) #Number of steps to transition the curve. DO NOT AJUST THIS, else IMMENSE LAG will ensue!
+        
+        Step = Angle/Steps #internal calculation of angle per step
+        
+        for(X = 1, Steps+1){ #A loop for building each stack
+            
+            Offset = vec(0,cos(StartAng),-sin(StartAng)):rotateAroundAxis(vec(0,0,1),Rot) #Offset from the "center" of the circle
+            Pos = Center+((Offset*Stripes[2,number])*Scale) #Ajusted position from the center "real position"
+            Dir = vec(0,-cos(-StartAng),-sin(-StartAng)):rotateAroundAxis(vec(0,0,1),Rot) #Direction vector paralell to the edge of the circle
+            
+            Halfstep = Step/2 #Half a step
+            
+            if(X != 1){Dir2 = vec(0,-sin(StartAng-Halfstep),-cos(StartAng-Halfstep)):rotateAroundAxis(vec(0,0,1),Rot)} 
+            #If it's not the first stack, create a perpendicular vector direction clip one step behind
+            
+            if(X != Steps+1){Dir3 = vec(0,-sin(StartAng+Halfstep),-cos(StartAng+Halfstep)):rotateAroundAxis(vec(0,0,1),Rot)}else{Dir3 = vec(0)} 
+            #If it's not the last stack, create a perpendicular vector direction clip one step ahead
+            
+            Ar:pushVector(Pos) #add clip data to the innermost section
+            Ar:pushVector(Dir):rotateAroundAxis(vec(0,0,1),Rot) #add clip data to the innermost section
+            
+            for(Y = 2,(Stripes:count()/3)){ #for each layer, create a mesh entity constrained by 4 clips + the outer cuts
+                
+                OldPos = Pos #making an alternate variable to record the position before adding the next layer
+            
+                Pos = Pos + (Offset*Stripes[Y*3-1,number])*Scale #add the distance outward to the next stripe on this section
+                
+                if(Y == (Stripes:count()/3)){Toggle = 0}else{Toggle = 1} #if this is the outermost layer, remove the far clip so it goes out forever
+                
+                P2M:p2mPushModel(Y,EModel,ExcludeSubmodels,vec(0,0,0),ang(0,90,0),vec(1),0,0,Bodygroup,array(OldPos,-Dir,Pos,Dir*Toggle,Center,Dir2,Center,-Dir3):add(OuterCuts))
+                #add the submodel to the mesh
+                
+            }
+            
+            StartAng = StartAng + Step #iterate the angle of the section forward
+            
+        }
+        
+        P2M:p2mPushModel(1,EModel,ExcludeSubmodels,vec(0,0,0),ang(0,90,0),vec(1),0,0,Bodygroup,Ar:add(OuterCuts)) #add the innermost section + the clips + the outer cuts
+        
+        ### After this point, I just added some other p2m pieces to complete the skin for the SD70M. Feel free to delete them. Just make sure to copy the SetParent and p2mBuild parts!
+        
+        P2M:p2mSetMaterial(5,"models/proppertextures/enamel_black")
+        
+        P2M:p2mPushModel(5,EModel,ExcludeSubmodels,vec(0,0,0),ang(0,90,0),vec(1),0,0,Bodygroup,array(vec(0,0,123),vec(0,0,1)))
+        P2M:p2mPushModel(5,EModel,ExcludeSubmodels,vec(0,0,0),ang(0,90,0),vec(1),0,0,Bodygroup,array(vec(0,0,13),vec(0,0,-1)))
+        
+        
+        P2M:p2mSetParent(E) #Include this so it parents the mesh to your model
+        P2M:p2mBuild() #Include this so actually renders the mesh
+        
+    }else{
+        
+        print("Number of stripes not formatted correctly! See inside of the E2\n -Curvestripe")
+        
+    }
+    
+}
+
+
+
+
