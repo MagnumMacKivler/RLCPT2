@@ -1,4 +1,4 @@
-@name ptgamma/engines/GE_7FDL16K16R
+@name ptgamma/engines/GE_7FDL12J7
 #ENGINE CONFIG
 ENG_Version = "2.0.67"
 #For use in GE B32-8 locomotives.
