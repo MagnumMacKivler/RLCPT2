@@ -1,0 +1,348 @@
+@name Text Marker by Sir Metaladon
+@persist Ents:table Text:string Color:vector Position:vector HID RandColors:array TextScale TextAngle Tool:string NoTouch
+
+#Made by Sir Metaladon 1/31/21, Overhauled 2/6/22 during a snowstorm, finished 2/12/22.
+
+if(first() | dupefinished()){
+    
+####SETTINGS#############################################################
+    
+    TextScale = 1.5 #How big is the text? Default is 1.5.
+    TextAngle = 75 #How "angled" the text is. 90 is straight up and down, 0 is flat on the top of the car. Default is 75.
+    
+    PreferredTool = "weapon_pistol" #What weapon do you want to pull out to use the e2? Default is "weapon_pistol".
+    
+####END_SETTINGS############################################################# 
+
+    TextAngle = clamp(floor(TextAngle),0,90)
+    
+    #Weapon selector. Checks if you have the preferred tool, if not it defaults to hands.
+    local Weps = owner():weapons()
+    Yes = 0
+    for(X = 1,Weps:count()){
+        
+        if(Weps[X,entity]:type() == PreferredTool){
+            
+            Yes = 1
+            
+        }
+        
+    }
+    
+    function printM(Print:string){ #Fancy print
+        
+        local P = Print:explode("||")
+        
+        P[1,string] = "TextMarker: "+P[1,string]
+        
+        for(X = 1,P:count()){
+            
+            printColor(vec(60,70,150)*1.8,P[X,string])
+            
+        }
+        
+    }
+    
+    #Introductory text
+    local Intro = "||Mouse 1 to apply a marker, E to copy a marker, and R to remove.||Change the text with .text whatever you want, and color with .color 255 191 0||You can also adjust the position with .pos -5 5 50, if needed."
+    
+    if(Yes != 1){
+        
+        printM("No pistol detected! Text Marker will now use the alt tool \"hands\" instead."+Intro)
+        Tool = "none"
+        
+    }else{
+        
+        printM("Text Marker initalized with the "+PreferredTool+". First, look at a car."+Intro)
+        Tool = PreferredTool
+        
+    }
+    
+    #Text application function
+    function table textmarker(Str:string,Ent:entity,Vec:vector,Pos:vector){
+        
+        local Box = Ent:boxSize()
+        
+        local T = Str:explode(" ")
+        local TextIn = T2 = Display = ""
+        local Length = floor(max(Box:x(),Box:y())/(12.5*TextScale))
+        
+        #If the text contains pre-set divisions ( | ), then don't parse the text
+        if(NoTouch){
+            
+            Display = Str
+            
+        }else{
+            
+            #While there's text left to parse, keep adding it to TextIn while adding spaces at regular intervals determined by the length of the car.
+            while(T:count() & !NoTouch){
+                
+                if((T2 +" "+ T[1,string]):length() <= Length){
+                    T2 = T2 +" "+ T[1,string]
+                }else{
+                    TextIn = TextIn + T2 +"|"
+                    T2 = T[1,string]
+                }
+                
+                T:remove(1)
+                
+            }
+            
+            Display = (TextIn + T2):trim()
+            
+        }
+        
+        local Bloc = Display:upper():explode("|")
+        local Ang = (Box:x() > Box:y() ? 90 : 0)+Ent:angles():yaw()
+        
+        if(Ent:toWorld(ang(0,Ang,0)):yaw() > 45 & TextAngle == 0){Ang = Ang + 180} #Special thing that rotates the text 180 degrees to prevent 2 cars having markers facing opposite
+        
+        local Mesh = p2mCreate(1,Ent:boxCenterW(),ang(0,Ang,0),16,vec(1))
+        #I would totally use MeshScale, but for some reason it's broken on some servers? wat
+        
+        Mesh:p2mSetMaterial("debug/debugdrawflat")
+        Mesh:p2mSetColor(Vec)
+        Mesh:p2mSetParent(Ent)
+        
+        local Hypotenuse = ((Bloc:count()-1)*14)+10
+        local Centr = (vec(0,0,4 + Hypotenuse*sin(TextAngle) + (Box:z()/2 + 2)/TextScale))*TextScale
+        local Up = 0
+        
+        if(TextAngle == 0){ #if angle is flat, move the text to the center.
+            
+            Up = (-Bloc:count()*7 -10 + 7)
+            
+        }
+        
+        
+        
+        for(Y = 1, Bloc:count()){ #For each layer of the text
+            
+            local Text = Bloc[Y,string]:explode("")
+            local Back = -Text:count()*6-24
+            
+            local ID = array()
+            
+            #For each text model, set the bodygroup and create 2 copies: one on each side if the text is not flat.
+            
+            for(X = 1,ceil(Text:count()/4)){    
+                
+                Bod = 0
+                
+                for(Z = 1, 4){
+                    
+                    local Byte = toByte(Text[(X*4)+Z-4,string])-65
+                    
+                    if(Byte < 0 | Byte >= 26){Byte = 26}
+                    
+                    Bod = Bod + Byte*(27^(Z-1))
+                    
+                }
+                
+                Mesh:p2mPushModel(1,"models/magtrains/reportingmark.mdl",array(1),
+                Centr+TextScale*vec(((Y-1)*14)+10+Up,Back+(X*48),0):rotateAroundAxis(vec(0,1,0),TextAngle) + Position,
+                ang(0,0,0):rotateAroundAxis(vec(0,1,0),TextAngle),
+                vec(TextScale),0,0,Bod)
+                
+                if(TextAngle != 0){
+                    Mesh:p2mPushModel(1,"models/magtrains/reportingmark.mdl",array(1),
+                    (Centr+TextScale*vec(((Y-1)*14)+10,Back+(X*48),0):rotateAroundAxis(vec(0,1,0),TextAngle)):rotateAroundAxis(vec(0,0,1),180) + Position,
+                    ang(0,0,0):rotateAroundAxis(vec(0,1,0),TextAngle):rotateAroundAxis(vec(0,0,1),180),
+                    vec(TextScale),0,0,Bod)
+                }
+                
+            }
+            
+        }
+        
+        Mesh:p2mBuild()
+        
+        return table(Mesh,Str,Vec,Pos)
+        
+    }
+    
+    function notify(Str:string){ #Function that controls sounds
+        
+        if(Str == "apply"){
+            
+            soundStop(1)
+            owner():soundPlay(1,100,"buttons/button14.wav",0)
+            soundVolume(1,0.3)
+            
+            
+        }elseif(Str == "copy"){
+            
+            soundStop(1)
+            owner():soundPlay(1,100,"buttons/bell1.wav",0)
+            soundVolume(1,0.3)
+            
+        }elseif(Str == "remove"){
+            
+            soundStop(1)
+            owner():soundPlay(1,100,"buttons/button19.wav",0)
+            soundVolume(1,0.3)
+            
+        }elseif(Str == "failure"){
+            
+            soundStop(1)
+            owner():soundPlay(1,100,"buttons/button11.wav",0)
+            soundVolume(1,0.3)
+            
+        }
+        
+    }
+    
+    runOnKeys(owner(),1)
+    runOnChat(1)
+    
+    NoTouch = 0
+    
+    Color = vec(255,191,0)
+    Text = "you fool  you blongus|you have forgotten to give|the chip a text input|insert laugh track"
+    NoTouch = 1
+            
+}
+
+if(chatClk(owner())){ #Text parser
+    
+    local LSC = owner():lastSaid():lower():trim() 
+    
+    if(LSC:explode(" ")[1,string] == ".text"){
+        
+        local TextArray = LSC:upper():sub(7):explode("")
+        
+        local Clear = ""
+        NoTouch = 0
+        
+        for(X = 1,TextArray:count()){ #Sorts out non-letter entries
+            
+            A = TextArray[X,string]
+            B = toByte(A)
+            
+            if((B >= 65 & B < 90) | B == 32){
+                
+                Clear = Clear + A
+                
+            }
+            
+            if(B == 124){
+                
+                Clear = Clear + A
+                NoTouch = 1
+                
+            }
+            
+        }
+        
+        if(Clear != ""){
+            
+            Text = Clear
+            printM("Text set to "+Text:lower())
+            
+        }else{
+            
+            printM("Invalid text entry! Normal letters only.")
+            
+        }
+        
+        hideChat(1)
+        
+    }elseif(LSC:explode(" ")[1,string] == ".color"){
+        
+        Color = vec(LSC:explode(" ")[2,string]:toNumber(),LSC:explode(" ")[3,string]:toNumber(),LSC:explode(" ")[4,string]:toNumber())
+        
+        if(Color == vec(0)){
+            
+            local New = vec(0)
+            
+            while(New == Color | New == vec(0)){
+                
+                New = round(vec(randint(1,3),randint(1,3),randint(1,3))*(255/4))
+                
+            }
+            
+            Color = New
+            
+            printM("Invalid color; Color set randomly to "+Color)
+            
+        }else{
+        
+            printM("Color set to "+Color)
+               
+        }
+        
+        hideChat(1)
+        
+    #[}elseif(LSC:explode(" ")[1,string] == ".randcolor"){ #Depreciated feature which is better learned through accidentally messing up .color .... I think.
+        
+        Color = round(vec(randint(1,3),randint(1,3),randint(1,3))*(255/4))
+        
+        printM("Color set to "+Color)
+        hideChat(1)]#
+        
+    }elseif(LSC:explode(" ")[1,string] == ".pos"){
+
+        Position = vec(LSC:explode(" ")[2,string]:toNumber(),LSC:explode(" ")[3,string]:toNumber(),LSC:explode(" ")[4,string]:toNumber())
+        
+        printM("Relative position set to "+Position)
+        hideChat(1)
+        
+    }
+    
+}
+
+if(owner():aimEntity():isValidPhysics() & owner():weapon():type() == Tool){ #Apply a marker
+    
+    local Ent = owner():aimEntity()
+
+    if(owner():keyAttack1() & keyClkPressed()=="mouse_left"){
+        
+        if(Text == "you fool  you blongus|you have forgotten to give|the chip a text input|insert laugh track" | Text == ""){
+            
+            printM("Please specify a message by doing .text example before using.")
+            notify("failure")
+            
+        }else{
+            
+            printM("Applied marker.")
+            notify("apply")
+            
+        }
+        
+        if(Text != ""){
+            
+            Ents[Ent:id():toString(),table][1,entity]:p2mRemove()
+        
+            Ents[Ent:id():toString(),table] = textmarker(Text,Ent,Color,Position)
+            
+        }
+        
+        
+        
+    }elseif(owner():keyReload() & keyClkPressed()=="r"){ #Remove a marker
+    
+        if(Ents[Ent:id():toString(),table][2,string] != ""){
+        
+            Ents[Ent:id():toString(),table][1,entity]:p2mRemove()
+            
+            Ents[Ent:id():toString(),table] = table()
+            
+        }
+        
+        notify("remove")
+        
+    }elseif(owner():keyUse() & keyClkPressed()=="e" & Ents[Ent:id():toString(),table][2,string] != ""){ #Copy the marker
+            
+        Text = Ents[Ent:id():toString(),table][2,string]
+        Color = Ents[Ent:id():toString(),table][3,vector]
+        Position = Ents[Ent:id():toString(),table][4,vector]
+        
+        notify("copy")
+        
+        printM("Copied text marker.")
+        
+    }
+    
+}
+    
+    
