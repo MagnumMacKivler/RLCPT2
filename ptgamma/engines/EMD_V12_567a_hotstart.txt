@@ -4,7 +4,7 @@ ENG_Version = "2.0.68"
 #For use in the EMD NW-2 (post-1945), NW-5 and SW7.
 EngineType = "EMD 567A (V12)" #What is the name of the Prime Mover?
 
-Startup_Hi = "gsgtrainsounds/emd567av12/startup_cold.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Hi = "gsgtrainsounds/emd567av12/startup_warm.wav" #Startup Sound to put the engine in High (Normal) Idle.
 Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
 Startup_Mode = 1 #0 for Low, 1 for High
 
