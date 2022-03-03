@@ -1,24 +1,67 @@
 @name EMD Radial Ammeter
 @inputs On Load
-@outputs 
-@persist Load1
+@outputs Load1
+@persist Load1 Bonecore
+@persist MaximumPower MaximumPowerAng MaximumBraking MaximumBrakingAng
 @trigger On
 @model models/gsgtrainprops/parts/cab/anim/gauge_load_emd_radial_anim.mdl
 
 if(first() | dupefinished()){
-    GaugeMat = "models/gsgtrainprops/cab/gauge_amp_emd_a1500_d800_v1"
-    MaxLoad = 1500
-    MaxDyn = 800
+    GaugeMat = "models/gsgtrainprops/cab/gauge_amp_emd_a1650_d945_v2"
+    MaximumPower      = 1650
+    MaximumPowerAng   = 148
     
+    MaximumBraking    = 945
+    MaximumBrakingAng = 90
     
-    entity():setSubMaterial(3,GaugeMat)
-    entity():setBoneAngle(1,ang(0,0,0))
+    Scale = 1
+    Bonecore = 0 #Bonecore runs ~10 CPU cooler and saves you about 2 holos however it does not interpolate the bones.
+    
+    A = 1
+    holoCreate(A, 
+    entity():toWorld(vec(0,0,0)),
+    vec(1,1,1)*Scale,
+    entity():toWorld(ang(0,0,0)))
+    holoColor(A, vec4(255,255,255,255))
+    holoModel(A, "models/gsgtrainprops/parts/cab/anim/gauge_load_emd_radial_anim.mdl")
+    holoParent(A, entity())
+    holoMaterial(A,"")
+    
+    holoEntity(1):setSubMaterial(3,GaugeMat)
+    holoEntity(1):setBoneAngle(1,ang(0,0,0))
+    
+    if(!Bonecore){
+    holoBodygroup(A,1,1)
+    
+    A = 2
+    holoCreate(A, 
+    entity():toWorld(vec(0,0,0.1)*Scale),
+    vec(1,1,1)*Scale,
+    entity():toWorld(ang(0,90,0)))
+    holoColor(A, vec4(255,255,255,255))
+    holoModel(A, "models/gsgtrainprops/parts/cab/anim/gauge_needles_holo.mdl")
+    holoParent(A, entity())
+    holoMaterial(A,"")
+    holoBodygroup(A,1,1)
+    
+    }
+    
+    entity():setAlpha(0)
+    
 }
 
 if(On){
     interval(100)
     
     #-46,-314
-    Load1 = Load1 + ((Load) - Load1) / 2
-    entity():setBoneAngle(1,ang((Load1/1500)*-170,0,0))
+    Load1 = Load1 + ((Load) - Load1) * 0.75
+    if(Bonecore){
+        holoEntity(1):setBoneAngle(1,ang((Load1/1500)*-170,0,0))
+    }else{
+        if(Load > 0){
+            holoAng(2,entity():toWorld(ang(0,90+(Load1/MaximumPower)*-MaximumPowerAng,0)))
+        }else{
+            holoAng(2,entity():toWorld(ang(0,90+(Load1/MaximumBraking)*-MaximumBrakingAng,0)))
+        }
+    }
 }
