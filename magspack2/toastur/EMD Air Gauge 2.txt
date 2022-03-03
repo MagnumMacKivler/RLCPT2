@@ -1,7 +1,7 @@
 @name EMD Air Gauge 2
 @inputs On BrakeCyl BrakePipe
 @outputs 
-@persist BrakeCyl1 BrakePipe1
+@persist A BrakeCyl1 BrakePipe1 Bonecore
 @trigger On
 @model models/gsgtrainprops/parts/cab/anim/gauge_air_anim.mdl
 #Toast
@@ -12,19 +12,63 @@
 
 if(first() | dupefinished()){
     GaugeMat = "models/gsgtrainprops/cab/gauge_air_salem_160_green"
+    Scale = 1
+    Bonecore = 0 #Bonecore runs ~10 CPU cooler and saves you about 2 holos however it does not interpolate the bones.
+    
+    A = 1
+    holoCreate(A, 
+    entity():toWorld(vec(0,0,0)),
+    vec(1,1,1)*Scale,
+    entity():toWorld(ang(0,0,0)))
+    holoColor(A, vec4(255,255,255,255))
+    holoModel(A, "models/gsgtrainprops/parts/cab/anim/gauge_air_anim.mdl")
+    holoParent(A, entity())
+    holoMaterial(A,"")
+    
+    if(!Bonecore){
+    holoBodygroup(A,1,1)
+    
+    A = 2
+    holoCreate(A, 
+    entity():toWorld(vec(0,0,0.1)*Scale),
+    vec(1,1,1)*Scale,
+    entity():toWorld(ang(0,90-46,0)))
+    holoColor(A, vec4(255,255,255,255))
+    holoModel(A, "models/gsgtrainprops/parts/cab/anim/gauge_needles_holo.mdl")
+    holoParent(A, entity())
+    holoMaterial(A,"models/proppertextures/acrylic_red")
+    
+    A = 3
+    holoCreate(A, 
+    entity():toWorld(vec(0,0,0.15)*Scale),
+    vec(1,1,1)*Scale,
+    entity():toWorld(ang(0,90-46,0)))
+    holoColor(A, vec4(0,0,255,255))
+    holoModel(A, "models/gsgtrainprops/parts/cab/anim/gauge_needles_holo.mdl")
+    holoParent(A, entity())
+    holoMaterial(A,"")
+    }
     
     
-    entity():setSubMaterial(3,GaugeMat)
-    entity():setBoneAngle(1,ang(-46,0,0))
-    entity():setBoneAngle(2,ang(-46,0,0))
+    holoEntity(1):setBoneAngle(1,ang(-46,0,0))
+    holoEntity(1):setBoneAngle(2,ang(-46,0,0))
+    
+    entity():setAlpha(0)
+    holoEntity(1):setSubMaterial(3,GaugeMat)
 }
 
 if(On){
-    interval(150)
+    interval(100)
     #-46,-314
-    BrakePipe1 = BrakePipe1 + ((BrakePipe) - BrakePipe1) / 2
-    entity():setBoneAngle(1,ang(-46-(268*(BrakePipe1/160)),0,0))
     
-    BrakeCyl1 = BrakeCyl1 + ((BrakeCyl) - BrakeCyl1) / 2
-    entity():setBoneAngle(2,ang(-46-(268*(BrakeCyl1/160)),0,0))
+    BrakePipe1 = BrakePipe1 + ((BrakePipe) - BrakePipe1) * 0.75
+    BrakeCyl1 = BrakeCyl1 + ((BrakeCyl) - BrakeCyl1) * 0.75
+    
+    if(Bonecore){
+        holoEntity(1):setBoneAngle(1,ang(-46-(268*(BrakePipe1/160)),0,0))
+        holoEntity(1):setBoneAngle(2,ang(-46-(268*(BrakeCyl1/160)),0,0))
+    }else{
+        holoAng(3,entity():toWorld(ang(0,90-46-(268*(BrakePipe1/160)),0)))
+        holoAng(2,entity():toWorld(ang(0,90-46-(268*(BrakeCyl1/160)),0)))
+    }
 }
