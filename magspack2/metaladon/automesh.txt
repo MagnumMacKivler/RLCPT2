@@ -1,0 +1,218 @@
+@name Automesh
+@inputs Base:entity
+@persist T X [A Scan Rot]:array Print:string Scanning
+@trigger all
+
+if(first()){
+    
+    #[
+    
+    
+    Welcome, to
+     
+     _____ _____ _____ _____ _____ _____ _____ _____ 
+    |  _  |  |  |_   _|     |     |   __|   __|  |  |
+    |     |  |  | | | |  |  | | | |   __|__   |     |
+    |__|__|_____| |_| |_____|_|_|_|_____|_____|__|__|
+    
+    by Sir Metaladon.
+    
+    
+    This e2 can automatically turn props AND holograms into mesh E2s. It will not produce a "clean" mesh, but it's good enough to automate the majority of the process.
+    
+    Here's how to use it:
+    
+    The system requires a list of color/material pairs which it will search for in the immediate area once it starts.
+    For each color and material, it will find all props that match that color and material EXACTLY, and add them to the mesh. 
+    Make sure it is spelled correctly, and that the colors are exactly the same.
+    Below is an example of a possible option. The color comes first like vec(255,191,0) then the material, like "wtp/metal_3"
+    Once you specify the materials, place the E2 and wire it to the base of the locomotive. When you do that, the system will activate.
+    It will give you a test message saying if it found entities and how many, as well as the location of the output file.
+    Search the 5-letter code it gives you in your E2 tool to find the e2 that contains your mesh.
+    Spawn in the e2 on your baseplate, and it will create the mesh you just scanned.
+    
+    Done! This new E2 has your props and holograms in mesh format, which you can now edit as you please.
+    
+    ]#
+    
+    Scan = array(
+    
+    #Remember to put a comma between items and lines, else E2 will yell at you!
+    
+    vec(255),""
+    #vec(215),"wtp/metal_3", 
+    #vec(36),"models/proppertextures/acrylic_grimey"
+    
+    )
+    
+    #This is a special system to fix some props that have a tendency to mesh rotate wierd. If you find a model pack that tends to rotate incorrectly, you can add the first part of the filepath here to fix it.
+    Rot = array("models/gsgtrainprops","models/unionsparts")
+    
+    
+    
+    #### Beyond here is just technical stuff, that's the end of the config. Have fun! ####
+    
+    print("Automatic P2M engaged.")
+    
+    if(!Base:isValid()){
+        print("Wire \"Base\" to your baseplate / locomotive body, and the scan will begin.")
+    }
+
+    T = 0
+    X = 0
+    local Data = ""
+    
+    
+    for(Y = 1,Scan:count()/2){
+        
+        Data = Data + "\n        vec("+(Scan[Y*2-1,vector]):toString():replace("[",""):replace("]","")+"),\""+Scan[Y*2,string]+"\""
+        
+        if(Y != Scan:count()/2){
+            Data = Data + ","
+        }
+        
+    }
+    
+    Print = "@name Automesh - Output
+@inputs Base:entity
+@persist B2:entity
+@trigger all
+
+if(!B2:isValid()){
+    
+    B2 = Base
+    
+}
+
+if(B2:isValid()){
+
+    M = p2mCreate(31,B2:pos(),B2:angles())
+    M:p2mSetParent(B2)
+    
+    Scan = array("+Data+"
+    )
+    
+    for(X = 1,Scan:count()/2){
+        
+        M:p2mSetMaterial(X,Scan[X*2,string])
+        M:p2mSetColor(X,Scan[X*2-1,vector])
+        
+    }\n"
+    
+}
+
+
+if(Base:isValid()){
+    
+    R = 3000 #Increase this if your contraption is beyond gigantic, but you might end up copying other people's locomotives.
+    
+    findInSphere(Base:pos(),R)
+    findClipToClass("wire")
+    
+    
+    A = findToArray()
+    
+    
+    findInSphere(Base:pos(),R)
+    findClipToClass("prop_physics")
+    
+    A = A:add(findToArray())
+    
+    Scanning = 1
+    
+}
+
+while(X <= A:count() & perf() & holoCanCreate() & Scanning){
+        
+    E = A[X,entity]
+    Ang = 0
+    
+    for(Z = 1,Rot:count()){
+        
+        if(E:model():find(Rot[Z,string])){
+            
+            Ang = 90
+            
+        }
+        
+    }
+    
+    for(Y = 1,Scan:count()/2){
+    
+        if(E:getMaterial():lower() == Scan[Y*2,string]:lower() & E:getColor() == Scan[Y*2-1,vector]){
+            
+            T++
+            
+            Print = Print + ("\n    "+("M:p2mPushModel("+Y+",\""+E:model()+"\",vec("+round(Base:toLocal(E:pos()),2)+"),ang("+round(Base:toLocal(E:angles()+ang(0,Ang,0)))+"),vec(1))"):replace("[",""):replace("]",""))
+            break
+            
+        }
+        
+    }
+    
+    X++
+    
+}
+
+if(X <= A:count()){
+    
+    interval(100)
+    
+}elseif(Scanning){
+    
+    Scanning = 0
+    
+    Print = Print + "\n\n    M:p2mBuild()
+
+}else{
+    
+    E = entity()
+    interval(100)
+    
+    if(E:parent():isValid()){
+        
+        B2 = E:parent()
+        
+    }elseif(E:isWeldedTo():isValid()){
+        
+        B2 = E:isWeldedTo()
+        
+    }else{
+        
+        print(\"Could not find a parent entity. Please wire Base to the locomotive body / baseplate.\")
+        
+    }
+    
+    #[
+     _____ _____ _____ _____ _____ _____ _____ _____ 
+    |  _  |  |  |_   _|     |     |   __|   __|  |  |
+    |     |  |  | | | |  |  | | | |   __|__   |     |
+    |__|__|_____| |_| |_____|_|_|_|_____|_____|__|__|
+    
+    ]#
+    
+}"
+    
+    if(T > 0){
+    
+        local S = ""
+        
+        for(X = 1,5){
+            
+            S = S + toChar(randint(65,90))
+            
+        }
+        
+        print("This will NOT create a \"clean\" mesh; holo scale must be entered manually, some errant entities will need removal, and some props will randomly rotate.")
+        print("Out of "+X+" scanned entities, "+T+" were captured in the mesh.\nSearch your E2s for the code "+S+" to find the output mesh E2.")
+        
+        
+        fileWrite(">e2shared/automesh-"+S+".txt",Print)
+        
+    }else{
+        
+        print("No compatible entities found! Double-check your scan settings.")
+        
+    }
+    
+}
