@@ -39,11 +39,11 @@ if(first()){
     
     #Remember to put a comma between items and lines, else E2 will yell at you!
     
-    vec(255),""
-    #vec(215),"wtp/metal_3", 
-    #vec(36),"models/proppertextures/acrylic_grimey"
+    vec(85,85,85),"wtp/metal_2",
+    vec(25,25,20),"wtp/metal_2"
     
     )
+
     
     #This is a special system to fix some props that have a tendency to mesh rotate wierd. If you find a model pack that tends to rotate incorrectly, you can add the first part of the filepath here to fix it.
     Rot = array("models/gsgtrainprops","models/unionsparts")
@@ -122,7 +122,7 @@ if(Base:isValid()){
     
 }
 
-while(X <= A:count() & perf() & holoCanCreate() & Scanning){
+while(X <= A:count() & perf() & Scanning){
         
     E = A[X,entity]
     Ang = 0
@@ -167,7 +167,6 @@ if(X <= A:count()){
 }else{
     
     E = entity()
-    interval(100)
     
     if(E:parent():isValid()){
         
