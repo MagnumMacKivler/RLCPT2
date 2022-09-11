@@ -1,4 +1,4 @@
-@name Convenient Classic Carspawner 0.952
+@name Convenient Classic Carspawner 0.953
 
 #Set your preferred display model here. This will change the default model, too.
 
@@ -20,6 +20,8 @@
 @persist [SetPos SCEndPos SCLast]:vector
 @persist [SCEndAng]:angle
 
+
+@persist TicksLeft HID #testing stuff, ignore this
 #Outputs (for debugging)
 @outputs Phase LyrC LyrX LyrY LyrZ Chew TotalTrainLength ForeOffset SCProc SCTrav RandT Top:string SCP:entity Head:entity
 
@@ -89,7 +91,7 @@ if(first()){
     
     DISPLAYTAGS = 0 #If 1, the system will display tags after it finishes searching.
     
-    VISIBLESCAN = 1 #If 1, the scanner bogie is visible when scanning.
+    VISIBLESCAN = 0 #If 1, the scanner bogie is visible when scanning.
     
     SAFEMODE = 0 #If 1, all processes will be limited by perf(), which is more stable on servers with a low tick quota but will also make the E2 significantly slower. Reccomended 0.
     
@@ -292,7 +294,7 @@ if(first()){
         
     )
         
-    VERSION = "0.952"
+    VERSION = "0.953"
     
     MODELS = table(
         "models/akandr/russian/poluvagon.mdl",8,"russian coal_gondola empty freight manifest old hdetail akandr priority 1980s 1990s 2000s 2010s 2020s functional rus5ft rusphx rusrsg",vec4(360,-1,90,-1),array(3,2,1,3,3,4,2,5),array(1,2,3,4,4,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),70
@@ -535,6 +537,9 @@ if(first()){
         ,"models/hanksabutt/rollingstock/flatcars/thrall_bulkheadflat.mdl",5,"usamerican wood_flatcar_bulkhead manifest freight loaded sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",
         vec4(638,-18,90,0),array(),array(),vec2(0,1),array(vec(1,1,2)),100
         
+        ,"models/lazpack/freightcars/usra_ds_ventmod.mdl",50,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail laz 1910s 1920s 1930s 1940s 1950s functional magphx magrsg",
+        vec4(374,-17,90,0),array(),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),50
+        
         
         #[
         #Uncomment these if you like, but generally people don't use them and they increase search times. Plus, they look terrible.
@@ -610,6 +615,8 @@ if(first()){
     BOGIES["uky25cphx",table]=table("models/bobsters_trains/uk/bogies/y25c.mdl",          50,55,90,vec(90,65,55),"",array(),array(1,"models/props_gulch/tinycars/tc_colorable",3,"models/proppertextures/wheel",2,"models/proppertextures/wheel",5,"models/proppertextures/wheel"))
 
     FIVEFOOT = 0
+    
+    HID = 20
     
     #Functions
     
@@ -2025,14 +2032,9 @@ if(chatClk(owner())){ #Chat Commands
         
     }elseif(LSC:explode(" ")[1,string] == ".changelog" | LSC:explode(" ")[1,string] == "!changelog"){
         
-        printS("Here's the changelog since the last version (0.95):\n"
-        +"Fixed an elusive Lua regession with :massCenter().\n"
-        +"Fixed several misc bugs with eras.\n"
-        +"Added a batch of Hanksabutt cars.\n"
-        +"Removed the Arch PHX truck due to instability.\n"
-        +"Marked several cars as unstable.\n"
-        +"Added OPS functionality (for remotely issuing commands).\n"
-        +"Updated the spawning mechanism to be more stable.\n"
+        printS("Here's the changelog since the last version (0.952):\n"
+        +"Fixed an issue that manifested with the OPS e2 and collisions with the scanhead.\n"
+        +"Added Laz's new boxcar.\n"
         )
         
         playsound("ding")
@@ -2196,6 +2198,17 @@ if(chatClk(owner())){ #Chat Commands
             
             playsound("spawn")
             printS("Queued population.")
+            
+        }
+        
+    }elseif(clk("plot")){
+        
+        holoCreate(HID,SCP:pos(),vec(1),ang(0),vec(255*TicksLeft/10,0,0),"cube")
+        HID++
+        TicksLeft--
+        if(TicksLeft > 0){
+            
+            timer("plot",30)
             
         }
         
@@ -2554,7 +2567,26 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
                 
             }
             
-            if(SPWNBHVIOR){Instr:insertTable(2+Br,table("scan")),CommandStack:pushString(Time+" scan")}
+            if(SPWNBHVIOR){
+                
+                Instr:insertTable(2+Br,table("scan")),CommandStack:pushString(Time+" scan")
+                
+                local I = Spawned[toString(ID-2),entity]
+                
+                enableConstraintUndo(0)
+        
+                if(SCP:isValid()){
+                    
+                    noCollideAll(SCP,0)
+                    
+                    if(I:isValid()){noCollide(SCP,I)}
+                    if(LastBogie:isValid()){noCollide(SCP,LastBogie)}
+                    
+                }
+                
+                enableConstraintUndo(1)
+                    
+            }
             
             CommandStack:pushString(Time+" stock removal of clean")
             Instr:remove(1)
@@ -2571,18 +2603,6 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
          
         SCProc = 1
         SCTrav = 0
-
-        enableConstraintUndo(0)
-        
-        if(SCP:isValid()){
-        
-            if(I:isValid()){noCollide(SCP,I)}
-            if(LastBogie:isValid()){noCollide(SCP,LastBogie)}
-            noCollideAll(SCP,0)
-            
-        }
-        
-        enableConstraintUndo(1)
         
         timer("disconnect",500)
         
@@ -2590,6 +2610,9 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         SCP:setAng(I:angles()-ang(0,calibogie(I:model())[4,number],0))
         
         ForeOffset = TotalTrainLength - ((modelLength(CarTs[(ID-1)/3,number])-MODELS[CarTs[(ID-1)/3,number]+3,vector4]:x())/2)*(I != Head)
+        
+        TicksLeft = 10
+        #timer("plot",30) #someday I might need this... some day
         
         timer("startsc",150) #Starting the process
         
@@ -3005,7 +3028,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         holoAng(0,Head:toWorld(select(St,ang(0,0,-90),ang(0,0,-90),ang(0,0,-90),ang(0,-90,-90))))
         holoParent(0,Head)
         
-        LastBogie = Spawned["3",entity]
+        local LastBogie = Spawned["3",entity]
         
         if(LastBogie:isValid() & Head:isValid()){
             
@@ -3072,4 +3095,5 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
 
 Top = Instr[1,table][1,string]
 if(!Head:isValidPhysics()){SCP:propDelete(),Head:propDelete(),selfDestruct()}
+
 
