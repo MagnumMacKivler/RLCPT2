@@ -1,4 +1,4 @@
-@name Convenient Classic Carspawner 0.953
+@name Convenient Classic Carspawner 0.9532
 
 #Set your preferred display model here. This will change the default model, too.
 
@@ -294,7 +294,7 @@ if(first()){
         
     )
         
-    VERSION = "0.953"
+    VERSION = "0.9532"
     
     MODELS = table(
         "models/akandr/russian/poluvagon.mdl",8,"russian coal_gondola empty freight manifest old hdetail akandr priority 1980s 1990s 2000s 2010s 2020s functional rus5ft rusphx rusrsg",vec4(360,-1,90,-1),array(3,2,1,3,3,4,2,5),array(1,2,3,4,4,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),70
@@ -2099,6 +2099,10 @@ if(chatClk(owner())){ #Chat Commands
         
         reset()
         
+    }elseif(clk("thwart")){
+        
+        SCP:propFreeze(0)
+        
     }elseif(clk("delay")){
         
         Delay = 0
@@ -2126,13 +2130,15 @@ if(chatClk(owner())){ #Chat Commands
         
         if(Spawned[(ID-2):toString(),entity]:isValid()){
         
-            SCP:constraintBreak(Spawned[(ID-2):toString(),entity])
+            #SCP:constraintBreak(Spawned[(ID-2):toString(),entity])
+            noCollideAll(Spawned[(ID-2):toString(),entity],0)
             
         }
         
         if(LastBogie:isValid()){
             
-            SCP:constraintBreak(LastBogie)
+            #SCP:constraintBreak(LastBogie)
+            noCollideAll(LastBogie,0)
             
         }
         
@@ -2573,18 +2579,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
                 
                 local I = Spawned[toString(ID-2),entity]
                 
-                enableConstraintUndo(0)
-        
-                if(SCP:isValid()){
-                    
-                    noCollideAll(SCP,0)
-                    
-                    if(I:isValid()){noCollide(SCP,I)}
-                    if(LastBogie:isValid()){noCollide(SCP,LastBogie)}
-                    
-                }
                 
-                enableConstraintUndo(1)
                     
             }
             
@@ -2599,12 +2594,27 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         if(ID == 1){I = Head}
         
         Head:propFreeze(1)
-        SCP:propFreeze(0)
+        #SCP:propFreeze(0)
          
         SCProc = 1
         SCTrav = 0
         
-        timer("disconnect",500)
+        enableConstraintUndo(0)
+        
+        if(SCP:isValid()){
+            
+            noCollideAll(SCP,0)
+            noCollideAll(I,1)
+            noCollideAll(LastBogie,1)
+            
+            #if(I:isValid()){noCollide(SCP,I)}
+            #if(LastBogie:isValid()){noCollide(SCP,LastBogie)}
+            
+            timer("disconnect",500)
+            
+        }
+        
+        enableConstraintUndo(1)
         
         SCP:setPos(I:pos()+vec(0,0,5))
         SCP:setAng(I:angles()-ang(0,calibogie(I:model())[4,number],0))
@@ -2614,7 +2624,11 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         TicksLeft = 10
         #timer("plot",30) #someday I might need this... some day
         
-        timer("startsc",150) #Starting the process
+        SCP:propFreeze(1)
+        
+        timer("thwart",15)
+        
+        timer("startsc",200) #Starting the process
         
         CommandStack:pushString(Time+" scan end")
         Instr:remove(1)
