@@ -35,7 +35,7 @@ if(first() | dupefinished()){
       
     ExcludeSubmodels = array() #List of submodels to exclude. Leave blank to include all, else keep adding numbers like 1,2,3,4 etc until you remove the ones you want.
     
-    Off = 0 #Set this to 1 if the curve is on the wrong end of the locomotive IE the front instead of the side or vice-versa
+    Rot = 0 #This setting rotates the curve around the central axis of the locomotive so you can put it on the sides it it ends up defaulting to the front. Set to 90 if the curve is on the wrong face.
     
     Bodygroup = 9360 #[This is difficult to explain. Basically, imagine the Bodygroups of a model like an old-school flipclock. 
     When the number on the end (the 1's place of the minutes) reaches 9, the next flip will make that same slot 0 and the next slot over 1.
@@ -58,7 +58,7 @@ if(first() | dupefinished()){
         
     }elseif(Stripes:count() >= 6 & Stripes:count() % 3 == 0){ #check for a valid Stripes info
         
-        if(Off != 0){Rot = 90}else{Rot = 0} #convert Off to the internal rotation
+        E:setAlpha(0)
         
         EModel = E:model() #model of the p2m mesh
         
@@ -130,7 +130,3 @@ if(first() | dupefinished()){
     }
     
 }
-
-
-
-
