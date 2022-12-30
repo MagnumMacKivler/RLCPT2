@@ -52,8 +52,8 @@ if(first()){
     
     NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
-    TransitionMode = 1 #0 for No Transition, 1 for Transition
-    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
+    TransitionMode = 0 #0 for No Transition, 1 for Transition
+    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
     #(Cord does not work with the stand currently.)
     HornType = 0 #0 for Lever, 1 for Cord
