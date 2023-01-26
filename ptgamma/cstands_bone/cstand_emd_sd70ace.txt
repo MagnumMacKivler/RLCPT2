@@ -3,14 +3,13 @@
 @outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
-@persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ
+@persist NQ Notch DNQ DynaNotch Dynamics TransitionQ RevQ ABQ HissQ LBQ LHissQ
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
-@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake
-@persist IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown KeySelUp KeySelDn
+@persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics IncreaseTrainBrake DecreaseTrainBrake IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown
 @persist HandBrake EmergencyBrake Sander
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding FeedPressure FullReleaseCock WarningHissQ
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
-@persist CS:entity LeverBased
+@persist CS:entity
 @persist RevBone ThrBone DynBone TBBone LBBone HornBone BellBone SanderBone Fastbrake:entity
 @persist EngRunBone GenFieldBone PumpBone HdltFrontBone HdltRearBone
 @inputs  EngineRun GenField FuelPump
@@ -52,8 +51,8 @@ if(first()){
     
     NotchedDynamics = 0 #0 for Continuous Dynamic Brakes, 1 for Notched Dynamic Brakes
     
-    TransitionMode = 1 #0 for No Transition, 1 for Transition
-    TransitionControlType = 1 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
+    TransitionMode = 0 #0 for No Transition, 1 for Transition
+    TransitionControlType = 2 #0 for MANUAL Transition, 1 for Automatic Transition With Selector, 2 for Fully Automatic Transition
     
     #(Cord does not work with the stand currently.)
     HornType = 0 #0 for Lever, 1 for Cord
@@ -70,8 +69,8 @@ if(first()){
     Lever_ReverserN     = "rlc_delta/cstands/reverser/rev_fwd_cntr.wav"
     Lever_ReverserB     = "rlc_delta/cstands/reverser/rev_cntr_rev.wav"
     
-    Lever_24RL = "gsgtrainsounds/misc/airbrakes/air_16m_move.wav"
-    Lever_26L  = "gsgtrainsounds/misc/airbrakes/air_26l_move.wav"
+    Lever_24RL = "gsgtrainsounds/misc/button2.wav"
+    Lever_26L  = "gsgtrainsounds/misc/button2.wav"
     
     AirBrakeApply   = "gsgtrainsounds/misc/airbrakes/air_train_apply.wav"
     AirBrakeRelease = "gsgtrainsounds/misc/airbrakes/air_train_release.wav"
@@ -303,8 +302,8 @@ if(MU_Master){
             KeyDynUp = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
             KeyDynDn = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
             
-            IncreaseDynamics = 0
-            DecreaseDynamics = 0
+            IncreaseDynamics = Driver:keyPressed(Controls["IncreaseDynamics",string]) & (Routing["IncreaseDynamics",number] ? Shifting : !Shifting)
+            DecreaseDynamics = Driver:keyPressed(Controls["DecreaseDynamics",string]) & (Routing["DecreaseDynamics",number] ? Shifting : !Shifting)
             
             EmergencyBrake = Driver:keyPressed(Controls["EmergencyBrake",string]) & (Routing["EmergencyBrake",number] ? Shifting : !Shifting)
             
@@ -326,35 +325,6 @@ if(clk("clk")){
     local Tick = 1
     Dynamics = SetDynamics>0
     
-    
-    #Lever-Based Controlling - This part is different for every control stand!
-    if(LeverBased){
-        #Initial Control Resets
-        
-        #Selector/Throttle/Dynamics Interlock
-        if(!NQ & !SelectorQ & !DNQ){
-            if((SetSelector==0) & !Dynamics){
-                IncreaseDynamics = SelectorDown
-                SelectorDown = 0
-            }elseif((SetSelector==0) & (SetDynamics==10)){
-                DecreaseDynamics = SelectorUp
-                IncreaseDynamics = IncreaseThrottle
-                #IncreaseThrottle = 0
-                #DecreaseThrottle = 0
-            }elseif((SetSelector==0) & (SetDynamics>10)){
-                IncreaseDynamics = IncreaseThrottle
-                DecreaseDynamics = DecreaseThrottle
-                SelectorUp = 0
-                SelectorDown = 0
-                #IncreaseThrottle = 0
-                #DecreaseThrottle = 0
-            }
-        }
-    }else{
-        IncreaseDynamics = KeyDynUp
-        DecreaseDynamics = KeyDynDn
-    }
-    
     #Throttle
     if(!Dynamics){
         if(NotchedThrottle){
@@ -362,14 +332,15 @@ if(clk("clk")){
                 NQ = 1
                 Notch++
                 soundStop(1)
-                Pod:soundPlay(1,0.5,"rlc_delta/cstands/throttle/U"+Notch+".wav")
+                Pod:soundPlay(1,0.5,Lever_Throttle)
             }elseif(DecreaseThrottle & !NQ & (Notch>0)){
                 NQ = 1
                 Notch--
                 soundStop(1)
-                Pod:soundPlay(1,0.5,"rlc_delta/cstands/throttle/D"+Notch+".wav")
+                Pod:soundPlay(1,0.5,Lever_Throttle)
             }elseif(!IncreaseThrottle & !DecreaseThrottle & NQ){
                 NQ = 0
+                #soundStop(1)
             }
             SetThrottle = dac(0,100,NumThrottleNotches,Notch)
         }else{
@@ -390,13 +361,13 @@ if(clk("clk")){
             DynaNotch = 0
             SetDynamics = 10
             soundStop(1)
-            Pod:soundPlay(1,0.5,"rlc_delta/cstands/throttle/U"+Notch+".wav")
+            Pod:soundPlay(1,0.5,Lever_Throttle)
         }elseif((SetDynamics==10) & DecreaseDynamics & !DNQ){
             DNQ = 1
             DynaNotch = -1
             SetDynamics = 0
             soundStop(1)
-            Pod:soundPlay(1,0.5,"rlc_delta/cstands/throttle/D"+Notch+".wav")
+            Pod:soundPlay(1,0.5,Lever_Throttle)
         }
         
         if(Dynamics & NotchedDynamics){
@@ -430,22 +401,22 @@ if(clk("clk")){
     
     #Selector
     if((TransitionMode==1) & (TransitionControlType<2)){
-        if(SelectorUp & !SelectorQ){
-            SelectorQ = 1
-            if(!Dynamics & (SetSelector<4)){
+        if(SelectorUp & !TransitionQ){
+            TransitionQ = 1
+            if(SetSelector<4){
                 SetSelector++
                 soundStop(1)
                 Pod:soundPlay(1,0.5,Lever_Throttle)
             }
-        }elseif(SelectorDown & !SelectorQ){
-            SelectorQ = 1
-            if(!Dynamics & (SetSelector>0)){
+        }elseif(SelectorDown & !TransitionQ){
+            TransitionQ = 1
+            if(SetSelector>0){
                 SetSelector--
                 soundStop(1)
                 Pod:soundPlay(1,0.5,Lever_Throttle)
             }
-        }elseif(!SelectorUp & !SelectorDown & SelectorQ){
-            SelectorQ = 0
+        }elseif(!SelectorUp & !SelectorDown & TransitionQ){
+            TransitionQ = 0
         }
         
     }
@@ -457,12 +428,12 @@ if(clk("clk")){
             RevQ = 1
             SetReverser++
             soundStop(1)
-            Pod:soundPlay(1,0.5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
+            Pod:soundPlay(1,2,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserF)
         }elseif(ReverserB & !RevQ & (SetReverser>-1)){
             RevQ = 1
             SetReverser--
             soundStop(1)
-            Pod:soundPlay(1,0.5,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
+            Pod:soundPlay(1,2,(SetReverser==0) ? Lever_ReverserN : Lever_ReverserB)
         }elseif(!ReverserF & !ReverserB & RevQ){
             RevQ = 0
         }
