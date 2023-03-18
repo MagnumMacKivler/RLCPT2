@@ -1,4 +1,4 @@
-@name Convenient Classic Carspawner 0.9532
+@name Convenient Classic Carspawner 0.954
 
 #Set your preferred display model here. This will change the default model, too.
 
@@ -57,7 +57,7 @@ If you're seeing this from the Github page, here's some instructions on how to i
     | \__/\ | (_| \__ \__ \ | (__                
      \____/_|\__,_|___/___/_|\___|                                                                                                                                        
     /  __ \                                                  
-    | /  \/ _  _ _ __ ___ _ __   __ ___      ___ __   ___ _ __ 
+    | /  \/ __ _ _ __ ___ _ __   __ ___      ___ __   ___ _ __ 
     | |    / _` | '__/ __| '_ \ / _` \ \ /\ / / '_ \ / _ \ '__|
     | \__/\ (_| | |  \__ \ |_) | (_| |\ V  V /| | | |  __/ |   
   _  \____/\__,_|_|  |___/ .__/ \__,_| \_/\_/ |_| |_|\___|_|   
@@ -88,7 +88,7 @@ if(first()){
     LOADVAL = 0.5 #What quantity of total weight of the car is determined by the load. Lower values mean less overal variance between loaded and unloaded cars. Default is 1.
     
     NOPRNT = 0 #If 1, the E2 will not output any messages. 1 to disable messages, 0 to enable. Default is 0.
-    
+
     DISPLAYTAGS = 0 #If 1, the system will display tags after it finishes searching.
     
     VISIBLESCAN = 0 #If 1, the scanner bogie is visible when scanning.
@@ -235,7 +235,7 @@ if(first()){
         array("janky","functional"),
         
         #Detail Level
-        array("hdetail","mdetail","ldetail","anydetail","sdetail","mstsports"),
+        array("hdetail","mdetail","ldetail","anydetail","sdetail","mstsports","tf2"),
         
         #Locale of Car
         array("usamerican","ussrussian","european","anywhere","nswaustralians","britishuk"),
@@ -294,7 +294,7 @@ if(first()){
         
     )
         
-    VERSION = "0.9532"
+    VERSION = "0.954"
     
     MODELS = table(
         "models/akandr/russian/poluvagon.mdl",8,"russian coal_gondola empty freight manifest old hdetail akandr priority 1980s 1990s 2000s 2010s 2020s functional rus5ft rusphx rusrsg",vec4(360,-1,90,-1),array(3,2,1,3,3,4,2,5),array(1,2,3,4,4,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),70
@@ -370,7 +370,7 @@ if(first()){
         ,"models/lazpack/freightcars/icc_103w_19k.mdl",20,"usamerican oil_tanker invisiload freight manifest new hdetail laz 1940s 1950s 1960s 1970s 1980s functional magphx magrsg",vec4(454,-18,90,0),array(1,1),array(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8),vec2(0,0),array(),70
         ,"models/lazpack/freightcars/trinity_5660_pd.mdl",5,"usamerican pressuredifferentialpd_hopper_flour invisiload freight manifest new hdetail laz 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(626,-15,90,0),array(1,1),array(3),vec2(0,11),array(),100
         ,"models/lazpack/freightcars/trinity_3230_pd.mdl",1,"usamerican pressuredifferentialpd_hopper_clay invisiload freight manifest new hdetail laz 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(402,-15,90,0),array(1,1),array(3),vec2(0,11),array(),70
-        ,"models/magtrains/boxcar5.mdl",30,"usamerican general_boxcar_nonhigh invisiload freight manifest old mdetail mow magnum 1970s 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(512,0,0,0),array(1,4,3,1,2,2),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,3),vec(2,0,2),vec(3,0,2),vec(4,0,2)),100
+        ,"models/magtrains/boxcar5.mdl",30,"usamerican general_boxcar_highcube invisiload freight manifest old mdetail mow magnum 1970s 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(512,0,0,0),array(1,4,3,1,2,2),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,3),vec(2,0,2),vec(3,0,2),vec(4,0,2)),100
         ,"models/magtrains/boxcar_50.mdl",70,"usamerican general_boxcar_nonhigh invisiload freight manifest new hdetail mow magnum 1970s 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(448,0,0,0),array(1,5,2,7,3,1),array(1,1,1,2,2,3,4,4,4,4,4,4,4,4,4,4,5,5,6,6,6,6,7,8,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,3),vec(2,0,2),vec(3,0,2),vec(4,0,2)),100
         ,"models/magtrains/caboose1.mdl",1,"usamerican caboose old mdetail magnum 1930s 1940s 1950s 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(352,0,0,0),array(3,1,3,2,1,3,1,4,1,5,2,7,2,9),array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5,5,5,6,7,8,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),30
         ,"models/magtrains/caboose2.mdl",1,"usamerican caboose old mdetail magnum 1930s 1940s 1950s 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(352,0,0,0),array(3,1,3,2,1,3,1,4,1,5,2,7,2,9),array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5,5,5,6,7,8,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),30
@@ -536,10 +536,21 @@ if(first()){
         vec4(638,-18,90,0),array(),array(),vec2(0,1),array(vec(1,3,3)),100
         ,"models/hanksabutt/rollingstock/flatcars/thrall_bulkheadflat.mdl",5,"usamerican wood_flatcar_bulkhead manifest freight loaded sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",
         vec4(638,-18,90,0),array(),array(),vec2(0,1),array(vec(1,1,2)),100
-        
         ,"models/lazpack/freightcars/usra_ds_ventmod.mdl",50,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail laz 1910s 1920s 1930s 1940s 1950s functional magphx magrsg",
         vec4(374,-17,90,0),array(),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),50
         
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_boxcar.mdl",10,"usamerican general_boxcar_nonhigh manifest freight invisiload mdetail tf2 anyone991 1930s 1940s 1950s 1960s 1970s 1980s functional tf2phx tf2rsg",
+        vec4(308,-21,90,-3),array(2,3,3,5,2,7,1,8),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,1,1)),70
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_boxcar_noladder.mdl",40,"usamerican general_boxcar_nonhigh manifest freight invisiload mdetail tf2 anyone991 1930s 1940s 1950s 1960s 1970s 1980s functional tf2phx tf2rsg",
+        vec4(308,-21,90,-3),array(),array(),vec2(0,1),array(),70
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_orecar.mdl",15,"usamerican coal_gondola gravel_gondola manifest freight empty mdetail tf2 anyone991 1950s 1960s 1970s 1980s 1990s functional tf2phx tf2rsg",
+        vec4(376,-21,90,-3),array(),array(),vec2(0,1),array(),70
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_orecar.mdl",10,"usamerican coal_gondola manifest freight loaded mdetail tf2 anyone991 1950s 1960s 1970s 1980s 1990s functional tf2phx tf2rsg",
+        vec4(376,-21,90,-3),array(),array(),vec2(0,1),array(vec(3,2,2)),70
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_orecar.mdl",5,"usamerican gravel_gondola manifest freight loaded mdetail tf2 anyone991 1950s 1960s 1970s 1980s 1990s functional tf2phx tf2rsg",
+        vec4(376,-21,90,-3),array(),array(),vec2(0,1),array(vec(3,1,1)),70
+        ,"models/anytrains/rollingstock/freight/tf2/tf2_tankcar.mdl",10,"usamerican general_tanker manifest freight invisiload mdetail tf2 anyone991 1950s 1960s 1970s 1980s 1990s functional tf2phx tf2rsg",
+        vec4(308,-21,90,-3),array(),array(),vec2(0,1),array(),70
         
         #[
         #Uncomment these if you like, but generally people don't use them and they increase search times. Plus, they look terrible.
@@ -587,7 +598,8 @@ if(first()){
      "stock_car.mdl","gondola.mdl","mc_hopper.mdl","boxcar.mdl","tlr_hopper.mdl","nyct_flatcar.mdl","flatcar_p-0.mdl","train_boxcar.mdl","fec_caboose.mdl","ca_1_caboose.mdl","bobber_caboose.mdl","caboose_1.mdl","nhvf_hopper.mdl","nhff_hopper.mdl","wagon_jk.mdl",
      "wagon_rcaf.mdl","wagon_rkly.mdl","wagon_ntaf.mdl","ave_q40.mdl","ave_q60.mdl","ave_q80.mdl","bogie_tank.mdl","steel_carrier_b.mdl","prycementhopper.mdl","boxcar.mdl","boxcar1.mdl","boxcar2.mdl","wagon_mcar.mdl","autorack_bilevel_enclosed.mdl","gondola2.mdl",
      "boxcar_50ft_pcf_plugdoor.mdl","tanker_26k.mdl","reefer_trincool.mdl","hopper_ps2cd_4750.mdl","boxcar_pfe_reefer.mdl","nsc_bulkheadflat.mdl","thrall_bulkheadflat.mdl","tanker_11k_jacketed.mdl","hopper_2bay_usra_lcn.mdl","boxcar_sco_usra_fishbelly.mdl",
-     "gondola_40ft_usra.mdl","boxcar_wagontop_40ft.mdl","nsc_centerbeam.mdl","boxcar_50ft_gunderson.mdl","boxcar_50ft_pcf_insulated.mdl","boxcar_50ft_ps.mdl","boxcars/boxcar_50ft_pcf_plugdoor.mdl","crrc_cck.mdl")
+     "gondola_40ft_usra.mdl","boxcar_wagontop_40ft.mdl","nsc_centerbeam.mdl","boxcar_50ft_gunderson.mdl","boxcar_50ft_pcf_insulated.mdl","boxcar_50ft_ps.mdl","boxcars/boxcar_50ft_pcf_plugdoor.mdl","crrc_cck.mdl","usra_ds_ventmod","tf2_boxcar","tf2_tankcar",
+     "tf2_boxcar_noladder","tf2_orecar")
 
     BOGIES = table()
     
@@ -613,6 +625,11 @@ if(first()){
     BOGIES["nsw2cmphx",table]=table("models/bogies/bogie_2cm_phx.mdl",                    18,42,90,vec(90,65,55),"linnie austrailian",array(),array(1,"models/props_gulch/tinycars/tc_colorable",3,"models/proppertextures/wheel",4,"models/proppertextures/wheel"))
     BOGIES["nsw2cmrsg",table]=table("models/bogies/bogie_2cm_tp3.mdl",                    18,42,90,vec(90,65,55),"linnie rsg austrailian",array(),array(1,"models/props_gulch/tinycars/tc_colorable",3,"models/proppertextures/wheel",4,"models/proppertextures/wheel"))
     BOGIES["uky25cphx",table]=table("models/bobsters_trains/uk/bogies/y25c.mdl",          50,55,90,vec(90,65,55),"",array(),array(1,"models/props_gulch/tinycars/tc_colorable",3,"models/proppertextures/wheel",2,"models/proppertextures/wheel",5,"models/proppertextures/wheel"))
+    BOGIES["tf2phx",table]=table("models/anytrains/rollingstock/freight/tf2/tf2_bogie_phx.mdl",24,44,90,vec(255),"",array(1,2),array())
+    BOGIES["tf2rsg",table]=table("models/anytrains/rollingstock/freight/tf2/tf2_bogie_rsg.mdl",24,44,90,vec(255),"",array(1,2),array())
+
+
+
 
     FIVEFOOT = 0
     
