@@ -20,8 +20,8 @@ item:StratoSplite
 version:1.1
 
 item:ConvenientClassicCarspawner
-version:0.942
-version_name:Cleanup Roundup
+version:0.954
+version_name:TF2, Anyone?
 
 item:CPU Blame
 version:2.0
