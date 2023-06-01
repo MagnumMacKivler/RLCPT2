@@ -1,0 +1,120 @@
+@name ptgamma/engines/GE_7FDL16H18
+#ENGINE CONFIG
+ENG_Version = "2.0.67"
+#H series FDL16 with an unsilenced exhaust. Good for late universals. U28, U30, U33, etc.
+EngineType = "GE 7FDL16H18" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/ge7fdl16h18/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/ge7fdl16h18/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 1 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 0 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 0 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "" #Transition sound for Low to High idle, if used.
+Idle_Low = "" #Sound for Low Idle, if used.
+
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "gsgtrainsounds/ge7fdl16h18/idle.wav", #Idle 
+    "gsgtrainsounds/ge7fdl16h18/notch1.wav", #Notch 1
+    "gsgtrainsounds/ge7fdl16h18/notch2.wav", #Notch 2
+    "gsgtrainsounds/ge7fdl16h18/notch3.wav", #Notch 3
+    "gsgtrainsounds/ge7fdl16h18/notch4.wav", #And so On
+    "gsgtrainsounds/ge7fdl16h18/notch5.wav",
+    "gsgtrainsounds/ge7fdl16h18/notch6.wav",
+    "gsgtrainsounds/ge7fdl16h18/notch7.wav",
+    "gsgtrainsounds/ge7fdl16h18/notch8.wav"
+)
+
+TransitionPath = "gsgtrainsounds/ge7fdl16h18/transitions/"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  3,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(1898,1020,2231,1530,3174,3158,3264,2530) 
+                  #8-7  7-6  6-5  5-4  4-3  3-2  2-1 1-0
+DownDelays = array(2542,1636,1857,1906,3153,2587,2530,1895)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 2.127 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 4 #Duration for starter smoke
+
+CompressorType = 0 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/gardner-denver_wbo_u36b/loop.wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/gardner-denver_wbo_u36b/end.wav"
+
+DynamicsOn = "gsgtrainsounds/misc/ge_radfan_u23b_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/ge_radfan_u23b_end.wav"
+
+PrimeOn = "gsgtrainsounds/ge7fdl16h18/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/ge7fdl16h18/prime_end.wav"
+
+PrimerDuration = randint(10,15)
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/0-1.wav",number] = 1890
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/1-2a.wav",number] = 740
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/1-2b.wav",number] = 4120
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/2-3a.wav",number] = 540
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/2-3b.wav",number] = 5210
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/3-4a.wav",number] = 400
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/3-4b.wav",number] = 3990
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/4-5a.wav",number] = 740
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/4-5b.wav",number] = 5430
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/5-6a.wav",number] = 400
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/5-6b.wav",number] = 4920
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/6-7a.wav",number] = 630
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/6-7b.wav",number] = 4830
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/7-8a.wav",number] = 280
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/up/7-8b.wav",number] = 3780
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/1-0.wav",number] = 1890
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/2-1a.wav",number] = 800
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/2-1b.wav",number] = 5220
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/3-2a.wav",number] = 730
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/3-2b.wav",number] = 3530
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/4-3a.wav",number] = 520
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/4-3b.wav",number] = 4000
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/5-4a.wav",number] = 420
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/5-4b.wav",number] = 2900
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/6-5a.wav",number] = 440
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/6-5b.wav",number] = 2460
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/7-6a.wav",number] = 290
+SoundDurations["gsgtrainsounds/ge7fdl16h18/transitions/down/8-7a.wav",number] = 200
+SoundDurations["gsgtrainsounds/ge7fdl16h18/startup.wav",number] = 14030
+SoundDurations["gsgtrainsounds/ge7fdl16h18/shutdown.wav",number] = 10720
+
+
