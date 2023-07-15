@@ -1,0 +1,99 @@
+@name Track Scanner
+@inputs 
+@outputs Out First
+@persist Started BoxP:vector BoxM:vector StartVec:vector StrtAng E:entity Tag:string First
+@trigger 
+#@model models/magtrains/trucks/barber_s2_rsg.mdl
+@model models/magtrains/trucks/barber_s2_phx.mdl
+
+if(first()){
+    
+    runOnChat(1)
+
+    function number rails(Ent:entity){ #Checks to see if the prop is on the rails
+        
+        #Gauge = 56
+        Gauge = 80
+        Railhead = 26
+                
+        rangerFilter(Ent)
+        local R1 = rangerOffset(200,Ent:toWorld(vec((Gauge/2)-1,0,-Railhead-6):rotateAroundAxis(vec(0,0,1),0)),(Ent:forward()-Ent:right()):rotateAroundAxis(vec(0,0,1),0))
+        local R2 = rangerOffset(200,Ent:toWorld(vec(-(Gauge/2)+1,0,-Railhead-6):rotateAroundAxis(vec(0,0,1),0)),(-Ent:forward()-Ent:right()):rotateAroundAxis(vec(0,0,1),0))
+        
+        local R3 = rangerOffset(200,Ent:toWorld(vec(0,0,0)),vec(0,0,-1))
+        
+        if((R3:entity():model():find("turnout") | R3:entity():type() == "tp3_swtch") & 0){
+                
+            return 0
+            
+        }
+        
+        return (R1:hit() & R2:hit())
+        
+    }
+    
+    E = entity()
+    
+    holoCreate(0,E:toWorld(vec(0,70,-7)),vec(1,1,1.5)*2.5,E:toWorld(ang(0,0,-90)),vec(0,191,255),"cone")
+    holoParent(0,E)
+    
+    E:setColor(vec(0,191,255))
+    
+    E:setMaterial("wtp/metal_2")
+    noCollideAll(E,0)
+    
+}
+
+interval(100)
+
+if(chatClk(owner()) & lastSaid():explode(" ")[1,string] == ".s" & !Started){
+    
+    Tag = lastSaid():explode(" ")[2,string]
+    
+    hideChat(1)
+    
+    Started = 1
+    StartVec = BoxM = BoxP = round(E:pos())
+    StrtAng = round(E:angles():yaw())
+    
+    
+    First = 10
+    
+    E:propFreeze(0)
+    
+}
+
+
+
+if(Started & rails(entity())){
+    
+#if(Started & First > -1){
+    
+    Out = 1
+    P = E:pos()
+    entity():propSetVelocity(entity():right() * -750)
+    BoxP = vec(max(P:x(),BoxP:x()),max(P:y(),BoxP:y()),max(P:z(),BoxP:z()))
+    BoxM = vec(min(P:x(),BoxM:x()),min(P:y(),BoxM:y()),min(P:z(),BoxM:z()))
+    First--
+    
+}elseif(Started){
+    
+    if(First < 0){
+    
+        #print("LocDat[\""+Tag+"\",table] = "+("table(\"\",vec("+round(BoxP+100)+"),vec("+round(BoxM-100)+"),vec("+StartVec+"),"+StrtAng+",array())"):replace("[",""):replace("]",""))
+        #print(("vec("+round(BoxP+100)+"),vec("+round(BoxM-100)+")"):replace("[",""):replace("]",""))
+        
+        print("Tracks[\"cin7\",table] = " +("table(\"\",\"\",vec(255,191,0),vec("+round(BoxP+100)+"),vec("+round(BoxM-100)+"),0,vec("+StartVec+"),"+StrtAng+",IndTurn,array())"):replace("[",""):replace("]",""))
+        
+        #Tracks["rind",table] = table("redwall","Redwall|Remanufacturing",vec(180,80,30),vec(-2139,11081,150),vec(-2341,4207,-58),IndTurn,vec(-2239,10982,43),180,array(11,"general_boxcar"))
+        
+    }
+    
+    First = 0
+    Started = 0
+
+    E:setPos(owner():aimPos() + vec(0,0,100))
+    E:propFreeze(1)
+    
+}
+
