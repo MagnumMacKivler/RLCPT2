@@ -20,9 +20,13 @@ item:StratoSplite
 version:1.1
 
 item:ConvenientClassicCarspawner
-version:0.954
-version_name:TF2, Anyone?
+version:0.955
+version_name:Finally, Coilcar.
 
 item:CPU Blame
 version:2.0
 version_name:Highlighting the Issue
+
+item:Magic Multicoupler
+version:1.0
+version_name:The Next Generation
