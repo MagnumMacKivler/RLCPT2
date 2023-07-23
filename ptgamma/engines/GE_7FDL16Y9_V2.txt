@@ -1,0 +1,121 @@
+@name ptgamma/engines/GE_7FDL16Y9_V2
+#ENGINE CONFIG
+ENG_Version = "2.0.67"
+#EFI equipped FDL engine. For use in mid to late production Dash 9 locomotives (C40-9, C44-9, AC4400CW).
+EngineType = "GE 7FDL16Y9" #What is the name of the Prime Mover?
+
+Startup_Hi = "gsgtrainsounds/ge7fdl16y9_v2/startup.wav" #Startup Sound to put the engine in High (Normal) Idle.
+Startup_Lo = "" #Startup Sound to put the engine in Low Idle.
+Startup_Mode = 1 #0 for Low, 1 for High
+
+Shutdown_Hi = "gsgtrainsounds/ge7fdl16y9_v2/shutdown.wav" #Shutdown Sound from High Idle.
+Shutdown_Lo = "gsgtrainsounds/ge7fdl16y9_v2/shutdown_low.wav" #Shutdown Sound from Low Idle.
+Shutdown_Mode = 2 #0 for Low, 1 for High, 2 for Both as the situation demands it
+
+FuelSaverMode = 1 #If set to 1, the locomotive will go into and out of Low Idle as the reverser is moved in and out of Neutral
+FuelSaverDelay = 10 #Time, in seconds, for engine to fall into Low Idle, if used.
+
+TransitionToLow = "gsgtrainsounds/ge7fdl16y9_v2/down/idle-idle_low.wav" #Transition sound for High to Low idle, if used.
+TransitionToHigh = "gsgtrainsounds/ge7fdl16y9_v2/up/idle_low-idle.wav" #Transition sound for Low to High idle, if used.
+Idle_Low = "gsgtrainsounds/ge7fdl16y9_v2/idle_low.wav" #Sound for Low Idle, if used.
+
+NumEngineNotches = 8 #Number of Engine Notches, not counting idle.
+
+Notches = array(
+    "gsgtrainsounds/ge7fdl16y9_v2/idle.wav", #Idle 
+    "gsgtrainsounds/ge7fdl16y9_v2/notch1.wav", #Notch 1
+    "gsgtrainsounds/ge7fdl16y9_v2/notch2.wav", #Notch 2
+    "gsgtrainsounds/ge7fdl16y9_v2/notch3.wav", #Notch 3
+    "gsgtrainsounds/ge7fdl16y9_v2/notch4.wav", #And so On
+    "gsgtrainsounds/ge7fdl16y9_v2/notch5.wav",
+    "gsgtrainsounds/ge7fdl16y9_v2/notch6.wav",
+    "gsgtrainsounds/ge7fdl16y9_v2/notch7.wav",
+    "gsgtrainsounds/ge7fdl16y9_v2/notch8.wav"
+)
+
+TransitionPath = "gsgtrainsounds/ge7fdl16y9_v2/transitions\"
+#---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
+#0 - A/B Notching
+#1 - Full Sweep
+#2 - Instant Change
+#3 - No Change
+#4 - Override (Full Sweep)
+                #0-1  1-2  2-3  3-4  4-5  5-6  6-7  7-8 
+UpDelays = array(0,5633,12398,7277,11943,3981,3801,5496) 
+                  #8-7  7-6  6-5  5-4  4-3  3-2  2-1
+DownDelays = array(6101,2777,3207,6476,4722,4933,3514)
+
+UpOverrides = array(
+    "", #0-1
+    "", #1-2
+    "", #2-3
+    "", #3-4
+    "", #4-5
+    "", #5-6
+    "", #6-7
+    ""  #7-8
+)
+
+DownOverrides = array(
+    "", #8-7
+    "", #7-6
+    "", #6-5
+    "", #5-4
+    "", #4-3
+    "", #3-2
+    "", #2-1
+    ""  #1-0
+)
+
+StartupClagDelay = 7.6 #Time required to hold starter for engine to turn on successfully
+StartupClagDuration = 1.8 #Duration for starter smoke
+
+CompressorType = 1 #0 for Shaft-driven, 1 for Electrical
+
+CompressorOn = "gsgtrainsounds/misc/compressors/wabco_3cdclat_loop (2).wav"
+CompressorOff = "gsgtrainsounds/misc/compressors/wabco_3cdclat_end (2).wav"
+
+DynamicsOn = "gsgtrainsounds/misc/ge_17em130_dynamic_brake_loop.wav"
+DynamicsOff = "gsgtrainsounds/misc/ge_17em130_dynamic_brake_end.wav"
+
+PrimeOn = ""
+PrimeOff = ""
+
+PrimerDuration = 1
+
+SoundDurations = table()
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/0-1.wav",number] = 2700
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/1-2a.wav",number] = 380
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/1-2b.wav",number] = 8700
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/2-3a.wav",number] = 2000
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/2-3b.wav",number] = 14610
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/3-4a.wav",number] = 960
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/3-4b.wav",number] = 9070
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/4-5a.wav",number] = 1300
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/4-5b.wav",number] = 14570
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/5-6a.wav",number] = 960
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/5-6b.wav",number] = 4920
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/6-7a.wav",number] = 1260
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/6-7b.wav",number] = 6330
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/7-8a.wav",number] = 750
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/up/7-8b.wav",number] = 7420
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/1-0.wav",number] = 2640
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/2-1a.wav",number] = 1700
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/2-1b.wav",number] = 5180
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/3-2a.wav",number] = 830
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/3-2b.wav",number] = 10580
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/4-3a.wav",number] = 1620
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/4-3b.wav",number] = 7560
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/5-4a.wav",number] = 2100
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/5-4b.wav",number] = 8060
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/6-5a.wav",number] = 2020
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/6-5b.wav",number] = 4040
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/7-6a.wav",number] = 1690
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/7-6b.wav",number] = 3150
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/8-7a.wav",number] = 1110
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/8-7b.wav",number] = 7000
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/transitions/down/idle-idle_low.wav",number] = 6400
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/startup.wav",number] = 14540
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/shutdown.wav",number] = 9480
+SoundDurations["gsgtrainsounds/ge7fdl16y9_v2/shutdown_low.wav",number] = 9540

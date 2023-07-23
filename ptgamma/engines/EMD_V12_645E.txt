@@ -36,7 +36,7 @@ Notches = array(
 
 TransitionPath = "gsgtrainsounds/emd645v12/transitions/"
 #---------------------0-1,1-2,2-3,3-4,4-5,5-6,6-7,7-8
-EngineBehavior = array(1,  1,  0,  0,  0,  0,  0,  0)
+EngineBehavior = array(1,  0,  0,  0,  0,  0,  0,  0)
 #0 - A/B Notching
 #1 - Full Sweep
 #2 - Instant Change
