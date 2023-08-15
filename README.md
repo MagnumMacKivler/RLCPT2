@@ -8,9 +8,9 @@ Warning: RLC PT 2.0 is *not* MU-compatible with RLC PT (1).
 
 1. For the latest stable release, click on "Releases" (to the right) and download the latest zip. For the latest version (may be newer than latest release), click on the green "Code" button and then "Download Zip".
 2. Open the Zip file using a program like WinZip or WinRar, if it didn't open automatically.
-3. Navigate __INTO__ the "RLCPT2-master" Folder. You should see three items: a folder named "ptgamma", a folder named "gauges_ptgamma", and readme.md.
-4. Extract the two folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
-The file path should then look like `expression2\ptgamma\...`.
+3. Navigate __INTO__ the "RLCPT2-master" Folder. You should see a few items: a folder named "ptgamma", a folder named "gauges_ptgamma", a folder named "magspack2", and readme.md.
+4. Extract the three folders directly into: `<Your active steam directory>\SteamApps\common\Garry's Mod\garrysmod\data\expression2\`.
+The file path should then look like `expression2\ptgamma\...` etc.
 5. If you see the folder "RLCPT2-master" inside the "expression2" folder, __YOU INSTALLED IT WRONG__ and the E2s will not work!
 
 If you're currently in-game in Garry's Mod, open the E2 Editor, and click the "Update" button under the list of E2s on the lefthand side of the window.
