@@ -1,0 +1,86 @@
+@name SR Check Code E2
+@inputs Num:string
+@outputs Text:string
+@persist N1 N2 N3 N4 Number:string
+@trigger all
+
+
+if(first()|dupefinished()|changed(Num)){
+    
+    Number = Num
+    
+    for(X =1, 4-Number:length()){
+        
+        Number = "0" + Number
+        
+    }
+    
+    N1 = Number:explode("")[1,string]:toNumber()
+    N2 = Number:explode("")[2,string]:toNumber()*2
+    N3 = Number:explode("")[3,string]:toNumber()
+    N4 = Number:explode("")[4,string]:toNumber()*2
+    
+    
+    if(N2 > 9){
+        
+        N2 = N2:toString():explode("")[1,string]:toNumber() + N2:toString():explode("")[2,string]:toNumber()
+    
+    }
+    
+    
+    if(N4 > 9){
+        
+        N4 = N4:toString():explode("")[1,string]:toNumber() + N4:toString():explode("")[2,string]:toNumber()
+    
+    }
+    
+    
+    Output = N1 + N2 + N3 + N4
+        
+    Output = (ceil(Output/10)*10)-Output
+    
+    
+    
+    if(Output == 0){
+        
+        Text = "A"
+        
+    }elseif(Output == 1){
+        
+        Text = "F"
+    
+    }elseif(Output == 2){
+        
+        Text = "H"
+    
+    }elseif(Output == 3){
+        
+        Text = "J"
+    
+    }elseif(Output == 4){
+        
+        Text = "K"
+    
+    }elseif(Output == 5){
+        
+        Text = "L"
+    
+    }elseif(Output == 6){
+        
+        Text = "R"
+    
+    }elseif(Output == 7){
+        
+        Text = "T"
+    
+    }elseif(Output == 8){
+        
+        Text = "W"
+    
+    }elseif(Output == 9){
+        
+        Text = "X"
+    
+    }
+    
+}
