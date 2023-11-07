@@ -1,0 +1,469 @@
+@name FBD Fender Bender Defender V2 RSG
+@inputs Enable Active MPH
+@outputs EmBrake CycleTime TruckCount Running Analyzing RTD_Counter Enable_True PCS_Open
+@persist Trucks:array TruckTypes:array W:entity O:entity AUTOPARENT SpeedThreshold Index RTD FreezeOnDerail Running Initialized Interval Derail MarkerColor:vector ScanOffset
+@persist TruckModels:array SpeedQ Paths:table Analyzing TC Consist:array AI LazyMode Disabled
+@persist [RTD_Ents RTD_Positions RTD_Angs OLD_Ents OLD_Positions OLD_Angs]:array RTD_Counter RTD_Interval 
+@trigger Enable Active
+@model models/Items/HealthKit.mdl
+if(first()|duped()){
+    
+    local Version = "V2.10"
+    #[
+    
+    Welcome to Magnum's Fender Bender Defender (Also known as FBD)!
+    "Stops accidents dead in their tracks!"
+    Special thanks to Freezebug for Red Tape Defender, which has been integrated into FBD!
+    Requires Grove's Sound Pack and propcore.
+    
+    Setup instructions:
+    1- Place the chip on the locomotive carbody somewhere, and configure the settings.
+    2- Wire "Enable" to the locomotive's MU Master button (or to an independent toggled button).
+    3- Wire "Active" to the pod controller's "Active" output, for the driver's seat.
+    4- Wire "MPH" to the MPH output on the RLC Chip.
+    5- You may also wish to wire RLC Pt's "EmBrake" input to the FBD chip, though this is Optional.
+    
+    
+    Note:
+    You /Can/ Parent the chip, but only to the baseplate/carbody.
+    
+    New Improvements include the elimination of the tick quota problem, the ability to add any truck model to the registered list, and
+    the elimination of that pesky problem with diamonds.
+    
+    How the chip works:
+    The Enable input turns derail protection on and off.
+    The Active input for the pod controller updates the truck registry every time you hop in the seat. Just get in and out as normal.
+    (This also happens when you accelerate past a certain speed, see below).
+    The chip selects one truck in the consist every execution and checks if it's on the rails or not. Longer trains make the chip check slower! 10 cars = 1 second.
+    If you derail, the train will notify you. Optionally (Recommended!) the chip will also freeze the train or even automatically rerail it for you!
+    
+    
+    ]#
+    
+    AUTOPARENT = 0 #Set this to 1 to make the chip parent itself to the prop you attach it to. MAKE SURE IT IS THE BASEPLATE/CARBODY!
+    
+    local TrackGauge = 56 #The distance between the rails; 80 for PHX gauge, 56 for RSG.
+    
+    LazyMode = 0 #This doesn't actually work anymore. Wiremod broke it a long time ago. Leave it as 0.
+    
+    RTD = 1   #Enables Red Tape Defender (RTD) Recording. At any time, you can type ".rerail" in chat and it will place your entire train back on the rails!
+    FreezeOnDerail = 0  #"Traditional" FBD functionality. When it detects a derailment, it will freeze the entire train.
+    MarkerColor = vec(255,96,0) #Whichever truck triggered FBD will be highlighted with this color.
+    SpeedThreshold = 10   #FBD will re-examine all trucks when you accelerate past this speed.
+    
+    Interval = 50   #Derailment Check Interval, in ms. 50ms means 20 trucks per second (10 cars per second). You should probably leave it at 50.
+    RTD_Interval = 10 #Time in seconds between Red Tape snapshots.
+    
+    #Search Paths - Any model with the following entries will be considered a truck.
+    
+    Paths = table()
+    
+    Paths["bogey",string] = "bogey" #Old Magtrains Stuff
+    Paths["bogie",string] = "bogie" #Bobster's Stuff
+    Paths["truck",string] = "truck" #Hopefully everything else
+    
+    TruckModels = array(
+    #For adding extra models, that don't fall into one of the categories above. Feel Free to keep this up to date as more and more models get added.
+    
+    "models/flak/ge_hi-ad.mdl",
+    "models/flak/rockwell.mdl"
+    
+    )
+    signalSetGroup("FBD")
+    runOnSignal("Disable",0,LazyMode)
+    
+    #Track Gauge Adjustment
+    ScanOffset = (TrackGauge/2) - 2
+    
+    
+    function void getTrucks(Base:entity){ #Truck Identification
+        TC = 0
+        Trucks = array()
+        AI = 1
+        Analyzing = 1
+        Running = 0
+        PCS_Open = 0
+        
+        Consist = Base:getConstraints()
+        timer("analyze",50)
+        return void
+        
+    }
+    
+    function array encode(Trux:array){ #Truck Direction Encoding
+        
+        local Codes = array()
+        for(N=1,Trux:count()){
+            local Prop = Trux[N,entity]
+            local Box = Prop:boxSize()
+            
+            local GrovStyle = Box:x() > Box:y()
+            Codes[N,number] = GrovStyle
+        }
+        return Codes
+    }
+    
+    function void refresh(){
+        Index = 1
+        getTrucks(W)
+        Derail = 0
+        holoDelete(0)  
+        return void
+    }
+    
+    function void freezeAll(){
+        local Constrained = W:getConstraints()
+        W:propFreeze(1)
+        for(N=1,Constrained:count()){
+            Constrained[N,entity]:propFreeze(1)
+        }
+        
+        
+        return void
+    }
+    function void rtd_save(){
+        OLD_Ents = RTD_Ents:clone()
+        OLD_Positions = RTD_Positions:clone()
+        OLD_Angs = RTD_Angs:clone()
+        
+        RTD_Ents = array()
+        RTD_Ents = array(W):add(W:getConstraints())
+        RTD_Positions = array()
+        RTD_Angs = array()
+        for(N=1,RTD_Ents:count()){
+            local Ent = RTD_Ents[N,entity]
+            RTD_Positions[N,vector] = Ent:pos()
+            RTD_Angs[N,angle] = Ent:angles()
+        }
+        #print("Saving")
+        
+    }
+    
+    
+    local E = entity()
+    O = owner()
+    runOnChat(1)
+    Index = 1
+    Running = 0
+    Derail = 0
+    Analyzing = 0
+    AI = 1
+    
+    RTD_Ents = array()
+    RTD_Positions = array()
+    RTD_Angs = array()
+    
+    Initialized = 0
+    SpeedQ = 0
+    
+    Disabled = 0
+    
+    if(first()){
+        print("[FBD] Welcome to Magnum's Fender Bender Defender!\nPlease read the instructions before proceeding.")
+        if(AUTOPARENT){
+            #E:setMaterial("models/effects/vol_light001")
+            local Welded = E:isWeldedTo()
+            if(Welded:isValidPhysics()){
+                E:parentTo(Welded)
+                W = Welded
+                #ifdef entity:constraintBreak(entity)
+                    E:constraintBreak(Welded)
+                #endif
+                    
+            }else{
+                print("[FBD] Please attach to the carbody/baseplate of the locomotive!")
+                exit()
+            }
+    
+        }else{
+            W = E:parent()
+            if(!W:isValidPhysics()){
+                W = E:isWeldedTo()
+                if(!W:isValidPhysics()){
+                    print("[FBD] Please weld or parent to the carbody/baseplate of the locomotive!")
+                    exit()
+                }
+            }
+        }
+        if(LazyMode){
+            findIncludePlayerProps(O)
+            findInSphere(E:pos(),256)
+            findSortByDistance(E:pos())
+            local FR = findToArray()
+            local PC = noentity()
+            local RLCPT = noentity()
+            for(LN=1,FR:count()){
+                local V = FR[LN,entity]
+                local Class = V:type()
+                if(Class=="gmod_wire_pod"){
+                    PC = V
+                }elseif(Class=="gmod_wire_expression2"){
+                    local Wirelink = V:wirelink()
+                    if(Wirelink["RLCPT",entity]){
+                        RLCPT = V
+                    }
+                }
+            }
+            if(PC){
+                print("[FBD] Pod Controller Found: " + PC:id())
+            }else{
+                print("[FBD] ERROR! Could not find Pod Controller!")
+            }
+            if(RLCPT){
+                print("[FBD] RLC PT found: " + RLCPT:id())
+            }else{
+                print("[FBD] ERROR! Could not find RLC PT Chip!")
+            }
+            if(PC & RLCPT){
+                E:createWire(RLCPT,"Enable","On",0,vec(),"cable/cable2")
+                E:createWire(RLCPT,"MPH","MPH",0,vec(),"cable/cable2")
+                E:createWire(PC,"Active","Active",0,vec(),"cable/cable2")
+                RLCPT:createWire(E,"EmBrake","EmBrake",0,vec(),"cable/cable2")
+            }
+            
+        }
+    }
+    if(!FreezeOnDerail & !RTD){
+        print("[FBD] WARNING! You have disabled Both FreezeOnDerail and Red Tape Defender!\nFBD May be ineffective at preventing accidents!")
+    }
+    setName("FBD Fender Bender Defender " + Version)
+    
+    
+}elseif(dupefinished()){
+    local E = entity()
+    if(E:parent():isValidPhysics()){
+        W = E:parent()
+    }elseif(E:isWeldedTo():isValidPhysics()){
+        W = E:isWeldedTo()
+    }else{
+        print("[FBD] Please attach to the carbody/baseplate of the locomotive!")
+        exit()
+    }
+    if(LazyMode){
+        findIncludePlayerProps(O)
+        findInSphere(E:pos(),128)
+        local FR = findToArray()
+        local PC = noentity()
+        local RLCPT = noentity()
+        foreach(K,V:entity=FR){
+            local Class = V:type()
+            if(Class=="gmod_wire_pod"){
+                PC = V
+            }elseif(Class=="gmod_wire_expression2"){
+                local Name = V:getName()
+                if(Name:find("RLC Platinum")){
+                    RLCPT = V
+                }
+            }
+        }
+        if(!PC){
+            print("[FBD] ERROR! Could not find Pod Controller!")
+        }
+        if(!RLCPT){
+            print("[FBD] ERROR! Could not find RLC PT Chip!")
+        }
+        if(PC & RLCPT){
+            E:createWire(RLCPT,"Enable","On",0,vec(),"cable/cable2")
+            E:createWire(RLCPT,"MPH","MPH",0,vec(),"cable/cable2")
+            E:createWire(PC,"Active","Active",0,vec(),"cable/cable2")
+            RLCPT:createWire(E,"EmBrake","EmBrake",0,vec(),"cable/cable2")
+        }
+        
+    }
+}
+
+if(signalClk()){
+    Disabled = 1
+    #print("Chip Disabled!")
+}elseif(Enable & Active & ~Active){
+    Disabled = 0
+}
+
+Enable_True = Enable & !Disabled
+
+
+if(Enable_True){
+    if(Active & ~Active){
+        Initialized = 1
+        #print("Chip Disabling!")
+        refresh()
+        if(LazyMode){
+            signalSend("Disable",0)
+        }
+        
+        if(RTD){
+            rtd_save()
+            
+        }
+        
+    }elseif(clk("runtick") & Running & !Analyzing){
+        
+        #The part that actually checks for derailments!
+        local Specimen = Trucks[Index,entity]
+        if(Specimen:isValidPhysics()){
+            #Y Longer: Mag Style (0), X Longer: Grove Style (1)
+            local Type = TruckTypes[Index,number]
+            local LoPoint = Specimen:boxMin()*(Type ? vec(1,0,1) : vec(0,1,1))
+            if(Type){
+                #GSG
+                Corner1 = LoPoint + vec(0,-ScanOffset,0)
+                Corner2 = LoPoint*vec(-1,0,1) + vec(0,ScanOffset,0)
+                Dir = Specimen:forward() + Specimen:right()
+            }else{
+                #Mag
+                Corner1 = LoPoint + vec(ScanOffset,0,0)
+                Corner2 = LoPoint*vec(-1,0,1) + vec(-ScanOffset,0,0)
+                Dir = Specimen:forward() - Specimen:right()
+            }
+            rangerFilter(Specimen)
+            local R1 = rangerOffset(18,Specimen:toWorld(Corner1),Dir)
+            local R2 = rangerOffset(18,Specimen:toWorld(Corner2),-Dir)
+            
+            Derail = !(R1:hit() & R2:hit())
+            
+            if(Derail){ #Derailment Found!
+                Running = 0
+                
+                EmBrake = 1
+                PCS_Open = 1
+                print("[FBD] Derailment Detected at " + toString(round(MPH,1)) + " MPH!")
+                O:soundPlay(0,3,"gsgtrainsounds/other/joke/lionel_traintown/traintown_collision.wav")
+                holoCreate(0,Specimen:pos(),vec(1.125),Specimen:angles(),MarkerColor,Specimen:model())
+                holoParent(0,Specimen)
+                holoAlpha(0,100)
+                holoMaterial(0,"debug/debugdrawflat")
+                stopAllTimers()
+                timer("fenderbender",3000)
+                
+                if(FreezeOnDerail){
+                    freezeAll()
+                }
+            }else{
+                Index++
+                
+                if(Index >= Trucks:count()){
+                    Index = 1
+                    
+                }
+                if(RTD){
+                    RTD_Counter++
+#                        local SampleTime = clamp(CycleTime,1,5)
+                    if(RTD_Counter>RTD_Interval*20){
+                        rtd_save()
+                        RTD_Counter=0
+                    }
+                }
+                
+                timer("runtick",Interval)
+            }
+            
+        }else{
+            print("[FBD] Truck Mismatch Detected (Index " + Index:toString() + ")! Reloading...")
+            refresh()
+        }
+        
+    }elseif(clk("analyze") & Analyzing){
+        local Prop = Consist[AI,entity]
+        local Model = Prop:model()
+        local IsTruck = 0
+        
+        #Special Cases
+        for(M=1,TruckModels:count()){
+            if(Model == TruckModels[M,string]){
+                IsTruck=1
+                break
+            }
+        }
+        #Nicely Organized ones
+        if(!IsTruck){
+            foreach(K,V:string = Paths){
+                local PathM = V
+                if(Model:find(PathM)){
+                    IsTruck = 1
+                }
+            }
+        }
+        if(IsTruck){
+            TC++
+            Trucks[TC,entity] = Prop
+        }
+        AI++
+        if(AI>Consist:count()){
+            Initialized = 1
+            Analyzing = 0
+            TruckTypes = encode(Trucks)
+            Running = 1
+            TruckCount = Trucks:count()
+            CycleTime = ((Interval*TruckCount)/1000)
+            
+            timer("runtick",Interval)
+            timer("speedtest",1000)
+        }else{
+            timer("analyze",50)
+        }
+    }elseif(clk("speedtest")){
+        if((MPH > SpeedThreshold) & !SpeedQ & !LazyMode){
+            SpeedQ = 1
+            refresh()
+        }elseif((MPH < (SpeedThreshold - 5)) & SpeedQ){
+            SpeedQ = 0
+        }
+        timer("speedtest",1000)
+    }elseif(clk("fenderbender")){
+        O:soundPlay(1,3,"gsgtrainsounds/other/joke/lionel_traintown/traintown_fenderbender.wav")
+        EmBrake = 0
+    }elseif(chatClk(O)){
+        LS = O:lastSaid()
+        if(LS==".refresh"){
+            Initialized = 1
+        
+            refresh()
+            timer("runtick",Interval)
+            timer("speedtest",1000)
+            
+            if(RTD){
+                rtd_save()
+            }
+            
+            print("[FBD] Initializing, Refreshing, and Running.")
+            hideChat(1)
+        }elseif(LS==".rerail"){
+            hideChat(1)
+            if(RTD){
+                freezeAll()
+                for(N=1,RTD_Ents:count()){
+                    local Ent = RTD_Ents[N,entity]
+                    if(Ent:isValidPhysics()){
+                        
+                        Ent:setPos(RTD_Positions[N,vector])
+                        Ent:setAng(RTD_Angs[N,angle])
+                    }
+                }
+                O:soundPlay(0,4,"garrysmod/save_load1.wav")
+            }else{
+                print("[FBD] RTD is not enabled!")
+            }
+        }elseif(LS==".rerail2"){
+            hideChat(1)
+            if(RTD){
+                freezeAll()
+                for(N=1,OLD_Ents:count()){
+                    local Ent = OLD_Ents[N,entity]
+                    if(Ent:isValidPhysics()){
+                        
+                        Ent:setPos(OLD_Positions[N,vector])
+                        Ent:setAng(OLD_Angs[N,angle])
+                    }
+                }
+                O:soundPlay(0,4,"garrysmod/save_load2.wav")
+            }else{
+                print("[FBD] RTD is not enabled!")
+            }
+        }
+    }
+}elseif(Initialized){
+    Initialized = 0
+    Running = 0
+    stopAllTimers()
+}
+
