@@ -80,8 +80,8 @@ CompressorOff = "gsgtrainsounds/misc/compressors/wh_3cdc_end.wav"
 DynamicsOn = "gsgtrainsounds/misc/alco_dynb_loop.wav"
 DynamicsOff = "gsgtrainsounds/misc/alco_dynb_end.wav"
 
-PrimeOn = "gsgtrainsounds/alco251cv12/prime_loop.wav"
-PrimeOff = "gsgtrainsounds/alco251cv12/prime_end.wav"
+PrimeOn = "gsgtrainsounds/mlw251cv12/prime_loop.wav"
+PrimeOff = "gsgtrainsounds/mlw251cv12/prime_end.wav"
 
 PrimerDuration = randint(10,15)
 
