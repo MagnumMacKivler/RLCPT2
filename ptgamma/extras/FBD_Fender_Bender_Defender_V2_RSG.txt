@@ -61,20 +61,14 @@ if(first()|duped()){
     Paths["bogey",string] = "bogey" #Old Magtrains Stuff
     Paths["bogie",string] = "bogie" #Bobster's Stuff
     Paths["truck",string] = "truck" #Hopefully everything else
-    Paths["rsg",string] = "truck" #Hopefully everything else
-    Paths["phx",string] = "truck" #Hopefully everything else
+    
     
     TruckModels = array(
     #For adding extra models, that don't fall into one of the categories above. Feel Free to keep this up to date as more and more models get added.
     
     "models/flak/ge_hi-ad.mdl",
-    "models/flak/rockwell.mdl",
     "models/lazpack/trucks/aar_b_westinghouse_40inch.mdl",
     "models/zexciv_train_stuff/usa/emd/emd_flexicoil_c.mdl",
-    "models/lazpack/trucks/fb3.mdl",
-    "models/floofy/trucks/ge_hi_ad.mdl",
-    "models/lazpack/trucks/aar_b_westinghouse.mdl",
-    "models/lazpack/trucks/fb2_late.mdl"
     
     
     )
