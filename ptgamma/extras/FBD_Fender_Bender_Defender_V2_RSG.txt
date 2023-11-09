@@ -40,14 +40,14 @@ if(first()|duped()){
     
     ]#
     
-    AUTOPARENT = 0 #Set this to 1 to make the chip parent itself to the prop you attach it to. MAKE SURE IT IS THE BASEPLATE/CARBODY!
+    AUTOPARENT = 1 #Set this to 1 to make the chip parent itself to the prop you attach it to. MAKE SURE IT IS THE BASEPLATE/CARBODY!
     
     local TrackGauge = 56 #The distance between the rails; 80 for PHX gauge, 56 for RSG.
     
     LazyMode = 0 #This doesn't actually work anymore. Wiremod broke it a long time ago. Leave it as 0.
     
     RTD = 1   #Enables Red Tape Defender (RTD) Recording. At any time, you can type ".rerail" in chat and it will place your entire train back on the rails!
-    FreezeOnDerail = 0  #"Traditional" FBD functionality. When it detects a derailment, it will freeze the entire train.
+    FreezeOnDerail = 1  #"Traditional" FBD functionality. When it detects a derailment, it will freeze the entire train.
     MarkerColor = vec(255,96,0) #Whichever truck triggered FBD will be highlighted with this color.
     SpeedThreshold = 10   #FBD will re-examine all trucks when you accelerate past this speed.
     
@@ -61,12 +61,21 @@ if(first()|duped()){
     Paths["bogey",string] = "bogey" #Old Magtrains Stuff
     Paths["bogie",string] = "bogie" #Bobster's Stuff
     Paths["truck",string] = "truck" #Hopefully everything else
+    Paths["rsg",string] = "truck" #Hopefully everything else
+    Paths["phx",string] = "truck" #Hopefully everything else
     
     TruckModels = array(
     #For adding extra models, that don't fall into one of the categories above. Feel Free to keep this up to date as more and more models get added.
     
     "models/flak/ge_hi-ad.mdl",
-    "models/flak/rockwell.mdl"
+    "models/flak/rockwell.mdl",
+    "models/lazpack/trucks/aar_b_westinghouse_40inch.mdl",
+    "models/zexciv_train_stuff/usa/emd/emd_flexicoil_c.mdl",
+    "models/lazpack/trucks/fb3.mdl",
+    "models/floofy/trucks/ge_hi_ad.mdl",
+    "models/lazpack/trucks/aar_b_westinghouse.mdl",
+    "models/lazpack/trucks/fb2_late.mdl"
+    
     
     )
     signalSetGroup("FBD")
@@ -466,4 +475,3 @@ if(Enable_True){
     Running = 0
     stopAllTimers()
 }
-
