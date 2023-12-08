@@ -1,4 +1,4 @@
-@name Magnums Intermodal Randomizer (Patman Texture Tuneup 12/23 Edition)
+@name Magnums Intermodal Randomizer (Patman Texture Tuneup 1223 Edition)
 @inputs Units:array
 @outputs Flat89s:array
 @persist O:entity Automatic CarLength Brackets [BaseChance Flat89TypeChance Flat89Chance TwentyChance FortyChance FortyEightChance FiftyThreeChance SkinOverride SubmatGroups SubmatMap ExtraSkins]:table
