@@ -1,0 +1,70 @@
+@name Magnum's HEP Soundulator
+@inputs Button
+@outputs 
+@persist State [Startup Idle TransitionUp HEPFullRun TransitionDown Shutdown]:string
+@persist TimeStartup TimeIdle TimeUp TimeDown TimeShutdown 
+@trigger
+
+if(first() | dupefinished()){
+    
+    Startup = "gsgtrainsounds/cummins4bt/startup_hot.wav"
+    TimeStartup = 1900 
+    
+    Idle = "gsgtrainsounds/cummins4bt/idle.wav"
+    TimeIdle = 2000 #Change this to however long you want it to idle, independent of sound length.
+    
+    TransitionUp = "gsgtrainsounds/cummins4bt/transitions/up/0-1.wav"
+    TimeUp = 2620 
+    
+    HEPFullRun = "gsgtrainsounds/cummins4bt/notch1.wav"
+    #No time is needed for this one because it's going to be controlled by the button.
+    
+    TransitionDown = "gsgtrainsounds/cummins4bt/transitions/down/1-0.wav"
+    TimeDown = 4730
+    
+    Shutdown = "gsgtrainsounds/cummins4bt/shutdown.wav"
+    TimeShutdown = 5000
+    
+    State = 0 
+}
+
+if(Button & (State==0)){ #Initial engine start
+    
+    State = 1 
+    soundPlay(1,0,Startup) 
+    timer("playidle",TimeStartup) 
+
+}elseif(clk("playidle")){ 
+    
+    
+    soundPlay(1,0,Idle) 
+    timer("playup",TimeIdle) 
+    
+}elseif(clk("playup")){ #Throttle up
+    
+    soundPlay(1,0,TransitionUp)
+    timer("playfull",TimeUp)
+    
+}elseif(clk("playfull")){ 
+    
+    State = 2 
+    soundPlay(1,0,HEPFullRun)
+    timer("ping",100)
+    
+}elseif(!Button & (State==2)){ 
+    
+    State = 3
+    soundPlay(1,0,TransitionDown)
+    timer("playshutdown",TimeDown)
+    
+}elseif(clk("playshutdown")){ 
+    
+    soundPlay(1,0,Shutdown)
+    timer("cooldown",TimeShutdown)
+    
+}elseif(clk("cooldown")){ 
+    
+    soundStop(1)
+    State = 0 
+    
+}
