@@ -1,0 +1,361 @@
+@name Universal Multigauge Optimized
+@inputs Reverser DynaNotch Notch MPH TM_Temp DB_Temp Load Independent Main
+@persist Needles:table Values:table Targets:table Velocities:table E:entity Time AccelTarget MaxLoad HID
+
+if(first() | dupefinished()){
+    
+    HID = 1
+    
+    function number conv(N){
+        
+        return N * 360
+        
+    }
+    
+    function interp(S:string,N){
+        
+        Velocities[S,number] = (Velocities[S,number] + ((N-Values[S,number])*10))*0.1
+        Values[S,number] = Values[S,number] + Velocities[S,number]
+        
+    }
+    
+    E = entity()
+    
+    MaxLoad = 1800
+
+    M = p2mCreate(31,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    
+    E:setAlpha(0)
+    
+    Scale = 1.5
+    
+    Scan = array(
+    vec(60),"models/props_gulch/tinycars/tc_colorable",
+    vec(100),"debug/debugdrawflat",
+    (vec(255,93,0)*0.7)+30,"debug/debugdrawflat",
+    (vec(255,191,0)*0.2)+150,"debug/debugdrawflat",
+    (vec(255,191,0)*0.7)+40,"debug/debugdrawflat")
+    
+    
+    for(X = 0,9){
+        
+        
+        
+        Scan:pushVector(vec(255))
+        Scan:pushString("debug/debugdrawflat")
+        
+    }
+    
+    for(X = 1,3){
+        
+        V = select(X,vec(80),vec(150),vec(150+70))
+        
+        Scan:pushVector(vec(clamp(V:x(),0,255),clamp(V:y(),0,255),clamp(V:z(),0,255)))
+        Scan:pushString("debug/debugdrawflat")
+        
+    }
+    
+    
+    for(X = 1,Scan:count()/2){
+        
+        M:p2mSetMaterial(X,Scan[X*2,string])
+        M:p2mSetColor(X,Scan[X*2-1,vector])
+        
+    }
+    
+    M:p2mPushModel(1,"models/sprops/geometry/t_fdisc_12.mdl",vec(0,0,-0.5)*Scale,ang(0,0,90),vec(1,0.5,1)*Scale)
+    M:p2mPushModel(1,"models/sprops/geometry/t_fdisc_12.mdl",vec(0,0,0)*Scale,ang(0,0,90),vec(0.2,0.5,0.2)*Scale)
+    M:p2mPushModel(1,"models/sprops/geometry/fring_144.mdl",vec(0,0,0)*Scale,ang(0,0,90),vec((12/144),0.25,(12/144))*Scale)
+    
+    
+    M:p2mPushModel(2,"models/sprops/misc/alphanum/alphanum_f.mdl",vec(0,3,-0.125)*Scale,ang(0,-90,90),vec(0.1,0.01,0.1)*Scale)
+    M:p2mPushModel(2,"models/sprops/misc/alphanum/alphanum_r.mdl",vec(0,-3,-0.125)*Scale,ang(0,-90,90),vec(0.1,0.01,0.1)*Scale)
+    M:p2mPushModel(2,"models/sprops/misc/alphanum/alphanum_n.mdl",vec(3,0,-0.125)*Scale,ang(0,-90,90),vec(0.1,0.01,0.1)*Scale)
+    
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_o.mdl",(vec(-3,-0.3,-0.125)*Scale):rotateAroundAxis(vec(0,0,1),225+90),ang(0,55,90),vec(0.05,0.01,0.05)*Scale)
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_n.mdl",(vec(-3,0.3,-0.125)*Scale):rotateAroundAxis(vec(0,0,1),225+90),ang(0,55,90),vec(0.05,0.01,0.05)*Scale)
+    
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_s.mdl",(vec(-3,-0.5,-0.125)*Scale):rotateAroundAxis(vec(0,0,1),135-90),ang(0,-135+80,90),vec(0.05,0.01,0.05)*Scale)
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_e.mdl",(vec(-3,0,-0.125)*Scale):rotateAroundAxis(vec(0,0,1),135-90),ang(0,-135+80,90),vec(0.05,0.01,0.05)*Scale)
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_t.mdl",(vec(-3,0.5,-0.125)*Scale):rotateAroundAxis(vec(0,0,1),135-90),ang(0,-135+80,90),vec(0.05,0.01,0.05)*Scale)
+    
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_o.mdl",(vec(-3,-0.5,-0.125)*Scale),ang(0,-90,90),vec(0.05,0.01,0.05)*Scale)
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_f.mdl",(vec(-3,0,-0.125)*Scale),ang(0,-90,90),vec(0.05,0.01,0.05)*Scale)
+    M:p2mPushModel(3,"models/sprops/misc/alphanum/alphanum_f.mdl",(vec(-3,0.5,-0.125)*Scale),ang(0,-90,90),vec(0.05,0.01,0.05)*Scale)
+    
+    #local Lttrs = array("r","e","t","e","m","","d","a","o","l")
+    
+    local Num = 10
+
+    for(X = 0,Num-1){
+        
+        local V = vec(170,30,30):rotateAroundAxis(vec(1,1,1),96-X*(100/Num))
+        local V2 = vec(clamp(V:x(),0,255),clamp(V:y(),0,255),clamp(V:z(),0,255))
+        
+        holoCreate(HID,E:toWorld(vec(0,36/((1/0.26)*4),-0.125)*Scale),vec(0.26,0.05,0.26)*Scale,E:toWorld(ang(0,180,90)),V2,"models/sprops/geometry/hring_36.mdl")
+        holoParent(HID,E)
+        holoMaterial(HID,"debug/debugdrawflat")
+        holoClipEnabled(HID,1,1)
+        holoClip(HID,1,vec(0,0,-36/((1/0.26)*4))*Scale,vec(-1,0,0):rotateAroundAxis(vec(0,1,0),-90+180*(X+1)/Num),0)
+        holoClipEnabled(HID,2,1)
+        holoClip(HID,2,vec(0,0,-36/((1/0.26)*4))*Scale,vec(1,0,0):rotateAroundAxis(vec(0,1,0),-90+180*(X)/Num),0)
+        HID++
+        
+    }
+        
+    
+    for(X = 0,9){
+        
+        local T = 0
+        local L = ""
+        local R = 1
+        
+        if(X != 0){
+            if(X < 9){
+                T = 1
+            }
+            L = X:toString()
+        }else{
+            L = "N"
+            T = 1
+            R = 0
+        }
+        
+        T = 0
+        
+        M:p2mPushModel(4+T,"models/sprops/misc/alphanum/alphanum_"+L+".mdl",((vec(-5.2,0,-0.125)):rotateAroundAxis(vec(0,0,1),-(36)*X)+vec(0,-0.25,0))*Scale,ang(0,-90,90),vec(0.05,0.01,0.05)*Scale)
+        M:p2mPushModel(4,"models/sprops/misc/alphanum/alphanum_0.mdl",((vec(-5.2,0,-0.125)):rotateAroundAxis(vec(0,0,1),-(36)*X)+vec(0,0.25,0))*Scale,ang(0,-90,90),vec(0.05,0.01,0.05)*Scale)
+        
+        if(L != "N"){M:p2mPushModel(4,"models/sprops/misc/alphanum/alphanum_"+L+".mdl",((vec(-5.3,0,-0.125)):rotateAroundAxis(vec(0,0,1),-(36)*(X+0.5))+vec(0,-0.15*R,0))*Scale,ang(0,-90,90),vec(0.035,0.01,0.035)*Scale)}
+        M:p2mPushModel(4,"models/sprops/misc/alphanum/alphanum_5.mdl",((vec(-5.3,0,-0.125)):rotateAroundAxis(vec(0,0,1),-(36)*(X+0.5))+vec(0,0.15,0))*Scale,ang(0,-90,90),vec(0.035,0.01,0.035)*Scale)
+        
+    }
+    
+    
+    local Scl = 0.4
+    
+    local Num = 4
+    
+    local Ang = 90/Num
+    
+    for(X = 1,Num){
+        
+        local V2 = vec(clamp(80 + (X-1)*(140/(Num-1)),0,255))
+        
+        holoCreate(HID,E:toWorld(vec(2.3,-2,-0.125)*Scale),vec(Scl,0.01,Scl)*Scale,E:toWorld(ang(0,90,90)),V2,"models/sprops/geometry/qring_18.mdl")
+        holoParent(HID,E)
+        holoMaterial(HID,"debug/debugdrawflat")
+        holoClipEnabled(HID,1,1)
+        holoClip(HID,1,vec((18/4) * Scl,0,-(21/4) * Scl)*(Scale/1.35),vec(0,0,-1):rotateAroundAxis(vec(0,1,0),X*Ang),0)
+        holoClipEnabled(HID,2,1)
+        holoClip(HID,2,vec((18/4) * Scl,0,-(21/4) * Scl)*(Scale/1.35),vec(0,0,1):rotateAroundAxis(vec(0,1,0),(X-1)*Ang),0)
+        HID++
+        
+    }
+    
+    #
+    
+    M:p2mBuild() ################## END OF LINE
+     
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,(vec(255,93,0)*0.7)+30)
+    
+    
+    M:p2mPushModel(1,"models/sprops/misc/alphanum/alphanum_arrow_a.mdl",vec(-1.75,0,-0.1)*Scale,ang(0,-90,90),vec(0.07,0.01,0.125)*Scale)
+    
+    Needles["dynmode",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE]#
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(110,105,100))
+    
+    
+    M:p2mPushModel(1,"models/sprops/misc/alphanum/alphanum_arrow_b.mdl",vec(-1.75,0,-0.1)*Scale,ang(0,-90,90),vec(0.125,0.01,0.1)*Scale)
+    
+    Needles["reverse",entity] = M
+    
+
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(175))
+    
+    
+    M:p2mPushModel(1,"models/props_mining/diesel_generator_needle.mdl",vec(0,0,0)*Scale,ang(-90,0,0),vec(0.1,0.6,0.90)*Scale)
+    
+    Needles["notch",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(230,45,30))
+    
+    
+    M:p2mPushModel(1,"models/gsgtrainprops/parts/cab/needle_brake_white.mdl",vec(-1.5,0,0.1)*Scale,ang(0,90,-90),vec(1.5,2,2)*Scale)
+    
+    Needles["speed",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(220))
+    
+    
+    M:p2mPushModel(1,"models/hunter/misc/cone1x1.mdl",vec(-5.75,0,0.1)*Scale,ang(0,-90,-90),vec(0.005,0.005,0.04)*Scale)
+    
+    Needles["accel",entity] = M
+    Values["accel",number] = -0.25
+    AccelTarget = -0.25
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(255,191,0)*0.7)
+    
+    
+    M:p2mPushModel(1,"models/gsgtrainprops/parts/cab/needle_brake_red.mdl",vec(0,0,0)*Scale,ang(0,90,-90),vec(1,1,1.85)*Scale)
+    
+    Needles["load",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    #[
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(250,100,250))
+    
+    
+    M:p2mPushModel(1,"models/infra/props_machinery/electric_motor_002.mdl",vec(-4.7,0,0)*Scale,ang(0,90,90),vec(0.015,0.001,0.015)*Scale)
+    
+    Needles["mtrheat",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    M = p2mCreate(1,E:pos(),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(100,100,250))
+    
+
+    M:p2mPushModel(1,"models/uc/props_interior/iron_radiator.mdl",vec(-4.3,0,0)*Scale,ang(90,90,90),vec(0.001,0.015,0.015)*Scale)
+    
+    Needles["dynheat",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE ]#
+    
+    
+    M = p2mCreate(1,E:toWorld(vec(1.3,-1,0)*(Scale/1.35)),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(220))
+    
+
+    M:p2mPushModel(1,"models/gsgtrainprops/parts/cab/needle_brake_red.mdl",vec(0,0,0.1)*Scale,ang(0,90,-90),vec(0.8)*Scale)
+    
+    Needles["independent",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    M = p2mCreate(1,E:toWorld(vec(1.3,-1,0)*(Scale/1.35)),E:angles())
+    M:p2mSetParent(E)
+    M:p2mSetMaterial(1,"debug/debugdrawflat")
+    M:p2mSetColor(1,vec(220,50,50))
+    
+
+    M:p2mPushModel(1,"models/gsgtrainprops/parts/cab/needle_brake_red.mdl",vec(0,0,0.05)*Scale,ang(0,90,-90),vec(1)*Scale)
+    
+    Needles["mainbrake",entity] = M
+    
+    M:p2mBuild() ################## END OF LINE
+    
+    
+    
+    #models/jazzie/trains/locomotives/emd/f3-7-9/f3-7-9_governor_needle.mdl
+    
+    
+    
+}
+
+
+interval(100)
+
+if(clk()){
+    
+    
+    
+    AccelTarget = max(min(-0.25+(((Targets["speed",number])+(MPH)/100)*200),0.0),-0.5) * 0.05 + AccelTarget*0.95
+    
+    Targets["accel",number] = 0.5-AccelTarget
+    
+    
+    Targets["notch",number] = -max(Notch,max(DynaNotch,0))*0.1
+    Targets["reverse",number] = Reverser*0.25 + 0.5
+    Targets["speed",number] = -MPH/100
+    
+    if(DynaNotch == -1){
+        Targets["dynmode",number] = 0
+    }elseif(DynaNotch == 0){
+        Targets["dynmode",number] = 0.128
+    }else{
+        Targets["dynmode",number] = -0.128
+    }
+    
+    Targets["mtrheat",number] = 0.5+TM_Temp/120
+    Targets["dynheat",number] = 0.5+DB_Temp/120
+    
+    Targets["load",number] = clamp(0.5 + (abs(Load) / (MaxLoad*1.5)),0.5,1)
+    
+    Targets["independent",number] = (Independent/(60*4))+0.25
+    Targets["mainbrake",number] = clamp((-((Main-64))/((90-64)*4))+0.5,0.25,0.5)
+    
+    
+    
+    
+    if(0){
+    
+        Time = Time + 0.25
+        
+        Targets["notch",number] = -floor(Time/15)/10
+        Targets["reverse",number] = select(floor(Time/10)%3+1,0.75,0.25,0.5)
+        Targets["dynmode",number] = select(-floor(Time/17)%3+1,0,0.375,0.625)
+        Targets["speed",number] = -sin(Time)
+        Targets["accel",number] = 0.75 + sin(Time*5)/4
+        Targets["load",number] = 0.5 + abs(sin(Time*1.5)/2)
+        Targets["mtrheat",number] = 0.75 + sin(Time*4)/4.11
+        Targets["dynheat",number] = 0.75 + sin(Time*6)/4.11
+        
+        
+    }
+    
+    K = Needles:keys()
+    for(X = 1, K:count()){
+        
+        S = K[X,string]
+        interp(S,Targets[S,number]) 
+        
+        Needles[S,entity]:p2mSetAng(E:toWorld(ang(0,conv(Values[S,number]),0)))
+        
+    }
+    
+}
