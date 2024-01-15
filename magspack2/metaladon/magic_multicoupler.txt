@@ -26,7 +26,7 @@ if(first()){
     ManualLink = "m"          #What key do you want to manually link cars with? Default "m"
     CancelManualLink = "r"    #What key do you want to cancel manual linking?   Default "r"
     
-    #VERSION 1.1 - released 9-9-23
+    #VERSION 1.2 - released later idk
     
     #These are the delays between certain types of scans. Just leave it like it is, adjusting this will probably cause problems
     Delays = array(50,50,500,1000,7000)
@@ -178,6 +178,7 @@ if(first()){
     #Creates a timer, and ticks down the remaining reiterations of this coupling stage
     function newTimer(UID:string){
         
+        stoptimer(UID)
         timer(UID,Delays[Pairs[UID,array][1,number],number])
         Pairs[UID,array][2,number] = clamp(Pairs[UID,array][2,number]-1,-1,inf())
         
@@ -193,6 +194,7 @@ if(first()){
 
         Pairs[UID,array] = array(5,-1,0,0)
         
+        stoptimer(UID)
         timer(UID,50)
         
     }
@@ -511,6 +513,8 @@ if(first()){
     
     if(Pairs[clkName(),array]:count()){
         
+        local Flag = 0
+        
         local UID = clkName()
         
         local FirstCouplingID = TickData[1,string]
@@ -709,6 +713,8 @@ if(first()){
                         
                     }
                     
+                    Flag = 1
+                    
                     Pairs:remove(UID)
                         
                 }
@@ -717,7 +723,7 @@ if(first()){
             
         }
         
-        newTimer(UID)
+        if(!Flag){newTimer(UID)}
         
     }
     
