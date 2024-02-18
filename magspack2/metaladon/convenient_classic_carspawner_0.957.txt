@@ -1,4 +1,4 @@
-@name Convenient Classic Carspawner 0.956
+@name Convenient Classic Carspawner 0.957
 
 #Set your preferred display model here. This will change the default model, too.
 
@@ -12,9 +12,9 @@
 
 #Normal Vars
 @persist SetAng OldOffset OldHead Gauge Railhead SCSpeed Hue SCTrav Chew Tag1 Tag2 Time Taglist ID TotalTrainLength TotalTrainWeight Same RopeID SCProc ForeOffset Delay SpawnPhase
-@persist LyrC LyrX LyrY LyrZ Phase NoDef MdlTag TagCount TagsBefore Flag Spacer RandT Loaded StartID Valids
-@persist [PoolTrack TagStr Forced Mode]:string
-@persist [Tags Spawned Insert Instr BogieData AddModels SCGraph]:table
+@persist LyrC LyrX LyrY LyrZ Phase NoDef MdlTag TagCount TagsBefore Flag Spacer RandT Loaded StartID Valids OpsMode
+@persist [PoolTrack TagStr Forced Mode DonezoString]:string
+@persist [Tags Spawned Insert Instr BogieData AddModels SCGraph SearchArchive]:table
 @persist [Print CarTs Buffer TrainType TgKys CommandStack]:array  
 @persist [Head LastBogie SCP Frame Bogie1 Bogie2]:entity 
 @persist [SetPos SCEndPos SCLast]:vector
@@ -23,7 +23,7 @@
 
 @persist TicksLeft HID #testing stuff, ignore this
 #Outputs (for debugging)
-@outputs Phase LyrC LyrX LyrY LyrZ Chew TotalTrainLength ForeOffset SCProc SCTrav RandT Top:string SCP:entity Head:entity
+@outputs Phase LyrC LyrX LyrY LyrZ Chew TotalTrainLength ForeOffset SCProc SCTrav RandT Top:string SCP:entity Head:entity SearchArchive:table
 
 #[
 If you're seeing this from the Github page, here's some instructions on how to install the E2:
@@ -225,7 +225,7 @@ if(first()){
         array("2020s","2010s","2000s","1990s","1980s","1970s","1960s","1950s","1940s","1930s","1920s","1910s","1900s","preera","anytime"),
         
         #Who made it?
-        array("metaladon","gsgrove","magnum","union","joeconqueror","monkatraz","goomz","daylight","jazzie","anyone991","anyone","laz","priority","akandr","hanksabutt","reverendv92","linnie","westausman98","titus","armystuntman","bobster","toastur","seaboard"),
+        array("metaladon","gsgrove","magnum","union","joeconqueror","monkatraz","goomz","zexciv","daylight","jazzie","anyone991","anyone","laz","priority","akandr","hanksabutt","reverendv92","linnie","westausman98","titus","armystuntman","bobster","toastur","seaboard"),
         
         #Type of Suspension
         array("new","old","anysuspension"),
@@ -297,7 +297,7 @@ if(first()){
         
     )
         
-    VERSION = "0.956"
+    VERSION = "0.957"
     
     MODELS = table(
         "models/akandr/russian/poluvagon.mdl",8,"russian coal_gondola empty freight manifest old hdetail akandr priority 1980s 1990s 2000s 2010s 2020s functional rus5ft rusphx rusrsg",vec4(360,-1,90,-1),array(3,2,1,3,3,4,2,5),array(1,2,3,4,4,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),70
@@ -334,12 +334,12 @@ if(first()){
         ,"models/gsgtrainprops/trains/rolling_stock/autorack_bilevel_semiopen.mdl",1,"usamerican bilevel_open_autorack loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx33 gsgrsg33",vec4(804,-14,90,0),array(),array(),vec2(0,2),array(vec(1,1,1)),100
         ,"models/gsgtrainprops/trains/rolling_stock/autorack_trilevel_semiopen.mdl",1,"usamerican trilevel_open_autorack empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx28 gsgrsg28",vec4(786,-14,90,0),array(),array(),vec2(0,3),array(),100
         ,"models/gsgtrainprops/trains/rolling_stock/autorack_trilevel_semiopen.mdl",1,"usamerican trilevel_open_autorack loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx28 gsgrsg28",vec4(786,-14,90,0),array(),array(),vec2(0,3),array(vec(1,1,1)),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_coal.mdl",4,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-14,90,0),array(),array(),vec2(0,9),array(),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_coal.mdl",4,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-14,90,0),array(),array(),vec2(0,9),array(vec(1,1,1)),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_sulfur.mdl",1,"usamerican sulfur_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-14,90,0),array(),array(),vec2(0,3),array(),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_sulfur.mdl",1,"usamerican sulfur_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-14,90,0),array(),array(),vec2(0,3),array(vec(1,1,1)),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_thrall_coal.mdl",6,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(459,-14,90,0),array(),array(),vec2(0,23),array(vec(1,0,0)),100
-        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_thrall_coal.mdl",6,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(459,-14,90,0),array(),array(),vec2(0,23),array(vec(1,1,1)),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_coal.mdl",4,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-16,90,0),array(),array(),vec2(0,9),array(),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_coal.mdl",4,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-16,90,0),array(),array(),vec2(0,9),array(vec(1,1,1)),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_sulfur.mdl",1,"usamerican sulfur_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-16,90,0),array(),array(),vec2(0,3),array(),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_hs_sulfur.mdl",1,"usamerican sulfur_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(551,-16,90,0),array(),array(),vec2(0,3),array(vec(1,1,1)),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_thrall_coal.mdl",6,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(459,-16,90,0),array(),array(),vec2(0,23),array(vec(1,0,0)),100
+        ,"models/gsgtrainprops/trains/rolling_stock/bathtub_thrall_coal.mdl",6,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg36",vec4(459,-16,90,0),array(),array(),vec2(0,23),array(vec(1,1,1)),100
         ,"models/gsgtrainprops/trains/rolling_stock/boxcar_50ft_ps.mdl",60,"usamerican general_boxcar_nonhigh invisiload freight manifest old sdetail mstsports gsgrove 1970s 1980s 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(491,-16,90,0),array(),array(),vec2(0,12),array(),100
         ,"models/gsgtrainprops/trains/rolling_stock/caboose_baywindow_acf.mdl",1,"usamerican caboose old sdetail mstsports gsgrove 1970s 1980s 1990s 2000s 2010s functional gsgphxleaf gsgrsgleaf",vec4(286,-14,90,0),array(),array(),vec2(0,7),array(),30
         ,"models/gsgtrainprops/trains/rolling_stock/caboose_extvis_acf.mdl",1,"usamerican caboose old sdetail mstsports gsgrove 1970s 1980s 1990s 2000s 2010s functional gsgphxleaf gsgrsgleaf",vec4(286,-14,90,0),array(),array(),vec2(0,0),array(),30
@@ -355,10 +355,10 @@ if(first()){
         ,"models/gsgtrainprops/trains/rolling_stock/hopper_covered_grain_4100.mdl",5,"usamerican grain_hopper invisiload freight manifest old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg33",vec4(570,-14,90,0),array(),array(),vec2(0,1),array(),100
         ,"models/gsgtrainprops/trains/rolling_stock/hopper_covered_grain_4550.mdl",5,"usamerican grain_hopper invisiload freight manifest old buffer sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg33",vec4(560,-14,90,0),array(),array(),vec2(0,13),array(),100
         ,"models/gsgtrainprops/trains/rolling_stock/hopper_covered_potash_4550.mdl",5,"usamerican potash_hopper invisiload freight manifest old sdetail mstsports gsgrove 1970s 1980s 1990s functional gsgphx36 gsgrsg33",vec4(560,-14,90,0),array(),array(),vec2(0,3),array(),100
-        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter.mdl",4,"usamerican coal_hopper empty freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,18),array(),110
-        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter.mdl",4,"usamerican coal_hopper loaded freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,18),array(vec(1,1,1)),110
-        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter_irlskins.mdl",4,"usamerican coal_hopper empty freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,10),array(),110
-        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter_irlskins.mdl",4,"usamerican coal_hopper loaded freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,10),array(vec(1,1,1)),110
+        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter.mdl",4,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,18),array(),110
+        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter.mdl",4,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,18),array(vec(1,1,1)),110
+        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter_irlskins.mdl",4,"usamerican coal_gondola empty freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,10),array(),110
+        ,"models/hanksabutt/rollingstock/bethgon_coalporter/bethgon_coalporter_irlskins.mdl",4,"usamerican coal_gondola loaded freight unitfreight old sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg36",vec4(491,-18,90,0),array(),array(),vec2(0,10),array(vec(1,1,1)),110
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_50ft_fmc_doubledoor.mdl",35,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail mstsports hanksabutt 1970s 1980s 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(486,-17,90,0),array(),array(),vec2(0,4),array(),100
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_50ft_fmc_doubledoor_ribbed.mdl",25,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail mstsports hanksabutt 1970s 1980s 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(486,-17,90,0),array(),array(),vec2(0,1),array(),100
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_50ft_gunderson.mdl",30,"usamerican general_boxcar_highcube paper_boxcar_highcube appliance_boxcar_highcube manifest freight invisiload sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(492,-16,90,0),array(),array(),vec2(0,4),array(),130
@@ -366,8 +366,8 @@ if(first()){
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_50ft_pcf_plugdoor.mdl",8,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail mstsports hanksabutt 1980s 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(512,-4,90,0),array(),array(),vec2(0,0),array(),100
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_50ft_ps.mdl",10,"usamerican general_boxcar_nonhigh manifest freight invisiload sdetail mstsports hanksabutt 1960s 1970s 1980s 1990s 2000s 2010s 2020s functional gsgphx33 gsgrsg33",vec4(512,-15,90,0),array(),array(),vec2(0,6),array(),100
         ,"models/hanksabutt/rollingstock/boxcars/boxcar_86ft_ps.mdl",20,"usamerican autoparts_boxcar_highcube invisiload freight unitfreight old sdetail mstsports hanksabutt 1970s 1980s 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(776,-18,90,0),array(),array(),vec2(0,6),array(),100
-        ,"models/hanksabutt/rollingstock/centerbeams/nsc_centerbeam.mdl",10,"usamerican centerbeam_flatcar_wood empty manifest freight sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(724,-18,90,0),array(),array(),vec2(0,11),array(),100
-        ,"models/hanksabutt/rollingstock/centerbeams/nsc_centerbeam.mdl",10,"usamerican centerbeam_flatcar_wood loaded manifest freight sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(724,-18,90,0),array(),array(),vec2(0,11),array(vec(1,1,6)),100
+        ,"models/hanksabutt/rollingstock/centerbeams/nsc_centerbeam.mdl",12,"usamerican centerbeam_flatcar_wood empty manifest freight sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(724,-18,90,0),array(),array(),vec2(0,11),array(),100
+        ,"models/hanksabutt/rollingstock/centerbeams/nsc_centerbeam.mdl",12,"usamerican centerbeam_flatcar_wood loaded manifest freight sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(724,-18,90,0),array(),array(),vec2(0,11),array(vec(1,1,6)),100
         ,"models/hanksabutt/rollingstock/flatcars/nsc_bulkheadflat.mdl",10,"usamerican general_flatcar_bulkhead bulkhead_flatcar_wood steel_flatcar_bulkhead manifest freight empty sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(638,-28,90,0),array(),array(),vec2(0,2),array(),100
         ,"models/hanksabutt/rollingstock/flatcars/nsc_bulkheadflat.mdl",5,"usamerican bulkhead_flatcar_wood manifest freight loaded sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(638,-28,90,0),array(),array(),vec2(0,2),array(vec(1,1,2)),100
         ,"models/hanksabutt/rollingstock/flatcars/nsc_bulkheadflat.mdl",5,"usamerican steel_flatcar_bulkhead manifest freight loaded sdetail mstsports hanksabutt 1990s 2000s 2010s 2020s functional gsgphx36 gsgrsg33",vec4(638,-28,90,0),array(),array(),vec2(0,2),array(vec(1,3,3)),100
@@ -432,7 +432,7 @@ if(first()){
         ,"models/magtrains/caboose2.mdl",1,"usamerican caboose old mdetail magnum 1930s 1940s 1950s 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(352,0,0,0),array(3,1,3,2,1,3,1,4,1,5,2,7,2,9),array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5,5,5,6,7,8,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),30
         ,"models/magtrains/caboose3.mdl",1,"usamerican caboose old mdetail magnum 1930s 1940s 1950s 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(352,0,0,0),array(3,1,3,2,1,3,1,4,1,5,2,7,2,10),array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5,5,5,6,7,8,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),30
         ,"models/magtrains/caboose4.mdl",1,"usamerican caboose old mdetail magnum 1930s 1940s 1950s 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(352,0,0,0),array(3,1,3,2,1,3,1,4,1,5,2,7,3,9),array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5,5,5,6,7,8,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),30
-        ,"models/magtrains/centerbeam1.mdl",4,"usamerican centerbeam_flatcar_wood empty freight manifest mdetail old magnum 1970s 1980s 1990s functional magphx magrsg",vec4(608,0,0,0),array(3,2,4,3,1,5,2,1),array(1,1,1,1,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,7,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),80
+        ,"models/magtrains/centerbeam1.mdl",0.4,"usamerican centerbeam_flatcar_wood empty freight manifest mdetail old magnum 1970s 1980s 1990s functional magphx magrsg",vec4(608,0,0,0),array(3,2,4,3,1,5,2,1),array(1,1,1,1,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,7,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,0,1)),80
         ,"models/magtrains/flatcar1.mdl",15,"usamerican general_flatcar empty freight manifest old mdetail mow magnum 1940s 1950s 1960s 1970s 1980s functional magphx magrsg",vec4(608,0,0,0),array(3,1,4,2,1,4,2,5),array(1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,6,7,7,7,8,8,8,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),80
         ,"models/magtrains/flatcar1.mdl",8,"usamerican wood_flatcar empty freight manifest old mdetail magnum 1940s 1950s 1960s 1970s 1980s functional magphx magrsg",vec4(608,0,0,0),array(3,1,4,2,1,4,2,5),array(1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,6,7,7,7,8,8,8,11,11,11,11,11,11,11,11,12),vec2(0,0),array(vec(1,1,1)),80
         ,"models/magtrains/flatcar2.mdl",15,"usamerican general_flatcar_bulkhead empty freight manifest old mdetail magnum 1950s 1960s 1970s 1980s functional magphx magrsg",vec4(608,0,0,0),array(3,1,4,2,1,4,2,5),array(1,1,2,4,4,5,5,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,11,11,11,11,11,11,11,11,11,11,12),vec2(0,0),array(),70
@@ -475,6 +475,8 @@ if(first()){
         ,"models/props_metaladon/coilcar_48ft_evans.mdl",20,"usamerican coilcar manifest freight invisiload hdetail metaladon 1970s 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(486,0,0,0),array(3,1,1,2,2,3,2,10),array(1,2,2,2,4,5,5,6,6,7,7,7,7,7,8,11,11,11,11,12),vec2(0,1),array(vec(3,0,5),vec(4,2,2),vec(5,2,2)),100
         ,"models/props_metaladon/coilcar_48ft_evans.mdl",3,"usamerican coilcar manifest freight invisiload hdetail metaladon 1970s 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(486,0,0,0),array(3,1,1,2,2,3,2,10),array(6),vec2(0,1),array(vec(3,0,5),vec(4,6,6),vec(5,6,6)),100
         ,"models/props_metaladon/coilcar_48ft_evans.mdl",40,"usamerican coilcar manifest freight invisiload hdetail metaladon 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(486,0,0,0),array(3,1,1,2,2,3,2,10),array(1,2,2,2,4,5,5,6,6,7,7,7,7,7,8,11,11,11,11,12),vec2(0,1),array(vec(3,0,5),vec(4,4,4),vec(5,4,4)),100
+        ,"models/props_metaladon/commissions/gondola_silverside_coal.mdl",5,"usamerican coal_gondola unitfreight freight loaded hdetail metaladon 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(460,0,0,0),array(3,1,1,2,2,4,1,5),array(9),vec2(0,0),array(vec(4,1,1),vec(5,0,1)),100
+        ,"models/props_metaladon/commissions/gondola_silverside_coal.mdl",5,"usamerican coal_gondola unitfreight freight empty hdetail metaladon 1960s 1970s 1980s 1990s functional magphx magrsg",vec4(460,0,0,0),array(3,1,1,2,2,4,1,5),array(9),vec2(0,0),array(vec(5,0,1)),100
         ,"models/props_metaladon/flatcar_73ft_centerbeam.mdl",15,"usamerican centerbeam_flatcar_wood empty freight manifest new hdetail metaladon 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(720,0,0,0),array(2,1,1,2,3,3,8,11),array(1,1,1,1,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,1),vec(2,0,4),vec(6,0,3),vec(7,0,1)),100
         ,"models/props_metaladon/flatcar_73ft_centerbeam.mdl",2,"usamerican centerbeam_flatcar_frames loaded freight manifest new hdetail metaladon 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(720,0,0,0),array(2,1,1,2,3,3,8,11),array(1,1,1,1,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,1),vec(2,0,4),vec(3,10,13),vec(6,0,3),vec(7,0,1)),100
         ,"models/props_metaladon/flatcar_73ft_centerbeam.mdl",2,"usamerican centerbeam_flatcar_steel loaded freight manifest new hdetail metaladon 1980s 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(720,0,0,0),array(2,1,1,2,3,3,8,11),array(1,1,1,1,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,8,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(vec(1,0,1),vec(2,0,4),vec(3,9,9),vec(6,0,3),vec(7,0,1)),100
@@ -548,7 +550,10 @@ if(first()){
         ,"models/wam98_trains/rolling_stock/ore_cars/crrc_cck.mdl",15/3,"nswaustralianz generic_ore_gondola loaded freight manifest hdetail westausman98 2000s 2010s 2020s magphx magrsg functional",vec4(280,-18,90,-10),array(3,1,1,2,3,3,1,9,2,11),array(11,11,11,13,13,14,14),vec2(0,0),array(vec(1,3,3)),160
         ,"models/wam98_trains/rolling_stock/ore_cars/crrc_cck.mdl",15/3,"nswaustralianz hematite_ore_gondola loaded freight manifest hdetail westausman98 2000s 2010s 2020s magphx magrsg functional",vec4(280,-18,90,0),array(3,1,1,2,3,3,1,9,2,11),array(11,11,11,13,13,14,14),vec2(0,0),array(vec(1,1,1)),160
         ,"models/wam98_trains/rolling_stock/ore_cars/crrc_cck.mdl",15/3,"nswaustralianz magnetite_ore_gondola loaded freight manifest hdetail westausman98 2000s 2010s 2020s magphx magrsg functional",vec4(280,-18,90,0),array(3,1,1,2,3,3,1,9,2,11),array(11,11,11,13,13,14,14),vec2(0,0),array(vec(1,2,2)),160
+        ,"models/zexciv_train_stuff/usa/armc/hopper_armc_77t_2700cuft.mdl",10,"usamerican coal_hopper empty freight unitfreight new sdetail zexciv 1970s 1980s 1990s 2000s 2010s functional magphx magrsg",vec4(410,-18,90,0),array(1,1,3,5,7,9),array(7,7,7,7,7,7,7,7,11),vec2(0,0),array(vec(9,0,1)),77
+        ,"models/zexciv_train_stuff/usa/armc/hopper_armc_77t_2700cuft.mdl",10,"usamerican coal_hopper loaded freight unitfreight new sdetail zexciv 1970s 1980s 1990s 2000s 2010s functional magphx magrsg",vec4(410,-18,90,0),array(1,1,3,5,7,9),array(7,7,7,7,7,7,7,7,11),vec2(0,0),array(vec(8,1,1),vec(9,0,1)),77
         
+
         #[
         #Uncomment these if you like, but generally people don't use them and they increase search times. Plus, they look terrible.
         ,"models/magtrains/boxcar4.mdl",15,"usamerican general_boxcar_nonhigh invisiload freight manifest old ldetail magnum 1990s 2000s 2010s 2020s functional magphx magrsg",vec4(608,0,0,0),array(1,4,3,1,2,3),array(1,1,1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,5,6,6,6,7,8,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11),vec2(0,0),array(),100
@@ -606,7 +611,7 @@ if(first()){
      "wagon_rcaf.mdl","wagon_rkly.mdl","wagon_ntaf.mdl","ave_q40.mdl","ave_q60.mdl","ave_q80.mdl","bogie_tank.mdl","steel_carrier_b.mdl","prycementhopper.mdl","boxcar.mdl","boxcar1.mdl","boxcar2.mdl","wagon_mcar.mdl","autorack_bilevel_enclosed.mdl","gondola2.mdl",
      "boxcar_50ft_pcf_plugdoor.mdl","tanker_26k.mdl","reefer_trincool.mdl","hopper_ps2cd_4750.mdl","boxcar_pfe_reefer.mdl","nsc_bulkheadflat.mdl","thrall_bulkheadflat.mdl","tanker_11k_jacketed.mdl","hopper_2bay_usra_lcn.mdl","boxcar_sco_usra_fishbelly.mdl",
      "gondola_40ft_usra.mdl","boxcar_wagontop_40ft.mdl","nsc_centerbeam.mdl","boxcar_50ft_gunderson.mdl","boxcar_50ft_pcf_insulated.mdl","boxcar_50ft_ps.mdl","boxcars/boxcar_50ft_pcf_plugdoor.mdl","crrc_cck.mdl","usra_ds_ventmod","tf2_boxcar","tf2_tankcar",
-     "tf2_boxcar_noladder","tf2_orecar","gondola_70t_usra.md","tanker_31k_trinity","coilcar_48ft_evans","boxcar_50ft_fmc_doubledoor","boxcar_50ft_fmc_doubledoor_ribbed.mdl","hopper_acf_2970.mdl")
+     "tf2_boxcar_noladder","tf2_orecar","gondola_70t_usra.md","tanker_31k_trinity","coilcar_48ft_evans","boxcar_50ft_fmc_doubledoor","boxcar_50ft_fmc_doubledoor_ribbed.mdl","hopper_acf_2970","gondola_silverside_coal","hopper_armc_77t_2700cuft")
 
     BOGIES = table()
     
@@ -667,7 +672,6 @@ if(first()){
             
             owner():soundPlay(3,100,"buttons/button11.wav",0)
             soundVolume(3,0.3)
-            soundStop(2)
             
         }elseif(Str == "ding"){
         
@@ -706,7 +710,6 @@ if(first()){
         
             owner():soundPlay(3,100,"buttons/button14.wav",0)
             soundVolume(3,0.3)
-            soundStop(2)
             
         }
         
@@ -1733,6 +1736,7 @@ if(chatClk(owner())){ #Chat Commands
             CommandStack:pushString(Time+" clean")
             CommandStack:pushString(Time+" sp "+LSC)
             playsound("spawn")
+            OpsMode = 0
             
         }elseif(LSC:explode(" ")[2,string]:sub(0,LSC:explode(" ")[2,string]:length()-2):toNumber() != 0 & LSC:explode(" ")[2,string]:sub(LSC:explode(" ")[2,string]:length()-1,LSC:explode(" ")[2,string]:length()) == "ft"){
         
@@ -1742,6 +1746,7 @@ if(chatClk(owner())){ #Chat Commands
             CommandStack:pushString(Time+" clean")
             CommandStack:pushString(Time+" sp "+LSC)
             playsound("spawn")
+            OpsMode = 0
             
         }elseif(LSC:explode(" ")[2,string]:sub(0,LSC:explode(" ")[2,string]:length()-1):toNumber() != 0 & LSC:explode(" ")[2,string]:sub(LSC:explode(" ")[2,string]:length(),LSC:explode(" ")[2,string]:length()) == "t"){
         
@@ -1751,6 +1756,7 @@ if(chatClk(owner())){ #Chat Commands
             CommandStack:pushString(Time+" clean")
             CommandStack:pushString(Time+" sp "+LSC)
             playsound("spawn")
+            OpsMode = 0
             
         }else{
             
@@ -1991,14 +1997,14 @@ if(chatClk(owner())){ #Chat Commands
         propDeleteAll()
         selfDestructAll()
         
-    }elseif(LSC:explode(" ")[1,string] == ".clear" | LSC:explode(" ")[1,string] == "!clear"){
+    }elseif((LSC:explode(" ")[1,string] == ".clear" | LSC:explode(" ")[1,string] == "!clear") & (OpsMode == 0 | owner():aimEntity() == Head)){
         
         Instr = table()
         Instr:pushTable(table("respawn",Head:pos(),Head:angles(),Head:model()))
         CommandStack:pushString(Time+" cleared "+Instr:count())
         CommandStack:pushString(Time+" respawn "+Head:pos()+" "+Head:angles()+" "+Head:model())
         propDeleteAll()
-        
+            
         hideChat(HIDECHAT) 
         
     }elseif(LSC:explode(" ")[1,string] == ".stats" | LSC:explode(" ")[1,string] == "!stats"){
@@ -2059,8 +2065,9 @@ if(chatClk(owner())){ #Chat Commands
     }elseif(LSC:explode(" ")[1,string] == ".changelog" | LSC:explode(" ")[1,string] == "!changelog"){
         
         printS("Here's the changelog since the last version (0.955):\n"
-        +"Fixed cars with 36in wheels that actually use 33in.\n"
-        +"Added more Hank cars.\n"
+        +"Adjusted values with Centerbeams and Coal Gondolas.\n"
+        +"Added the Silverside Gondola.\n"
+        +"Added a system for remembering previous spawn commands, as to not re-do work.\n"
         )
         
         playsound("ding")
@@ -2093,10 +2100,11 @@ if(chatClk(owner())){ #Chat Commands
         Forced = ""
         LyrC = Phase = RandT = ForeOffset = 0
         Buffer = array()
-        Instr = table()
+        Instr = table("donezo",DonezoString)
         CommandStack:pushString(Time+" cleared via kill")
         hideChat(HIDECHAT) 
         playsound("kill")
+        soundStop(2)
         
     }
     
@@ -2200,6 +2208,8 @@ if(chatClk(owner())){ #Chat Commands
         entity():setPos(vec(0,0,10))
         
     }elseif(dsClk("populate")){
+        
+        OpsMode = 1
     
         local Tbl = dsGetTable()
     
@@ -2226,7 +2236,9 @@ if(chatClk(owner())){ #Chat Commands
                 
             }
             
-            if(Tbl:count() > 2 | Tbl["1",array][1,string] != "summon"){Instr:pushTable(table("donezo",Tbl[Tbl:count():toString(),string]))}
+            DonezoString = Tbl[Tbl:count():toString(),string]
+            
+            if(Tbl:count() > 2 | Tbl["1",array][1,string] != "summon"){Instr:pushTable(table("donezo",DonezoString))}
             
             playsound("spawn")
             printS("Queued population.")
@@ -2287,7 +2299,19 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
             Instr[1,table][2,string] = LST:trim()
             CommandStack:pushString(Time+" modified LST")
             
-            Insert = table("spwn",Instr[1,table][3,vector]:x(),Instr[1,table][3,vector]:y(),Instr[1,table][3,vector]:z(),array(0),Instr[1,table][4,string])
+            if(SearchArchive[LST:trim(),array]:count() != 0){
+                
+                Instr[1,table] = table("spwn",Instr[1,table][3,vector]:x(),Instr[1,table][3,vector]:y(),Instr[1,table][3,vector]:z(),SearchArchive[LST:trim(),array],Instr[1,table][4,string])
+                    
+                printS("Found " + (Insert[5,array]:count()-2)/2 + " car variants matching searched tags.")
+                CommandStack:pushString(Time+" added SPWN via SearchArchive")
+                LyrC = 0
+                
+            }else{
+            
+                Insert = table("spwn",Instr[1,table][3,vector]:x(),Instr[1,table][3,vector]:y(),Instr[1,table][3,vector]:z(),array(0),Instr[1,table][4,string])
+                
+            }
             
         }
         
@@ -2380,6 +2404,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
                         printS("No tags selected!") #Print a minor error, stop scanning, and reset things.
                         endSC() 
                         playsound("err")
+                        soundStop(2)
                         Phase = 0
                         Instr:remove(1)
                         CommandStack:pushString(Time+" finished SP via no tags selected")
@@ -2474,6 +2499,9 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
             
                         if(LyrY > TgKys:count()){ #If Counter 2 is concluded without breaking:
                             
+                            local CarLoaded = 0
+                            local CarEmpty = 0
+                            
                             for(LyrZ = 1,Tags[toString(10),array]:count()){ #Search for load tags
                                 
                                 if(Tags[toString(10),array][LyrZ,string] == "loaded"){
@@ -2546,8 +2574,11 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
                 Insert[5,array] = Insert[5,array]:add(array(Insert[5,array][1,number])) #Finish the randomizer block
                 
                 playsound("done")
+                soundStop(2)
                 
                 if(Insert[5,array]:count() > 2){ #If the tag bank has tags, success!
+                    
+                    SearchArchive[Instr[1,table][2,string],array] = Insert[5,array]:clone()
                     
                     printS("Found " + (Insert[5,array]:count()-2)/2 + " car variants matching searched tags.")
                     Instr[1,table] = Insert
@@ -2575,6 +2606,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         if((!rails(Head) & SPWNBHVIOR) & !FUNMODE){ #If it's derailed 
                 
             playsound("err")
+            soundStop(2)
             printS("Carspawner is not on the rails! Process aborted.")
             Instr:remove(1)
             Instr:remove(1)
@@ -2849,9 +2881,19 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
                 
             }
             
-            Frame:setMass(progress(Loaded,MODELS[RandT+8,number])*((3/5)*(WEIGHTMUL*907)))
-            Bogie1:setMass(progress(Loaded,MODELS[RandT+8,number])*((1/5)*(WEIGHTMUL*907)))
-            Bogie2:setMass(progress(Loaded,MODELS[RandT+8,number])*((1/5)*(WEIGHTMUL*907)))
+            if(OpsMode){
+                
+                Frame:setMass(10000)
+                Bogie1:setMass(3500)
+                Bogie2:setMass(3500)
+                
+            }else{
+            
+                Frame:setMass(progress(Loaded,MODELS[RandT+8,number])*((3/5)*(WEIGHTMUL*907)))
+                Bogie1:setMass(progress(Loaded,MODELS[RandT+8,number])*((1/5)*(WEIGHTMUL*907)))
+                Bogie2:setMass(progress(Loaded,MODELS[RandT+8,number])*((1/5)*(WEIGHTMUL*907)))
+                
+            }
             
             TotalTrainWeight = TotalTrainWeight + (Bogie1:mass() + Bogie2:mass() + Frame:mass())/WEIGHTMUL
             
@@ -3089,6 +3131,8 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         
     }elseif(safe() & Instr[1,table][1,string] == "goto"){
         
+        soundStop(2)
+        
         if(!Instr[1,table][4,number]){
             
             if(Instr[1,table][2,vector] == vec(0)){
@@ -3101,7 +3145,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
             
             noCollideAll(Head,0),Head:setAlpha(0),Head:propFreeze(0),timer("freeze",500),holoEntity(0):setAlpha(255)
             Delay = 1
-            timer("delay",1500)
+            timer("delay",800)
             
         }
         
@@ -3113,6 +3157,7 @@ if(Instr:count() & Chew > 1+(AddModels:count()/INFOPERMODEL & clk()) & !Delay){
         
         Head:setPos(Instr[1,table][2,vector])
         Head:setAng(ang(0,Instr[1,table][3,number],0))
+        Head:propSetVelocityInstant(vec(0))
         resetspawn()
         CommandStack:pushString(Time+" goto completed")
         Instr:remove(1)
