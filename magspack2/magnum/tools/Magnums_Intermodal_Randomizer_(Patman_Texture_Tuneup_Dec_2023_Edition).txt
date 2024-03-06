@@ -1,7 +1,7 @@
-@name Magnums Intermodal Randomizer (Patman Texture Tuneup 1223 Edition)
+@name Magnums Intermodal Randomizer (Patman Texture Tuneup Dec 2023 Edition)
 @inputs Units:array
 @outputs Flat89s:array
-@persist O:entity Automatic CarLength Brackets [BaseChance Flat89TypeChance Flat89Chance TwentyChance FortyChance FortyEightChance FiftyThreeChance SkinOverride SubmatGroups SubmatMap ExtraSkins]:table
+@persist O:entity Automatic CarLength Brackets [BaseChance Flat89TypeChance Flat89Chance TwentyChance FortyChance FortyEightChance FiftyThreeChance SkinOverride SubmatGroups SubmatMap ExtraSkins]:table AllowDoubleStack
 @persist Height BaseSum Flat89TypeSum Flat89Sum TwentySum FortySum FortyEightSum FiftyThreeSum [Bottoms Bottoms2 Wells Flat89s FlatType F89L1]:array H Iteration E:entity ShortOverLongChance TripleHitchChance
 @trigger none
 
@@ -22,6 +22,8 @@ if(first()|dupefinished()){
 if(first() | dupefinished() | clk("reload")){
     
     Automatic = 1 #If set to 1, will automatically generate containers on all wellcars in the consist, if 0, uses Entity Marker to manually mark cars.
+    
+    AllowDoubleStack = 1 #If set to 1, cars that allow for double stacking will recieve a second layer of containers.
     
     CarLength = 40 #Nominal length of your container cars (40, 48, 53). This is ignored if "Automatic" is set!
     Brackets = 0 #Is it that one bracketed wellcar (wellcar_40b)?
@@ -1841,7 +1843,12 @@ if(clk("singlestack")){
     }
 }elseif(clk("transition")){
     BaseSum = BaseSum - BaseChance["1x20",number] - BaseChance["2x20",number]
-    timer("doublestack",100)
+    if(AllowDoubleStack == 0){
+        timer("flat89_1",100)
+        Iteration = 1
+    }else{
+        timer("doublestack",100)
+    }
 }elseif(clk("finalize")){
     E = entity()
     if(!E:parent():isValidPhysics()){
