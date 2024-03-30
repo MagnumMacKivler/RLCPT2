@@ -1,0 +1,90 @@
+@name Post-Mesh Cleanup Utility
+@persist Material:string Color:vector ExcludedTypes:array
+
+if(first() | dupefinished()){
+    
+    #Post-Mesh Cleanup Utility v1.0 3-30-24 - Made by Sir Metaladon
+    #This is a clean-slate project I did in an hour for Ballistic Studios; he suggested I upload it to Github, so I'm doing that.
+        
+    #This is a list of object types the E2 will ignore; you can add more if you like.
+    ExcludedTypes = array("gmod_wire_hologram","gmod_wire_expression2","sent_prop2mesh_legacy","sent_prop2mesh","gmod_hands")
+    
+    function string convert(V:vector){
+        
+        return round(V,1):toString():replace("[",""):replace("]","")
+        
+    }
+    
+    function number notExcluded(Ent:entity){
+        
+        local Flag = 1
+        
+        while(Flag <= ExcludedTypes:count()){
+            if(Ent:type() != ExcludedTypes[Flag,string]){
+                Flag++
+            }else{
+                Flag = 0
+                break
+            }
+        }
+        
+        return (Flag != 0)
+        
+    }
+    
+    print("Welcome to the Post-Mesh Cleanup Utility. Say .pick at a prop to select a color/material combination, then do .cleanup to remove all props with those attributes.")
+    runOnChat(1)
+    
+}
+
+if(chatClk(owner())){
+    
+    LSC = owner():lastSaid():lower():explode(" ")
+    
+    if(LSC[1,string] == ".pick"){
+        
+        hideChat(1)
+        
+        Ent = owner():aimEntity()
+        
+        if(Ent:isValid()){
+            
+            Material = Ent:getMaterial()
+            Color = Ent:getColor()
+            print("Material set to \""+Material+"\", Color set to "+convert(Color)+".")
+            
+        }else{
+            
+            print("Invalid entity!")
+            
+        }
+        
+    }elseif(LSC[1,string] == ".cleanup"){
+        
+        hideChat(1)
+        
+        findInSphere(vec(0),320000)
+        findClipToPlayerProps(owner())
+            
+        local Objects = findToArray()
+        
+        local Count = 0
+        
+        for(X = 1,Objects:count()){
+            
+            Ent = Objects[X,entity]
+            
+            if(Material == Ent:getMaterial() & Color == Ent:getColor() & !Ent:isWeapon() & notExcluded(Ent) & !Ent:isPlayer()){
+                
+                Ent:propDelete()
+                Count++
+                
+            }
+            
+        }
+        
+        print("Cleaned up "+Count+" objects with the material \""+Material+"\" and color "+convert(Color)+".")
+        
+    }
+    
+}
