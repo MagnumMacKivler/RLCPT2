@@ -1,0 +1,69 @@
+@name GSG Cab Signal Display
+@inputs Enabled LastSignalSpeedNum NextSignalSpeedNum MPH
+@outputs 
+@persist E:entity Restrictiveness Alarm:string MotionQ
+@trigger 
+@model models/gsgtrainprops/parts/cab/cabsignal_ge_multi.mdl
+
+#Displays CCS (Coded Cab Signals) based on indications it reads from Trakpak3 signals.
+
+if(first()|dupefinished()){
+    E = entity()
+    Restrictiveness = 4
+    Alarm = "gsgtrainsounds/misc/radio/radio_beep3.wav"
+    E:setSubMaterial(3,"models/proppertextures/enamel_darkgray")
+    E:setSubMaterial(4,"models/proppertextures/enamel_darkgray")
+    E:setSubMaterial(5,"models/proppertextures/enamel_darkgray")
+}
+if(Enabled){
+    
+    #Motion Indicator, always set this
+        
+    local MPHA = abs(MPH)
+    if((MPHA>1) & !MotionQ){
+        MotionQ = 1
+        E:setBodygroup(3,1)
+    }elseif((MPHA<1) & MotionQ){
+        MotionQ = 0
+        E:setBodygroup(3,0)
+    }
+    if(!~MPH){ #CCS Cab Signal Indication
+        
+        local R = 4 #R for Restrictiveness (New), will play a sound when it decreases.
+        
+        if(LastSignalSpeedNum<2){ #You passed a Restricting or a Stop
+            
+            #Show Restricting
+            R = 4
+            E:setBodygroup(1,4)
+            
+        }elseif(LastSignalSpeedNum<=5){ #You passed any Slow, Medium, Limited, or Full speed signal
+            
+            if(NextSignalSpeedNum<2){ #Next signal is a Stop or Restricting
+                #Show Approach
+                R = 3
+                E:setBodygroup(1,3)
+            }elseif(NextSignalSpeedNum<5){ #Next signal is any Slow, Medium, or Limited signal
+                #Show Approach Limited
+                R = 2
+                E:setBodygroup(1,2)
+            }elseif(NextSignalSpeedNum==5){ #Next signal is another full speed signal
+                #Show Clear
+                R = 1
+                E:setBodygroup(1,1)
+            }
+            
+        }
+        
+        if(R > Restrictiveness){ #Cab Signal Indication drops to a more restrictive level
+            E:soundPlay(1,1,Alarm)
+        }
+        Restrictiveness = R
+    }
+    
+}elseif(~Enabled){ #Enabled shutting off
+    Restrictiveness = 4
+    MotionQ = 0
+    E:setBodygroup(1,0)
+    E:setBodygroup(3,0)
+}
