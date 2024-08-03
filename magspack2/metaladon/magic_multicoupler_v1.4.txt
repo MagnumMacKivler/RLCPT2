@@ -1,0 +1,856 @@
+@name Magic Multicoupler v1.4
+@inputs Enable MarkThisCarID
+@persist Rope_Width RopeID HoloID FeetToClosestCoupling CouplingMPH SecondsToCouple Drawbar_Length SoundID
+@persist [MarkCar UnmarkCar ApplyHandbrakes ReleaseHandbrakes UncoupleCar ManualLink CancelManualLink]:string
+@persist [CouplingTracker Pairs PairLookup]:table [Delays AllowedEntityTypes]:array ManualBogie:entity 
+@outputs FeetToClosestCoupling CouplingMPH SecondsToCouple Pairs:table
+@persist [MarkNoise CoupleNoise UncoupleNoise ApplyHandbrakesNoise ReleaseBrakesNoise ManualLinkNoise CancelNoise]:string 
+@persist [MarkColor CoupleColor UncoupleColor ApplyHandbrakesColor ReleaseBrakesColor ManualLinkColor]:vector
+@trigger MarkThisCarID
+
+#This is a COMPLETE REWRITE of the original Magic Crowbar Coupler. Made by Metaladon.
+#To use, simply place the e2, and leftclick on cars to mark them for automatic coupling. 
+#Hold Alt while sitting in a seat to perform actions on your locomotive. Additional controls below.
+
+if(dupefinished()){reset()}
+
+if(first()){
+    
+    #Thanks to NovaCheri for the E2 name!
+    
+    Rope_Width = 0            #Pretty self-explanatory. 10 is very thick, 0 is invisible.
+    Drawbar_Length = 0        #Inches of slack, per car. 10 is a good value, but beware derailments!
+    
+    MarkCar = "mouse_left"    #What key do you want to mark a car for coupling? Default "mouse_left"
+    UnmarkCar = "mouse_right" #What key do you want to un-mark a car?           Default "mouse_right"
+    UncoupleCar = "r"         #What key do you want to uncouple a car?          Default "r"
+    ApplyHandbrakes = "k"     #What key do you want to apply the handbrakes?    Default "k"
+    ReleaseHandbrakes = "l"   #What key do you want to release the handbrakes?  Default "l"
+    ManualLink = "m"          #What key do you want to manually link cars with? Default "m"
+    CancelManualLink = "r"    #What key do you want to cancel manual linking?   Default "r"
+    
+    AllowedEntityTypes = array("prop_physics","gmod_wire_expression2") #Types of prop that the system will look for
+    
+    MarkNoise = "buttons/button3.wav" 
+    CoupleNoise = "gsgtrainsounds/misc/couple.wav"
+    UncoupleNoise = "gsgtrainsounds/misc/uncouple.wav"
+    ApplyHandbrakesNoise = "buttons/lever4.wav"
+    ReleaseBrakesNoise = "buttons/button4.wav"
+    ManualLinkNoise = "buttons/button3.wav"
+    CancelNoise = "buttons/button19.wav"
+    
+    MarkColor = vec(255,255,0)
+    CoupleColor = vec(50,255,0)
+    UncoupleColor = vec(255,50,0)
+    ApplyHandbrakesColor = vec(255,90,10)
+    ReleaseBrakesColor = vec(255,191,0)
+    ManualLinkColor = vec(150,255,0)
+    
+    #VERSION 1.4 - Slack, some nocollide fixes as compared to welds, Massive code refactoring, more customizations
+    
+    runOnKeys(owner(),1)
+    
+    #Returns a "clean" model name for display
+    function string mdlname(E:entity){
+        
+        return E:model():explode("/"):popString():replace(".mdl","")
+        
+    }
+    
+    function number string:isBeingPressed(Check:string){
+        
+        if(Check == "mouse_left"){
+            
+            return owner():keyAttack1() == 1
+            
+        }elseif(Check == "mouse_right"){
+            
+            return owner():keyAttack2() == 1
+            
+        }
+        
+        return This == Check
+        
+        
+    }
+    
+    #Returns a 90-degree rotational offset for the "long" end of the car
+    function number getXvsY(E:entity){
+        
+        return (E:boxSize():x() > E:boxSize():y())*90
+        
+    }
+    
+    #Returns 1 if the string input is located in Array, else 0.
+    function number string:isFoundIn(Array:array){
+        
+        foreach(X,Entry:string = Array){
+            
+            if(This == Entry){
+                
+                return 1
+                
+            }
+            
+        }
+        
+        return 0
+        
+    }
+    
+    #all-in-one return and incrementer for putting sounds on cars
+    function number getSID(){
+        
+        SoundID = (SoundID+1)%10
+        return SoundID + 5
+        
+    }
+    
+    #Returns an array of 2 entities: One is the farthest "forward" bogie, the other is the farthest "back", according to the long x/y axis of E.
+    function array determineBogies(Frame:entity,R:array){
+        
+        local WinP = WinN = 0
+        local PositiveBogie = NegativeBogie = Frame
+        local N = getXvsY(Frame)
+            
+        for(X = 1,R:count()){
+            
+            local Bog = R[X,entity]
+                
+            local Vecc = Frame:toLocal(Bog:boxCenterW()):rotateAroundAxis(vec(0,0,1),N-90)
+            
+            if(Bog:type():isFoundIn(AllowedEntityTypes) & (Bog:hasConstraints("axis")) & ((Bog:mass()*5) > Frame:mass())){
+                
+                if(Vecc:x() > WinP){
+                    
+                    WinP = Vecc:x()
+                    PositiveBogie = Bog
+                    
+                }
+                
+                if(Vecc:x() < WinN){
+                    
+                    WinN = Vecc:x()
+                    NegativeBogie = Bog
+
+                }
+                
+            }
+            
+        }
+        
+        return array(PositiveBogie,NegativeBogie)
+        
+    }
+
+    #Finds the largest model (x/y dimension wise) in an array of entites
+    function entity getFrame(ArrayOfEntities:array){
+
+        local Max = 0
+        local NewFrame = noentity()
+        local Center = vec(0)
+        local Candidates = array()
+        
+        foreach(K,Specimen:entity = ArrayOfEntities){
+            
+            if(Specimen:type():isFoundIn(AllowedEntityTypes)){
+                
+                Center = Center + Specimen:pos()
+                Candidates:pushEntity(Specimen)
+                
+            }
+            
+        }
+        
+        local Center = Center * (1/Candidates:count())
+            
+        foreach(X,Specimen:entity = Candidates){
+                
+            local M2 = (Specimen:mass() + max(Specimen:boxSize():x(),Specimen:boxSize():y())*2 - (Specimen:pos():distance(Center))) #previous system was based on size, but it occured to me that mass was even more reliable, + a fix for wellcars
+            
+            if(M2 > Max){
+                
+                Max = M2
+                NewFrame = Specimen
+
+            }
+            
+        }
+        
+        return NewFrame
+        
+    }
+    
+    #Flashes a hologram with V color on E entity for 0.75 seconds
+    function void flash(E:entity,V:vector){
+        
+        holoCreate(HoloID,E:pos(),vec(1.03),E:angles(),V,E:model())
+        holoMaterial(HoloID, "debug/debugdrawflat")
+        holoAlpha(HoloID,100)
+        timer("holodelete|"+HoloID,750)
+        holoParent(HoloID,E)
+        HoloID++
+        
+        return void
+        
+    }
+    
+    #Does all the functions of uncoupling: Sound, break rope, flash bogies, hint
+    function void uncouple(E:entity,S:string){
+        
+        local A = E:getConnectedEntities("rope")
+        
+        for(X = 1, A:count()){
+            
+            flash(A[X,entity],UncoupleColor)
+            
+        }
+                
+        owner():soundPlay(0,2,UncoupleNoise)
+        E:soundPlay(getSID(),2,UncoupleNoise)
+        
+        hint("Uncoupled \"" + S,3)
+        
+        E:constraintBreak("rope")
+        
+        return void
+        
+    }
+    
+    #Does all the functions of coupling (once you've decided you can): Flashes bogies, hint, sound, makes rope
+    function void couple(FirstEntity:entity,SecondEntity:entity,Message:string){
+        
+        flash(FirstEntity,CoupleColor)
+        flash(SecondEntity,CoupleColor)
+            
+        hint("Coupled "+Message,3)
+        owner():soundPlay(0,2,CoupleNoise)
+        soundVolume(0,0.5)
+        
+        if(Drawbar_Length == 0){
+
+            rope(RopeID,FirstEntity,FirstEntity:massCenterL(),SecondEntity,SecondEntity:massCenterL(),0,Rope_Width,"cable/cable2",1),RopeID++
+
+        }else{
+
+            local MidPoint = (FirstEntity:pos() + SecondEntity:pos())/2
+            
+            #rope(number index,entity ent1,vector v1,entity ent2,vector v2,number addlength,number width,string mat,number rigid)
+            rope(RopeID,FirstEntity,FirstEntity:toLocal(MidPoint),SecondEntity,SecondEntity:toLocal(MidPoint),Drawbar_Length/2,Rope_Width,"cable/cable2",0)
+            RopeID++
+
+        }
+        
+        
+        return void
+        
+    }
+    
+    #Pretty self-explanatory. An improved parent-finder with recursive functionality.
+    function entity getParent(Entity:entity){
+        
+        if(Entity:parent():isValid()){
+            
+            ResultantEntity = getParent(Entity:parent())
+            
+        }else{
+            
+            ResultantEntity = Entity
+            
+        }
+            
+        return ResultantEntity
+    
+    }
+    
+    #Creates a timer, and ticks down the remaining reiterations of this coupling stage
+    function void newTimer(UID:string){
+        
+        stoptimer(UID)
+        timer(UID,Delays[Pairs[UID,array][1,number],number])
+        Pairs[UID,array][2,number] = clamp(Pairs[UID,array][2,number]-1,-1,inf())
+        
+        return void
+        
+    }
+    
+    #Creates a new pair of cars to track, as well as the timer and logic infrastructure
+    function void newPair(FirstEntity:string,SecondEntity:string){
+        
+        PairLookup[FirstEntity,array]:pushString(SecondEntity)
+        PairLookup[SecondEntity,array]:pushString(FirstEntity)
+
+        local UID = min(FirstEntity:toNumber(),SecondEntity:toNumber()) +"|"+ max(FirstEntity:toNumber(),SecondEntity:toNumber())
+
+        Pairs[UID,array] = array(5,-1,0,0)
+        
+        stoptimer(UID)
+        timer(UID,50)
+        
+        return void
+        
+    }
+    
+    #Stops tracking the car with entityID string S, cleans up CouplingTracker and Pairs databases
+    function void stopTracking(IDToRemove:string){
+        
+        CouplingTracker:remove(IDToRemove)
+        
+        foreach(K,SecondID:string = PairLookup[IDToRemove,array]){
+            
+            if(IDToRemove:toNumber() < SecondID:toNumber()){ #because the UID format is always lower first, higher second
+                
+                Pairs:remove(IDToRemove+"|"+SecondID)
+                
+            }else{
+                
+                Pairs:remove(SecondID+"|"+IDToRemove)
+                
+            }
+            
+        }
+        
+        PairLookup:remove(IDToRemove)
+        
+        return void
+        
+    }
+    
+    #Marks a car for coupling
+    function void markCar(Frame:entity,Ents:array){
+        
+        local X_more_than_Y = getXvsY(Frame)
+        local EntityIDString = Frame:id():toString()
+        
+        local Parts = determineBogies(Frame,Ents)
+        local PositiveBogie = Parts[1,entity]
+        local NegativeBogie = Parts[2,entity]
+        
+        local FurthestPositivePos = FurthestNegativePos = 0
+            
+        for(X = 1,Ents:count()){
+            
+            local Bog = Ents[X,entity]
+                
+            local FarthestExtent = (Frame:toLocal(Bog:boxCenterW()):rotateAroundAxis(vec(0,0,1),X_more_than_Y-90):x())
+            
+            if(Bog:type():isFoundIn(AllowedEntityTypes)){
+                
+                if((FarthestExtent+(max(Bog:boxSize():x(),Bog:boxSize():y())/2)) > FurthestPositivePos){
+                    
+                    FurthestPositivePos = (FarthestExtent+(max(Bog:boxSize():x(),Bog:boxSize():y())/2)) 
+                    
+                }
+                
+                if((FarthestExtent-(max(Bog:boxSize():x(),Bog:boxSize():y())/2)) < FurthestNegativePos){
+                    
+                    FurthestNegativePos = (FarthestExtent-(max(Bog:boxSize():x(),Bog:boxSize():y())/2))
+
+                }
+                
+            }
+            
+        }
+
+        local CarLengthP = max(max(Frame:boxSize():x(),Frame:boxSize():y()) / 2,FurthestPositivePos)
+        local CarLengthN = max(max(Frame:boxSize():x(),Frame:boxSize():y()) / 2,-FurthestNegativePos)
+        
+        local EndCircleRadius = min(CarLengthP + CarLengthN, 1000)/6 #this calculation can be whatever you like, and it should only change the shape of the coupling at the end of the car
+                    
+        local CanCouplePositive = (!PositiveBogie:hasConstraints("rope") | PositiveBogie == Frame)
+        local CanCoupleNegative = (!NegativeBogie:hasConstraints("rope") | NegativeBogie == Frame)
+        
+        if(CanCouplePositive | CanCoupleNegative){
+            
+            #If this is a new Live entry, generate new pairs for all existing cars
+                
+            PairLookup[EntityIDString,array] = array()
+            local K = CouplingTracker:keys()
+            for(X = 1,K:count()){
+                
+                if(K[X,string] != EntityIDString){
+                    
+                    newPair(EntityIDString,K[X,string])
+                    
+                }
+                    
+            }
+            
+            Dir = vec(1,0,0):rotateAroundAxis(vec(0,0,1),90-X_more_than_Y)
+        
+            CouplingTracker[EntityIDString,table] = table(
+            "BogieCouplingRadius" = EndCircleRadius,
+            "Dir" = Dir,
+            "PositiveEndLength" = CarLengthP-EndCircleRadius,
+            "NegativeEndLength" = CarLengthN-EndCircleRadius,
+            "XvsY" = X_more_than_Y,
+            "PositiveEndBogie" = PositiveBogie,
+            "NegativeEndBogie" = NegativeBogie,
+            "PositiveEndCanCouple" = CanCouplePositive,
+            "NegativeEndCanCouple" = CanCoupleNegative
+            )
+            
+            #[holo for determining which end is the "positive" end + coupling radius
+            holoCreate(HoloID,Frame:toWorld(Dir*(CarLengthP)),vec(6),ang(0),vec(255),"models/editor/axis_helper.mdl")
+            holoParent(HoloID,Frame)
+            HoloID++
+            holoCreate(HoloID,Frame:toWorld(-Dir*(CarLengthN)),vec(6),ang(0),vec(0),"models/editor/axis_helper.mdl")
+            holoParent(HoloID,Frame)
+            HoloID++
+            #]#
+            
+        }
+        
+        flash(Frame,MarkColor)
+            
+        hint("Marked \"" + mdlname(Frame) + "\" #"+EntityIDString+" for coupling.",3)
+        owner():soundPlay(0,2,MarkNoise)
+        
+        return void
+        
+    }
+    
+    #If the car has both ends coupled, return 1.
+    function number invalidTracking(CouplingID:string){
+        
+        local CouplingData = CouplingTracker[CouplingID,table]
+        
+        local BothEndsIneligible = !(CouplingData["PositiveEndCanCouple",number] | CouplingData["NegativeEndCanCouple",number])
+        local BothEndsCoupled = (CouplingData["PositiveEndBogie",entity]:hasConstraints("rope") & CouplingData["NegativeEndBogie",entity]:hasConstraints("rope"))
+        
+        return BothEndsIneligible | BothEndsCoupled
+                
+    }
+                
+    
+    #Does all the complex math for determining if the anchor point of the second car lies within the allowable front-facing "cone" of the first car
+    function number table:isPointingAt(SecondCarTable:table,FirstFrame:entity,SecondFrame:entity,Len1,Len2){
+        
+        FirstCarTable = This
+    
+        #from the center of the second car, move forward to the anchor point near the end of the car along the long axis (Dir) of the second car
+        local AnchorPoint = SecondFrame:toWorld(SecondCarTable["Dir",vector] * Len2)
+        
+        #convert the world position of the 2nd car anchor to a position where X represents the distance away and Y represents the deviation away from straight on relative to the first car
+        local RelativeVector = (FirstFrame:toLocal(AnchorPoint)*vec(1,1,0)):rotateAroundAxis(vec(0,0,1),FirstCarTable["XvsY",number]-90)
+        
+        #special ratio; think of it as forming a pair of right triangles starting at the anchor point of Car 1, with endpoints 80 units to each side, making a cone of "valid" coupling space
+        local Width = FirstCarTable["BogieCouplingRadius",number]/80
+        
+        #this moves the triangle forward to the anchor point for car 1, and faces the triangle the correct direction
+        local Forward = ((RelativeVector:x() * sign(Len1)) -abs(Len1))
+    
+        #slope of the triangle of anchor1's X pos to anchor2's Y pos
+        local Ratio = Forward / abs(RelativeVector:y())
+        
+        #is the anchor point of car 2 within the cone eminating from car 1?
+        return ((Ratio > Width) & (Ratio > 0))
+        
+    }
+    
+    #Runs 2 "isPointingAt" functions to determine if both cars are pointing at each other
+    function number arePointingAtEachother(FirstCarTable:table,SecondCarTable:table,FirstFrame:entity,SecondFrame:entity,Len1,Len2){
+        
+        #if the first car is pointing at the second, and vice versa, proceed.
+        return FirstCarTable:isPointingAt(SecondCarTable,FirstFrame,SecondFrame,Len1,Len2) & SecondCarTable:isPointingAt(FirstCarTable,SecondFrame,FirstFrame,Len2,Len1)
+        
+    }
+    
+    #These are the delays between certain types of scans. Just leave it like it is, adjusting this will probably cause problems
+    Delays = array(50,50,500,1000,7000)
+    RopeID = 1
+    HoloID = 1 
+    SoundID = 1
+    
+    #timer to kick off the scanning process
+    timer("update",50)
+    #starts the timer that updates the distance
+    timer("updateDist",500)
+    
+    #and just in case anyone tries to claim ownership, for some unknowable reason
+    #https://steamcommunity.com/profiles/76561198077247660
+
+}elseif(keyClk() & (Enable | !->Enable)){
+    
+    local Key = keyClkPressed()
+    local Pressed = owner():keyPressed(Key)
+    
+    if(Pressed != 1){
+        
+        local AimEntity = noentity()
+        local InVehicle = owner():inVehicle()
+        
+        if(InVehicle){
+        
+            AimEntity = getParent(owner():vehicle())
+    
+        }else{
+            
+            AimEntity = getParent(owner():aimEntity())
+            
+        }
+        
+        if(AimEntity:isValid()){
+        
+            local Ents = AimEntity:getConnectedEntities("axis","ballsocket","advballsocket","weld","nocollide")
+    
+            local Frame = getFrame(Ents)
+            
+            local Large = ((Frame:boxSize():x() + Frame:boxSize():y()) > 70)
+                
+            if(Frame:isValid() & (!AimEntity:model():find("trakpak3_rsg"))){
+                
+                local EntityIDString = Frame:id():toString()
+                
+                #if the owner is leftclicking with the crowbar and not in a vehicle, or the owner is holding alt+click while in a vehicle
+                
+                if(Key:isBeingPressed(MarkCar) & Large & ((owner():weapon():type() == "weapon_crowbar" & !InVehicle) | (InVehicle & (owner():keyPressed("lalt") | owner():keyPressed("ralt"))))){
+                    
+                    markCar(Frame,Ents)
+                  
+                }elseif(Key:isBeingPressed(UnmarkCar) & Large & ((owner():weapon():type() == "weapon_crowbar" & !InVehicle) | (owner():keyPressed("lalt") | owner():keyPressed("ralt")))){
+                    
+                    if(CouplingTracker[EntityIDString,table]:count() != 0){
+                    
+                        hint("Un-marked \"" + mdlname(Frame) + "\" #"+EntityIDString+" from coupling.",3)
+                        owner():soundPlay(0,2,CancelNoise)
+                        stopTracking(EntityIDString)
+                        
+                    }
+                    
+                }elseif(Key:isBeingPressed(ReleaseHandbrakes)){
+                    
+                    flash(Frame,ReleaseBrakesColor) 
+                    local Ent2 = AimEntity:getConnectedEntities("axis","ballsocket","advballsocket","rope","weld")
+                    for(X = 1, Ent2:count()){
+                        
+                        Ent2[X,entity]:propPhysicalMaterial("friction_00")
+                        Ent2[X,entity]:propFreeze(0)
+                        
+                    }
+                    
+                    hint("Released the handbrakes on the consist.",3)
+                    owner():soundPlay(0,1,ReleaseBrakesNoise)     
+                    
+                }elseif(Key:isBeingPressed(ApplyHandbrakes)){
+        
+                    flash(Frame,ApplyHandbrakesColor)
+                    local Ent2 = AimEntity:getConnectedEntities("axis","ballsocket","advballsocket","rope","weld")
+                    
+                    for(X = 1, Ent2:count()){
+                        
+                        Ent2[X,entity]:propPhysicalMaterial("friction_25") #used to be "phx_tire_normal", now gentler
+                        
+                    }
+                    
+                    hint("Set the handbrakes on the consist.",3)
+                    owner():soundPlay(0,1,ApplyHandbrakesNoise)         
+                    
+                }elseif(Key:isBeingPressed(UncoupleCar) & Large & ((owner():weapon():type() == "weapon_crowbar" & !InVehicle) | (InVehicle & (owner():keyPressed("lalt") | owner():keyPressed("ralt"))))){
+                    
+                    local Parts = determineBogies(Frame,Ents)
+                    local PositiveBogie = Parts[1,entity]
+                    local NegativeBogie = Parts[2,entity]
+                    
+                    if(AimEntity:hasConstraints("rope")){
+                        
+                        uncouple(AimEntity,mdlname(Frame) + "\" #"+EntityIDString+"")
+                    
+                    }else{ 
+                        
+                        local AimPositive = 0
+                        
+                        if(!InVehicle){
+                            
+                            AimPositive = Frame:toLocal(owner():aimPos()):rotateAroundAxis(vec(0,0,1),getXvsY(Frame)-90):x()
+                            
+                        }else{
+                            
+                            local AimAng = owner():eyeAngles():rotateAroundAxis(vec(0,0,1),getXvsY(Frame)-90-Frame:angles():yaw()):yaw()
+                            
+                            if(AimAng < 90 & AimAng > -90){
+                                AimPositive = 1
+                            }else{
+                                AimPositive = -1
+                            }
+    
+                        }
+                        
+                        if(AimPositive > 0){
+                            
+                            if(PositiveBogie:hasConstraints("rope")){
+                                
+                                uncouple(PositiveBogie,mdlname(Frame) + "\" #"+EntityIDString+"")
+                                CouplingTracker[EntityIDString,table]["PositiveEndCanCouple",number] = 0 
+                           
+                            }
+                            
+                        }else{
+                            
+                            if(NegativeBogie:hasConstraints("rope")){
+                                    
+                                uncouple(NegativeBogie,mdlname(Frame) + "\" #"+EntityIDString+"")
+                                CouplingTracker[EntityIDString,table]["NegativeEndCanCouple",number] = 0 
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }elseif(Key:isBeingPressed(ManualLink) & !InVehicle){
+                    
+                    if(ManualBogie:isValidPhysics() & ManualBogie != AimEntity){
+                        
+                        couple(AimEntity,ManualBogie,"2 bogies manually.")
+                        ManualBogie = noentity()
+                        
+                    }else{
+                        
+                        ManualBogie = AimEntity
+                        flash(ManualBogie,ManualLinkColor)
+                        hint("Marked \"" + mdlname(ManualBogie) + "\" #"+ManualBogie:id()+" for manual linking.",3)
+                        owner():soundPlay(0,2,ManualLinkNoise)
+                        
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        if(Key:isBeingPressed(CancelManualLink) & !InVehicle & ManualBogie:isValidPhysics()){
+                
+            hint("Cancelled manual linking.",3)
+            owner():soundPlay(0,2,CancelNoise)
+            ManualBogie = noentity()
+            
+        }
+            
+    }
+    
+}else{ #Any other triggers; probably timers
+    
+    TickData = clkName():explode("|")
+
+    if(TickData[1,string] == "holodelete"){
+        
+        holoDelete(TickData[2,string]:toNumber())
+        
+    }elseif(changed(MarkThisCarID) & MarkThisCarID != 0){
+        
+        local Ents = entity(MarkThisCarID):getConnectedEntities("axis","ballsocket","advballsocket","weld","parent")
+        local Frame = getFrame(Ents)
+            
+        markCar(Frame,Ents)
+        
+    }elseif(TickData[1,string] == "updateDist"){
+        
+        local PairsKeys = Pairs:keys()
+        
+        FeetToClosestCoupling = inf()
+        SecondsToCouple = 0
+        
+        for(X = 1,PairsKeys:count()){
+            
+            local NDist = Pairs[PairsKeys[X,string],array][5,number]/12 #convert from inches to feet
+            
+            if(FeetToClosestCoupling > NDist & Pairs[PairsKeys[X,string],array][1,number] <= 3){
+                
+                local Frames = PairsKeys[X,string]:explode("|")
+                local FirstFrame = entity(Frames[1,string]:toNumber())
+                local SecondFrame = entity(Frames[2,string]:toNumber())
+                
+                FeetToClosestCoupling = NDist
+                local CouplingFtPerSecond = ((FirstFrame:vel() - SecondFrame:vel()):length()/12)
+                CouplingMPH = CouplingFtPerSecond * (15/22) #ft/sec to mph
+                SecondsToCouple = FeetToClosestCoupling/CouplingFtPerSecond
+                
+            }
+            
+        }
+        
+        timer("updateDist",500)
+        
+    }
+    
+    if(Pairs[clkName(),array]:count()){
+        
+        local DontRerunTimer = 0
+        
+        local UID = clkName()
+        
+        local FirstCouplingID = TickData[1,string]
+        local SecondCouplingID = TickData[2,string]
+        
+        local FirstFrame = entity(FirstCouplingID:toNumber())
+        local SecondFrame = entity(SecondCouplingID:toNumber())
+        
+        local FirstCarData = CouplingTracker[FirstCouplingID,table]
+        local SecondCarData = CouplingTracker[SecondCouplingID,table]
+        
+        if(Pairs[UID,array][2,number] == 0){
+            
+            Pairs[UID,array][1,number] = 5
+            Pairs[UID,array][5,number] = inf()
+            
+        }
+        
+        if(Pairs[UID,array][1,number] == 5){ #DEFCON 5 - Little activity, occasional checks to see if things are happening
+            
+            local ConditionA = ConditionB = 1
+            
+            if((FirstCarData["PositiveEndBogie",entity]:hasConstraints("rope") & FirstCarData["NegativeEndBogie",entity]:hasConstraints("rope")) | !FirstFrame:isValid()){
+                            
+                ConditionA = 0
+                stopTracking(FirstCouplingID)
+                            
+            }
+            
+            if((SecondCarData["PositiveEndBogie",entity]:hasConstraints("rope") & SecondCarData["NegativeEndBogie",entity]:hasConstraints("rope")) | !SecondFrame:isValid()){
+                    
+                ConditionB = 0   
+                stopTracking(SecondCouplingID)    
+                            
+            }
+                        
+            local ConditionC = abs(FirstFrame:pos():z() - SecondFrame:pos():z()) < 200
+            local ConditionD = (FirstFrame:pos()-SecondFrame:pos()):length() < 3000
+            
+            if(ConditionA & ConditionB & ConditionC & ConditionD){
+                
+                Test1 = FirstFrame:toLocal(SecondFrame:pos()):rotateAroundAxis(vec(0,0,1),FirstCarData["XvsY",number]-90)
+                Test2 = SecondFrame:toLocal(FirstFrame:pos()):rotateAroundAxis(vec(0,0,1),SecondCarData["XvsY",number]-90)
+                
+                local Valid1 = Valid2 = ""
+                
+                if(Test1:x() >= 0){ #expand this to work across different iterations of stuff
+            
+                    Pairs[UID,array][3,number] = 1  * FirstCarData["PositiveEndLength",number]
+                    Bog1 = FirstCarData["PositiveEndBogie",entity]
+                    Valid1 = "PositiveEndCanCouple"
+                    
+                }else{
+                    
+                    Pairs[UID,array][3,number] = -1 * FirstCarData["NegativeEndLength",number]
+                    Bog1 = FirstCarData["NegativeEndBogie",entity]
+                    Valid1 = "NegativeEndCanCouple"
+                    
+                }
+                
+                if(Test2:x() >= 0){
+                    
+                    Pairs[UID,array][4,number] = 1  * SecondCarData["PositiveEndLength",number]
+                    Bog2 = SecondCarData["PositiveEndBogie",entity]
+                    Valid2 = "PositiveEndCanCouple"
+                    
+                }else{
+                    
+                    Pairs[UID,array][4,number] = -1 * SecondCarData["NegativeEndLength",number]
+                    Bog2 = SecondCarData["NegativeEndBogie",entity]
+                    Valid2 = "NegativeEndCanCouple"
+                    
+                }
+                
+                #either end has already been coupled once before, or either end is already coupled
+                
+                if(FirstCarData[Valid1,number] & SecondCarData[Valid2,number] & !Bog1:hasConstraints("rope") & !Bog2:hasConstraints("rope")){
+                    
+                    Pairs[UID,array][1,number] = 4
+                    Pairs[UID,array][2,number] = 10
+                    
+                }
+                
+            }
+            
+        }
+        
+        if(Pairs[UID,array][1,number] == 4){ #DEFCON 4: Car is in the right general vicinity, check if it's facing the right direction
+            
+            if(arePointingAtEachother(FirstCarData,SecondCarData,FirstFrame,SecondFrame,Pairs[UID,array][3,number],Pairs[UID,array][4,number])){
+                
+                Pairs[UID,array][1,number] = 3
+                Pairs[UID,array][2,number] = 10
+    
+            }
+            
+        }
+        
+        if((Pairs[UID,array][1,number] == 3) |  #DEFCON 3: Car is aligned, just isn't in range yet. Tracked frequently.
+        (Pairs[UID,array][1,number] == 2)){     #DEFCON 2: Car is very close to coupling. Updated extremely frequently.
+            
+            
+            local FlatPosition1 = FirstFrame:toWorld(FirstCarData["Dir",vector] * Pairs[UID,array][3,number])*vec(1,1,0)
+            local FlatPosition2 = SecondFrame:toWorld(SecondCarData["Dir",vector] * Pairs[UID,array][4,number])*vec(1,1,0)
+            
+            local Dist = FlatPosition1:distance(FlatPosition2)
+            
+            local Dist2 = Dist - (FirstCarData["BogieCouplingRadius",number] + SecondCarData["BogieCouplingRadius",number] - 4)
+            Pairs[UID,array][5,number] = Dist2
+            
+            if(Dist2 < 0){ #DEFCON 2 or 3 to DEFCON 1
+                
+                Pairs[UID,array][1,number] = 1
+                Pairs[UID,array][2,number] = 1
+                
+            }elseif((Dist2 - 250) < 0 & Pairs[UID,array][1,number] != 2){ #DEFCON 3 to DEFCON 2, if it's not close enough to qualify yet
+                
+                Pairs[UID,array][1,number] = 2
+                Pairs[UID,array][2,number] = 10
+                
+            }
+            
+        }
+        
+        if(Pairs[UID,array][1,number] == 1){ #DEFCON 1: Car is presumed in range to couple, double-check the positioning then couple the car.
+                
+            if(arePointingAtEachother(FirstCarData,SecondCarData,FirstFrame,SecondFrame,Pairs[UID,array][3,number],Pairs[UID,array][4,number])){
+                
+                local FirstEnd = 1.5-sign(Pairs[UID,array][3,number])*0.5
+                local SecondEnd = 1.5-sign(Pairs[UID,array][4,number])*0.5
+                
+                CouplingTracker[FirstCouplingID,table][select(FirstEnd,"PositiveEndCanCouple","NegativeEndCanCouple"),number] = 0
+                CouplingTracker[SecondCouplingID,table][select(SecondEnd,"PositiveEndCanCouple","NegativeEndCanCouple"),number] = 0
+                
+                local RelativeVelocity = round(((FirstFrame:vel() - SecondFrame:vel()):length()*60*60)/(5280*12),1)
+                
+                local FirstBogie = FirstCarData[select(FirstEnd,"PositiveEndBogie","NegativeEndBogie"),entity]
+                local SecondBogie = SecondCarData[select(SecondEnd,"PositiveEndBogie","NegativeEndBogie"),entity]
+                
+                couple(FirstBogie,SecondBogie,mdlname(FirstFrame)+" to "+mdlname(SecondFrame) + " at "+RelativeVelocity+" relative MPH.")
+                
+                local SID = getSID()
+                FirstBogie:soundPlay(SID,3,CoupleNoise)
+                soundLevel(SID,70+RelativeVelocity*5)
+                
+                local SID = getSID()
+                SecondBogie:soundPlay(SID,3,CoupleNoise)
+                soundLevel(SID,70+RelativeVelocity*5)
+                
+                if(invalidTracking(FirstCouplingID)){
+                    
+                    stopTracking(FirstCouplingID)
+                    
+                }
+                
+                if(invalidTracking(SecondCouplingID)){
+                    
+                    stopTracking(SecondCouplingID)
+                    
+                }                
+                
+                DontRerunTimer = 1
+                
+                Pairs:remove(UID)
+                    
+            }
+            
+        }
+        
+        if(!DontRerunTimer){newTimer(UID)}
+        
+    }
+    
+}
