@@ -261,7 +261,7 @@ if(first()){
     holoAlpha(9,0)
     
     
-    for(N=4,8){
+    for(N=4,9){
         holoParent(N,CS)
     }
     for(N=11,13){
