@@ -90,7 +90,7 @@ if(first()|dupefinished()){
     }
     
     
-    
+    BootN = 0
     
     function void wirelink:initPage(PageNum,IS){
         
@@ -918,6 +918,7 @@ if(clk("clk")){
     timer("boot",1000)
 }elseif(clk("boot")){
     local Spin = 150
+    #print(BootN)
     switch(BootN){
         case 1,
             EGP1:egpText(1,"L.O.C.O.S. Version " + Version + " initial boot",vec2(8,BootN*24))
@@ -996,8 +997,10 @@ if(clk("clk")){
             EGP1:egpText(10,"Dialing P3X-7572: -",vec2(8,(10)*24))
             EGP1:egpAlign(10,0,1)
             EGP1:egpFont(10,"Lucida Console",16)
-            BootN+=0.05
+            #BootN+=0.05
+            BootN = 11 #Hack until I can figure out why this isn't working - Toast
             timer("boot",Spin)
+            #print("fart1")
             break
         case 10.05,
             EGP1:egpSetText(10,"Dialing P3X-7572: \\")
@@ -1005,13 +1008,15 @@ if(clk("clk")){
             EGP1:egpFont(10,"Lucida Console",16)
             BootN+=0.05
             timer("boot",Spin)
+            #print("fart2")
             break
-        case 10.10,
+        case 10.1,
             EGP1:egpSetText(10,"Dialing P3X-7572: |")
             EGP1:egpAlign(10,0,1)
             EGP1:egpFont(10,"Lucida Console",16)
             BootN+=0.05
             timer("boot",Spin)
+            #print("fart3")
             break
         case 10.15,
             EGP1:egpSetText(10,"Dialing P3X-7572: /")
@@ -1019,6 +1024,7 @@ if(clk("clk")){
             EGP1:egpFont(10,"Lucida Console",16)
             BootN+=0.05
             timer("boot",Spin)
+            #print("fart4")
             break
         case 10.20,
             EGP1:egpSetText(10,"Dialing P3X-7572: -")
