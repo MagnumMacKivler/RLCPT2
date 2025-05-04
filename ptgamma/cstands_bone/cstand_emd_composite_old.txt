@@ -1,9 +1,9 @@
 @name ptgamma/cstands_bone/cstand_emd_composite_old
 @inputs MU_Master Pod:entity ControlStand:wirelink Number:string Horn1 Quill1 Horn2 Quill2 EmBrake BellToggle LightToggle MiscToggle HEP_Notch Active RemoteControl UsingRearSeat HumpMultiplier HdltUnlock ThirdPerson PrevWeapon NextWeapon
-@outputs CtlTable:table Bell Light Misc CONSTANT RemoteMode
+@outputs CtlTable:table Bell LightF LightR Misc CONSTANT RemoteMode
 @persist NotchedThrottle NumThrottleNotches HasDynamics NotchedDynamics TransitionMode TransitionControlType AirBrakeMode LocoBrakeMode InitialReduction Lock_26L Bleeding CTL_Version:string
 @persist [Lever_Throttle Lever_ReverserF Lever_ReverserN Lever_ReverserB Lever_24RL Lever_26L AirBrakeApply AirBrakeRelease AirBrakeDump LocoBrakeFull LocoBrakeReleaseHard LocoBrakeReleaseSoft WarningHiss]:string
-@persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ HLQ
+@persist NQ Notch DNQ DynaNotch Dynamics SelectorQ RevQ ABQ HissQ LBQ LHissQ HLQ Load1 BrakeCyl1 BrakePipe1 MainRes1 EqualRes1 CFM1
 @persist ControlPrintOrder:array DriverQ Routing:table DriverOld:entity Controls:table Shift:string
 @persist ReverserF ReverserB IncreaseThrottle DecreaseThrottle IncreaseDynamics DecreaseDynamics KeyDynUp KeyDynDn IncreaseTrainBrake DecreaseTrainBrake
 @persist IncreaseLocoBrake DecreaseLocoBrake SelectorUp SelectorDown KeySelUp KeySelDn
@@ -11,9 +11,10 @@
 @persist SetReverser SetThrottle SetDynamics SetSelector SetBrakeNotch SetEqualRes SetLocoBrakeNotch SetLocoBrakePressure SetBleeding FeedPressure FullReleaseCock WarningHissQ
 @persist HornType C1P:vector C1A:angle CordAnchor1:vector CordAnchor2:vector CordExtendLength DongleHeight PullLength DownRatio
 @persist CS:entity BellB:entity LeverBased
-@persist RevBone ThrBone ThrWhlBone SelBone SelWhlBone ABBone IDBone IDBoneB CutSw HornBone SanderBone BellBone
+@persist RevBone ThrBone ThrWhlBone SelBone SelWhlBone ABBone IDBone IDBoneB CutSw HornBone SanderBone BellBone AmmeterBone MainResBone EqResBone BrkCylBone BrkPipeBone BPFBone
 @persist EngRunBone GenFieldBone ControlBone LightBone
-@inputs  EngineRun GenField Control HdltFront HdltRear GrndLt Cutin
+@inputs  EngineRun GenField Control HdltFront HdltRear GrndLt Cutin Load BrakeCyl BrakePipe MainRes EqualRes CFM
+@inputs  DitchR DitchF ClassF ClassR GyraF GyraR NumF NumR GroundLts
 @trigger 
 if(duped()){
     reset()
@@ -178,6 +179,7 @@ if(first()){
     
     CONSTANT = 1
     
+    LightPosStaging = 0.5
     
     #Control Stand Init
     CS = ControlStand:entity()
@@ -190,6 +192,9 @@ if(first()){
     CS:toWorld(ang(0,0,0)))
     holoColor(A, vec4(255,255,255,255))
     holoModel(A, "models/anytrains/props/detail/cstand_gp9-18-20_indicators.mdl")
+    holoBodygroup(A,3,1)
+    holoBodygroup(A,4,HasDynamics ? 0 : 1)
+    holoBodygroup(A,5,1)
     holoParent(A, CS)
     holoMaterial(A,"")
     
@@ -267,7 +272,14 @@ if(first()){
     
     IDBoneB = CS:boneIndex("independantbail")
     
-    #IDBoneB = CS:boneIndex("locobrake_bleed")
+    AmmeterBone = CS:boneIndex("load")
+    MainResBone = CS:boneIndex("mainres")
+    EqResBone = CS:boneIndex("equalres")
+    BrkPipeBone = CS:boneIndex("brakepipe")
+    BrkCylBone = CS:boneIndex("brakecyl")
+    BPFBone = CS:boneIndex("AFM")
+    
+    #IDBoneB = CS:boneIndex("locobrake_bleed")AmmeterBone MainResBone EqResBone BrkCylBone BrkPipeBone BPFBone
     
     CtlTable["CTL_Version",string] = CTL_Version
     setName("RLC PT2 Control Stand ("+CtlTable["CS_Version",string]+")\nEMD Composite Bonecore\n"+select(AirBrakeMode+1,"Simple SL","Simple ML","26-L","24-RL","No.6")+" with "+(LocoBrakeMode ? "ML" : "SL")+" Independents")
@@ -928,6 +940,15 @@ if(clk("clk")){
     CS:setBodygroup(13,GenField ? 1 : 0)
     CS:setBodygroup(12,Control ? 1 : 0)
     CS:setBodygroup(15,GrndLt ? 1 : 0)
+    CS:setBodygroup(24,DitchF)
+    CS:setBodygroup(25,DitchR)
+    CS:setBodygroup(22,ClassF)
+    CS:setBodygroup(23,ClassR)
+    CS:setBodygroup(20,GyraF)
+    CS:setBodygroup(21,GyraR)
+    CS:setBodygroup(18,NumF)
+    CS:setBodygroup(19,NumR)
+    CS:setBodygroup(15,GroundLts)
     CS:setBoneAngRelative(CutSw,ang(0,0,Cutin ? -90 : 0))
     BellB:setBonePos(BellBone,vec(0,Bell ? 0.175 : 0,0))
     
@@ -968,39 +989,73 @@ if(clk("clk")){
     CS:setBoneAngRelative(SelWhlBone,ang(Dynamics ? -30 : SetSelector*+30,0,0))
     #CS:setBodygroup(9,KeySelUp - KeySelDn + 1)
     
+    
     if(HdltFront == 1){
         LightF = HdltFront/3 
+        CS:setBodygroup(16,1)
     }
     if(HdltRear == 1){
         LightR = HdltRear/3 
+        CS:setBodygroup(17,1)
     }
-    if(HdltUnlock & !ThirdPerson & PrevWeapon & LightPos<2 & !HLQ){
+    if(HdltUnlock & !ThirdPerson & NextWeapon & LightPos<2 & !HLQ){
         HLQ = 1
         LightPos++
         LightPosStaging = LightPos>0 ? 0.5+LightPos*0.25 : 0.5
         CS:soundPlay(7,0,"rlc_delta/cstands/sw_hdlt_"+randint(1,4)+".wav")
         CS:setBoneAngRelative(LightBone,ang(0,0,LightPos*59.75))
-    }elseif(HdltUnlock & !ThirdPerson & NextWeapon & LightPos>-2 & !HLQ){
+    }elseif(HdltUnlock & !ThirdPerson & PrevWeapon & LightPos>-2 & !HLQ){
         HLQ = 1
         LightPos--
-        LightPosStaging = LightPos>0 ? 0.5+LightPos*0.25 : 0.5
+        LightPosStaging = LightPos<0 ? 0.5+LightPos*0.25 : 0.5
         CS:soundPlay(7,0,"rlc_delta/cstands/sw_hdlt_"+randint(1,4)+".wav")
         CS:setBoneAngRelative(LightBone,ang(0,0,LightPos*59.75))
-    }elseif(!NextWeapon & !PrevWeapon & HLQ){
+    }elseif(!PrevWeapon & !NextWeapon & HLQ){
         HLQ = 0
     }
-    if(LightPosStaging>0){
-        LightF = LightPosStaging
+    if(LightPosStaging == 0.5){
+        LightF = 0.5
+        LightR = 0.5
     }
-    if(LightPosStaging<0){
-        LightR = LightPosStaging
+    if(LightPosStaging == 0.75){
+        LightF = 0.5
+        LightR = 0.75
+    }
+    if(LightPosStaging == 1){
+        LightF = 0.5
+        LightR = 1
+    }
+    if(LightPosStaging == 0.25){
+        LightF = 0.75
+        LightR = 0.5
+    }
+    if(LightPosStaging == 0){
+        LightF = 1
+        LightR = 0.5
     }
     if(HdltFront == 0){
     LightF = 0
+    CS:setBodygroup(16,0)
     }
     if(HdltRear == 0){
     LightR = 0
+    CS:setBodygroup(17,0)
     }
+    
+    Load1 = Load1 + (abs(Load) - Load1) / 2
+    EqualRes1 = EqualRes1 + ((EqualRes) - EqualRes1) * 0.75
+    MainRes1 = MainRes1 + ((MainRes) - MainRes1) * 0.75
+    BrakePipe1 = BrakePipe1 + ((BrakePipe) - BrakePipe1) * 0.75
+    BrakeCyl1 = BrakeCyl1 + ((BrakeCyl) - BrakeCyl1) * 0.75
+    CFM1 = CFM1 + ((CFM) - CFM1) * 0.75
+    
+    CS:setBoneAngRelative(AmmeterBone,ang(0,0,0+(Load1/1500)*+(90)))
+    CS:setBoneAngRelative(MainResBone,ang(0,0,0-(268*(EqualRes1/160))))
+    CS:setBoneAngRelative(EqResBone,ang(0,0,0-(268*(MainRes1/160))))
+    CS:setBoneAngRelative(BrkPipeBone,ang(0,0,0-(268*(BrakePipe1/160))))
+    CS:setBoneAngRelative(BrkCylBone,ang(0,0,0-(268*(BrakeCyl1/160))))
+    CS:setBoneAngRelative(BPFBone,ang(0,0,0-(268*(CFM1/90))))
+    
     
     timer("clk",50)
 }elseif(clk("EndHiss")){
@@ -1283,10 +1338,6 @@ if(chatClk(owner())|chatClk(Pod:driver())){
         }
     }
     
-}
-if(LightToggle & ~LightToggle){
-    Light = !Light
-    CS:soundPlay(0,1,"buttons/lightswitch2.wav")
 }
 if(BellToggle & ~BellToggle){
     Bell = !Bell
