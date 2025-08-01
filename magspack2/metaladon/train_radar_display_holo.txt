@@ -1,0 +1,121 @@
+@name Train Radar Display Holo
+@persist Targets:array HolosToMake:table HoloID:number
+@outputs Model:string
+
+if(first() | dupefinished()){
+    #dug up and remade 4-12-25 - met
+    holoCreate(0,entity():toWorld((entity():pos()/16384)*200),vec(0.2),ang(0,0,0),vec(255,0,0),"sphere")
+    holoParent(0,entity())
+    
+    #[
+    findExcludeClass("gmod_wire")
+    #findIncludeModel("models")
+    #findIncludeModel("gm")
+    findIncludeModel("models/magtrains")
+    findIncludeModel("models/gsg")
+    findIncludeModel("models/unionslocos")
+    findIncludeModel("models/unionstrains")    
+    findIncludeModel("models/jazzie")
+    findIncludeModel("models/flak")
+    findIncludeModel("models/bobster")
+    findIncludeModel("train")
+    findIncludeModel("EOTL")
+    findExcludeModel("bogey")
+    findExcludeModel("parts")
+    
+    findExcludeModel("ramp")
+    findExcludeModel("track")]#
+    
+    #findIncludeClass("player")
+    findInSphere(entity():pos(),90000)
+    Targets = findToArray()
+    HolosToMake = table()
+    X = 1
+    
+    while(X <= Targets:count()){
+        
+        if(Targets[X,entity]:type():find("prop_dynamic") | Targets[X,entity]:type():find("tp3") | Targets[X,entity]:type():find("holo") | (Targets[X,entity]:boxSize():length() < 200 & !Targets[X,entity]:model():find("player"))){
+            Targets:remove(X)
+        
+        }else{
+            
+            if(Targets[X,entity]:model():find("player")){
+                Model = "sphere"
+                Scale = 0.2
+                Color =vec(0,255,0)
+            }else{
+                Model = Targets[X,entity]:model()
+                Scale = 0.0122
+                Color = Targets[X,entity]:getColor()
+            }
+            
+            HolosToMake:pushArray(array(Targets[X,entity],Model,Scale,Color))
+            
+            X++
+            
+        }
+        
+        
+        
+    }
+    
+    HoloID = 1
+}
+
+while(minquota() > 3000 & holoCanCreate()){
+    
+    local Model = HolosToMake[1,array][2,string]
+    local Scale = HolosToMake[1,array][3,number]
+    local Color = HolosToMake[1,array][4,vector]
+    local Entity = HolosToMake[1,array][1,entity]
+    
+    holoCreate(HoloID,entity():toWorld((Entity:pos()/16384)*200),vec(Scale),Entity:angles(),Color,Model)
+    holoParent(HoloID,entity())  
+    HolosToMake:remove(1)  
+    HoloID++
+    
+}
+    
+interval(300)
+ 
+for(X=1,Targets:count()){
+    holoPos(X,entity():toWorld((Targets[X,entity]:pos()/16384)*200))
+    holoAng(X,entity():toWorld(Targets[X,entity]:angles()))
+}
+
+#[
+if(first())
+{
+    # Find Players
+    findInSphere(entity():pos(), 90000)
+    Targets = findClipToClass("player")
+    
+    
+    # Initialize radar holograms
+    for( X = 1, Targets)
+    {
+        if(findResult(X):isPlayer())
+        {
+            holoCreate( X, entity():pos(), vec(0.5,0.5,0.5) )
+            holoModel( X, "sphere")
+        }
+    }
+
+}
+
+interval(100)
+
+# Update position of backdrop
+holoPos(0,entity():pos() + vec(0,0,10))
+
+# Update positions of radar holograms
+for( X = 1, Targets)
+{
+    
+    if(findResult(X):isPlayer())
+    {
+    # Get position of targeted player, localize the vector, place at expression chip, and scale down
+    holoPos( X, (entity():pos() + entity():toLocal(findResult(X):pos()) / vec(100,100,50)) + vec(0,0,15) )
+    
+    }
+}]#

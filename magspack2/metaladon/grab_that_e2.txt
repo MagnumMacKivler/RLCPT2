@@ -1,0 +1,27 @@
+@name Grab That E2
+@inputs 
+@outputs 
+@persist 
+@strict
+
+findInSphere(entity():pos(),102400)
+findClipToClass("gmod_wire_expression2")
+R = findToArray()
+
+Kill = "wolfram industrial" #Set this as "crynet" if not in use
+
+for(N=1,R:count()){
+    local O = R[N,entity]
+    
+    #holoParent(N,O)
+    #if(O:getName():lower():find(Kill) & O:owner()==owner()){
+    if(O:getName():lower():find(Kill)){
+        
+        holoCreate(N,O:pos() + vec(0,0,12),vec(1,1,2)*5,ang(180,0,0),vec(255,0,0),"cone")
+        holoDisableShading(N,1)
+        holoAlpha(N,100)
+        holoMaterial(N,"debug/debugdrawflat")
+        print(O:getName())
+        O:setPos(entity():pos()+vec(0,0,5))
+    }
+}
