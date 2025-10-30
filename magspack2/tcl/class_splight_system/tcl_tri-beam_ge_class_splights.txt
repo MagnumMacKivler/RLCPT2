@@ -1,0 +1,131 @@
+@name TCL Tri-Beam GE Class Splights
+@inputs SwitchPos
+@outputs 
+@persist E:entity 
+@trigger 
+@model models/gsgtrainprops/parts/auxlights/class_light_gmdd.mdl
+    
+#-------------------------------------------------------------------------------#
+# W E L C O M E   A B O A R D   T H E   T R A N S - C A N A D A   L I M I T E D #
+#                                                                               #
+# Hello and welcome to the TCL Tri-Beam Class Splight System! This E2 uses      #
+# a new sprite- and submaterial- based lighting system (developed with help     #
+# from Monkatraz) to simulate the tri-beam class lights found on mid- to        #
+# late-era North American diesel locomotives.                                   #
+#                                                                               #
+# This version is a modified tri-light plate found on GE units that ran on      #
+# BC Rail and CN C40-8Ms with the white light in the middle.                    #
+#                                                                               #
+# This accessory is designed to be used in tandem with TCL Advanced Class Light #
+# Controller V2.                                                                #
+#                                                                               #
+# Setup instructions:                                                           #
+#   1)  Spawn this E2 on the ground and rotate it into the orientation you want #
+#       it to be placed on your locomotive.                                     #
+#   2)  Use the Precision Move tool (or Physgun) to position the E2 and parent  #
+#       it to your locomotive. Repeat this process for each class light.        #
+#   3)  Wire the SwitchPos input to the output of the same name on your Class   #
+#       Light Controller, or any other wire device that outputs from 0 to 3.    #
+#   4)  Cycle through a few times to test, make sure you've parented everything #
+#       and enjoy!                                                              #
+#                                                                               #
+# SUPER thanks to Monkatraz for help with development and optimization!         #
+#                                                                               #
+# GE middle light modifications by Patman                                       #
+#                                                                               #
+# Happy railroading!                                                     TCL <3 #
+#                                                                               #
+#         Having problems? Find me on Discord!  TransCanadaLimited#8427         #
+#-------------------------------------------------------------------------------#
+
+#####
+
+if(first() | dupefinished()){ 
+
+E=entity()
+
+    holoCreate(2)
+    holoParent(2,E)
+    holoModel(2,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(2,"models/proppertextures/rubber")
+    holoScale(2,vec(0.44))
+    holoAng(2,E:toWorld(ang(0,90,0)))
+    holoPos(2,E:toWorld(vec(0,6,0)))
+    holoCreate(3)
+    holoParent(3,E)
+    holoModel(3,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(3,"models/proppertextures/rubber")
+    holoScale(3,vec(0.44))
+    holoAng(3,E:toWorld(ang(0,90,0)))
+    holoPos(3,E:toWorld(vec(0,0,0)))
+    holoCreate(4)
+    holoParent(4,E)
+    holoModel(4,"models/sprops/geometry/t_fdisc_12.mdl")
+    holoMaterial(4,"models/proppertextures/rubber")
+    holoScale(4,vec(0.44))
+    holoAng(4,E:toWorld(ang(0,90,0)))
+    holoPos(4,E:toWorld(vec(0,-6,0)))
+	
+}
+
+    spriteEnable(0,1)
+    spriteSpawn(0,"sprites/light_glow01")
+    spriteSetParent(0,E)
+    spriteSetScale(0,0.5)
+
+    holoCreate(1)
+    holoParent(1,E)
+    holoModel(1,"models/gsgtrainprops/parts/auxlights/class_light_gmdd.mdl")
+    holoEntity(1):setSubMaterial(1,"models/proppertextures/invisible")
+    holoDisableShading(1,1)
+
+if(SwitchPos){
+    if(SwitchPos==1){
+        #WHITE
+        spriteSetColor(0,vec(200))
+        spriteSetPos(0,E:toWorld(vec(1,0,0)))
+        spriteSetAlpha(0,255)
+        holoColor(1,vec(200))
+        holoEntity(1):setSubMaterial(2,"models/debug/debugwhite")
+        holoEntity(1):setSubMaterial(3,"models/proppertextures/invisible")
+        holoEntity(1):setSubMaterial(4,"models/proppertextures/invisible")
+        E:setSubMaterial(2,"models/proppertextures/invisible")
+        E:setSubMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+        E:setSubMaterial(4,"models/gsgtrainprops/auxlights/lens_glass_red")
+    }
+    if(SwitchPos==2){
+        #RED
+        spriteSetColor(0,vec(200,0,0))
+        spriteSetPos(0,E:toWorld(vec(1,6,0)))
+        spriteSetAlpha(0,255)
+        holoColor(1,vec(200,0,0))
+        holoEntity(1):setSubMaterial(2,"models/proppertextures/invisible")
+        holoEntity(1):setSubMaterial(3,"models/proppertextures/invisible")
+        holoEntity(1):setSubMaterial(4,"models/debug/debugwhite")
+        E:setSubMaterial(2,"models/gsgtrainprops/auxlights/lens_glass")
+        E:setSubMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+        E:setSubMaterial(4,"models/proppertextures/invisible")
+    }
+    if(SwitchPos==3){
+        #GREEN
+        spriteSetColor(0,vec(100,200,100))
+        spriteSetPos(0,E:toWorld(vec(1,-6,0)))
+        spriteSetAlpha(0,255)
+        holoColor(1,vec(125,255,125))
+        holoEntity(1):setSubMaterial(2,"models/proppertextures/invisible")
+        holoEntity(1):setSubMaterial(3,"models/debug/debugwhite")
+        holoEntity(1):setSubMaterial(4,"models/proppertextures/invisible")
+        E:setSubMaterial(2,"models/gsgtrainprops/auxlights/lens_glass")
+        E:setSubMaterial(3,"models/proppertextures/invisible")
+        E:setSubMaterial(4,"models/gsgtrainprops/auxlights/lens_glass_red")
+    }
+}
+elseif(!SwitchPos){
+    spriteSetAlpha(0,0)
+    holoEntity(1):setSubMaterial(2,"models/proppertextures/invisible")
+    holoEntity(1):setSubMaterial(3,"models/proppertextures/invisible")
+    holoEntity(1):setSubMaterial(4,"models/proppertextures/invisible")
+    E:setSubMaterial(2,"models/gsgtrainprops/auxlights/lens_glass")
+    E:setSubMaterial(3,"models/gsgtrainprops/auxlights/lens_glass_green")
+    E:setSubMaterial(4,"models/gsgtrainprops/auxlights/lens_glass_red")
+}
