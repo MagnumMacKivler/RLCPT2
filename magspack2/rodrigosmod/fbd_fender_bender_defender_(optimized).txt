@@ -1,0 +1,435 @@
+@name FBD Fender Bender Defender (Optimized)
+@inputs Enable Active MPH
+@outputs EmBrake CycleTime TruckCount Running Analyzing RTD_Counter Enable_True PCS_Open
+@persist Trucks:array TruckTypes:array W:entity O:entity SpeedThreshold Index RTD FreezeOnDerail
+@persist Running Initialized Interval Derail MarkerColor:vector TruckModels:array SpeedQ
+@persist Paths:table Analyzing TC Consist:array AI Disabled RefreshKey:string
+@persist BlackListModels:array XHitbox YHitbox Sound:string SoundAfter:string Hitbox Gauge
+@persist [RerailData]:table RTD_Counter RTD_Interval MaxRerailSlots CurrentRerailSlot
+@trigger Enable Active
+@model models/Items/combine_rifle_ammo01.mdl
+
+if(first() | dupefinished()) {
+    
+    local Version = "V5 Optimized"
+    
+    #[ 
+    
+    
+    This is just an extremely modified version of the original FBD (Made by Magnum) with the next features:
+        | Simplified code
+        | Virtually infinite rerail positions (check the MaxRerailSlots var)
+        | Crazy angular / origin preventing server crash because it could setpos a constrained parented prop making it be outside the world
+        | Easier to switch gauges types
+        | Commands were switched from .rerail to .r, .r2, .r3 and so on depending of how much MaxRerailSlots you got
+        | Added a command to unfreeze the entire train, .u
+        | Added a keybind for easy chip refreshing (default is J but you can switch it in RefreshKey var below)
+        | Added XHitbox and YHitbox, in some cases, you need to tweak these 2 values since FBD can get confused with some bogies and false derail 
+        | Easier sound replacement
+        | Removed most of the stuff 
+
+    Any bug or question, ask to RodrigosMOD
+    
+    FAST COMMAND LIST:
+    Rerail: .r, .r2, .r3 and so on until your max max slots
+    Unfreeze: .u
+    Refresh keybind (default): J
+    
+    ]#
+    
+    Gauge = 27  # 27 for RSG and 38 for PHX
+    
+    XHitbox = 1
+    YHitbox = 1
+    
+    Sound = "gsgtrainsounds/other/joke/lionel_traintown/traintown_collision.wav" # Sound, duh
+    SoundAfter = "d1_trainstation.apc_alarm_loop1"
+    RefreshKey = "j" # Key for auto refreshing the E2
+    
+    FreezeOnDerail = 0
+    RTD = 1  # Red Tape Defender 
+    
+    MarkerColor = vec(110, 50, 50)
+    SpeedThreshold = 5
+    Interval = 50  # Update rate
+    RTD_Interval = 10  # Seconds between save positions
+    MaxRerailSlots = 10  # Amount of rerail positions
+    
+    # Blacklist for bogies
+    BlackListModels = array(
+        "models/rod's_stuff/bogie_sliders/hyperslider_rsg_axle.mdl",
+        "models/rod's_stuff/bogie_sliders/rsgexp/hyperslider_rsgexp_axle.mdl"
+    )
+    
+    # Bogie model paths
+    Paths = table()
+    Paths["bogey", string] = "bogey"
+    Paths["bogie", string] = "bogie"
+    Paths["truck", string] = "truck"
+    
+    # Extra models
+    TruckModels = array(
+        "models/bobsters_trains_2/wheels/standard/double_30.mdl"
+    )
+    
+    # MaxRerailSlots Init
+    RerailData = table()
+    for(I = 1, MaxRerailSlots) {
+        RerailData[I, table] = table()
+        RerailData[I, table]["entities", array] = array()
+        RerailData[I, table]["positions", array] = array()
+        RerailData[I, table]["angles", array] = array()
+    }
+    CurrentRerailSlot = 1
+    
+    # Main vars
+    O = owner()
+    Index = 1
+    Running = 0
+    Derail = 0
+    Analyzing = 0
+    AI = 1
+    Initialized = 0
+    SpeedQ = 0
+    Disabled = 0
+    
+    runOnChat(1)
+    runOnKeys(O, 1)
+    signalSetGroup("FBD")
+    
+    # Main base detection
+    local E = entity()
+    if(E:parent():isValidPhysics()) {
+        W = E:parent()
+    } elseif(E:isWeldedTo():isValidPhysics()) {
+        W = E:isWeldedTo()
+    } else {
+        hint("[FBD]: ERROR, couldn't find the engine's base!", 10)
+        owner():soundPlay(0,0.6,"NPC_AttackHelicopter.CrashingAlarm1")
+        soundPitch(0,70)
+        exit()
+    }
+    
+    # RSG / PHX message
+    if(Gauge == 27){
+        GaugeType = "RSG/TP3"
+    }elseif(Gauge == 38){
+        GaugeType = "PHX/TP2"
+    }else{
+        GaugeType = "Custom"
+    }
+
+    setName("FBD - Gauge: " + GaugeType)
+    hint("[FBD]: Initialized - Gauge: " + GaugeType, 7)
+    
+
+}
+
+
+# === FUNCIONES ===
+
+function void getTrucks(Base:entity) {
+    TC = 0
+    Trucks = array()
+    AI = 1
+    Analyzing = 1
+    Running = 0
+    PCS_Open = 0
+    Consist = Base:getConstraints()
+    timer("analyze", 50)
+}
+
+function array encode(Trux:array) {
+    local Codes = array()
+    for(N = 1, Trux:count()) {
+        local Prop = Trux[N, entity]
+        local Box = Prop:boxSize()
+        Codes[N, number] = (Box:x() > Box:y()) ? 1 : 0
+    }
+    return Codes
+}
+
+function void refresh() {
+    Index = 1
+    getTrucks(W)
+    Derail = 0
+    holoDelete(0)
+}
+
+function void freezeAll() {
+    local Constrained = W:getConstraints()
+    W:propFreeze(1)
+    for(N = 1, Constrained:count()) {
+        Constrained[N, entity]:propFreeze(1)
+    }
+}
+
+function void unfreezeAll() {
+    local Constrained = W:getConstraints()
+    W:propFreeze(0)
+    for(N = 1, Constrained:count()) {
+        Constrained[N, entity]:propFreeze(0)
+    }
+}
+
+function void rtd_save() {
+    # Switch slots 
+    for(I = MaxRerailSlots, 2, -1) {
+        RerailData[I, table] = RerailData[I - 1, table]:clone()
+    }
+    
+    # Save new position on Slot 1
+    local Entities = array(W):add(W:getConstraints())
+    local Positions = array()
+    local Angles = array()
+    
+    for(N = 1, Entities:count()) {
+        local Ent = Entities[N, entity]
+        Positions[N, vector] = Ent:pos()
+        Angles[N, angle] = Ent:angles()
+    }
+    
+    RerailData[1, table]["entities", array] = Entities
+    RerailData[1, table]["positions", array] = Positions
+    RerailData[1, table]["angles", array] = Angles
+}
+
+function void rerailToSlot(SlotNum:number) {
+    if(SlotNum < 1 | SlotNum > MaxRerailSlots) {
+        hint("[FBD]: " + SlotNum + " is not a valid position", 3)
+    }
+    
+    if(!RTD) {
+        hint("[FBD]: RTD is not enabled!", 3)
+    }
+    
+    local SlotData = RerailData[SlotNum, table]
+    local Entities = SlotData["entities", array]
+    local Positions = SlotData["positions", array]
+    local Angles = SlotData["angles", array]
+    
+    if(Entities:count() == 0) {
+        hint("[FBD]: slot " + SlotNum + " was still not created!", 3)
+        return void
+    }
+    
+    freezeAll()
+    
+    for(N = 1, Entities:count()) {
+        local Ent = Entities[N, entity]
+        if(Ent:isValidPhysics() & !Ent:parent():isValid()) {
+            Ent:setPos(Positions[N, vector])
+            Ent:setAng(Angles[N, angle])
+        }
+    }
+    
+    O:soundPlay(0, 4, "Buttons.snd9")
+    hint("[FBD] Rerailed to position " + SlotNum, 3)
+}
+
+if(spawnClk()) {
+    Disabled = 0
+} elseif(Enable & Active & ~Active) {
+    Disabled = 0
+}
+
+Enable_True = Enable
+
+if(Enable_True) {
+    # Keyboard refresh keybind
+    if(O:keyPressed(RefreshKey) & (keyClkPressed() == RefreshKey)) {
+        refresh()
+        rtd_save()
+        O:soundPlay(0, 4, "Buttons.snd7")
+        hint("[FBD]: Refreshed", 3)
+        hideChat(1)
+    }
+    
+    # Pod activation
+    if(Active & ~Active | changed(Enable_True)) {
+        refresh()
+        if(RTD) {
+            rtd_save()
+        }
+    } 
+    
+    # Thing that detects a derailment
+    elseif(clk("runtick") & Running & !Analyzing) {
+        local Specimen = Trucks[Index, entity]
+        
+        if(Specimen:isValidPhysics()) {
+            local Type = TruckTypes[Index, number]
+            local LoPoint = Specimen:boxMin() * (Type ? vec(YHitbox, 0, YHitbox) : vec(0, XHitbox, XHitbox))
+            
+            local Corner1 = vec()
+            local Corner2 = vec()
+            local Dir = vec()
+            
+            if(Type) {  # GSG Style
+                Corner1 = LoPoint + vec(0, -Gauge, 1)
+                Corner2 = LoPoint * vec(-1, 0, 1) + vec(0, Gauge, 1)
+                Dir = Specimen:forward() + Specimen:right()
+            } else {  # Mag Style
+                Corner1 = LoPoint + vec(Gauge, 0, 1)
+                Corner2 = LoPoint * vec(-1, 0, 1) + vec(-Gauge, 0, 1)
+                Dir = Specimen:forward() - Specimen:right()
+            }
+            
+            rangerFilter(Specimen)
+            local R1 = rangerOffset(18, Specimen:toWorld(Corner1), Dir)
+            local R2 = rangerOffset(18, Specimen:toWorld(Corner2), -Dir)
+            
+            Derail = !(R1:hit() & R2:hit())
+            
+            if(Derail) {
+                Running = 0
+                EmBrake = 1
+                PCS_Open = 1
+                hint("[FBD]: Derailment at " + round(MPH, 1) + " MPH!", 10)
+                O:soundPlay(0, 5, Sound)
+                
+                # Derailment holo
+                holoCreate(0, Specimen:pos(), vec(1.125), Specimen:angles(), MarkerColor, Specimen:model())
+                holoParent(0, Specimen)
+                holoAlpha(0, 100)
+                holoMaterial(0, "debug/debugdrawflat")
+                
+                stopAllTimers()
+                timer("fenderbender", 3000)
+                
+                if(FreezeOnDerail) {
+                    freezeAll()
+                }
+            } else {
+                Index = (Index >= Trucks:count()) ? 1 : Index + 1
+                
+                if(RTD) {
+                    RTD_Counter++
+                    if(RTD_Counter > RTD_Interval * 20) {
+                        rtd_save()
+                        RTD_Counter = 0
+                    }
+                }
+                
+                timer("runtick", Interval)
+            }
+        } else {
+            hint("[FBD]: Truck mismatch at index " + Index, 1)
+            refresh()
+        }
+    }
+    
+    # Truck analyzer 
+    elseif(clk("analyze") & Analyzing) {
+        local Prop = Consist[AI, entity]
+        local Model = Prop:model()
+        local IsTruck = 0
+        local IsBlacklisted = 0
+        
+        # Blacklist check
+        for(N = 1, BlackListModels:count()) {
+            if(Model == BlackListModels[N, string]) {
+                IsBlacklisted = 1
+                break
+            }
+        }
+        
+        # Extra model check
+        if(!IsBlacklisted) {
+            for(M = 1, TruckModels:count()) {
+                if(Model == TruckModels[M, string]) {
+                    IsTruck = 1
+                    break
+                }
+            }
+            
+            # Verify paths
+            if(!IsTruck) {
+                foreach(K, V:string = Paths) {
+                    if(Model:find(V)) {
+                        IsTruck = 1
+                        break
+                    }
+                }
+            }
+        }
+        
+        if(IsTruck) {
+            TC++
+            Trucks[TC, entity] = Prop
+        }
+        
+        AI++
+        
+        if(AI > Consist:count()) {
+            Initialized = 1
+            Analyzing = 0
+            TruckTypes = encode(Trucks)
+            Running = 1
+            TruckCount = Trucks:count()
+            CycleTime = ((Interval * TruckCount) / 1000)
+            timer("runtick", Interval)
+            timer("speedtest", 1000)
+        } else {
+            timer("analyze", 50)
+        }
+    }
+    
+    # Speedtest
+    elseif(clk("speedtest")) {
+        if((MPH > SpeedThreshold) & !SpeedQ) {
+            SpeedQ = 1
+            refresh()
+        } elseif((MPH < (SpeedThreshold - 5)) & SpeedQ) {
+            SpeedQ = 0
+        }
+        timer("speedtest", 1000)
+    }
+    
+    # Sound after derailment
+    elseif(clk("fenderbender")) {
+        O:soundPlay(1, 2, SoundAfter)
+        EmBrake = 0
+    }
+    
+    # Chat commands
+    elseif(chatClk(O)) {
+        local LS = O:lastSaid()
+        
+        if(LS == ".refresh") {
+            Initialized = 1
+            refresh()
+            timer("runtick", Interval)
+            timer("speedtest", 1000)
+            if(RTD) {
+                rtd_save()
+            }
+            hint("[FBD]: Refreshed", 5)
+            hideChat(1)
+        }
+        
+        elseif(LS == ".u") {
+            unfreezeAll()
+            O:soundPlay(0, 4, "Buttons.snd9")
+            hint("[FBD]: Train unfrozen", 5)
+            hideChat(1)
+        }
+        
+        # Rerail commands
+        elseif(LS:sub(1, 2) == ".r") {
+            hideChat(1)
+            local SlotNum = LS:sub(3):toNumber()
+            
+            if(LS == ".r") {
+                SlotNum = 1
+            }
+            
+            rerailToSlot(SlotNum)
+        }
+    }
+    
+} elseif(Initialized) {
+    Initialized = 0
+    Running = 0
+    stopAllTimers()
+}
