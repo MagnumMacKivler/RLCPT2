@@ -1,0 +1,3599 @@
+@name magspack2/metaladon/rattlecan_3
+@inputs Base:entity
+@outputs RunningNumber:string OutputHolos:array Scheme:table Ops
+@persist [START_SCHEME PREFIX CUBE_MODEL PLANE_MODEL]:string SOUNDS AUTOSAVE_INTERVAL DISABLE_MULTIPLE_RATTLECAN_HANDLING BASE_CONSTANTLY_SCAN # config
+@persist [RCMode VERSION VERSION_NAME VERSION_CONFIG RunningNumberForced]:string [E O]:entity CurName:array NotReady Global_CurrentlyInEditorMode Rattlecans:gtable MultipleRattlecans SchemeDupe:string # state
+@persist [LoadFile NewLoadFile]:string SchemeLoaded SavingFile AutosaveNum # loading and saving
+@persist [RenderQueue RenderKeys RenderKeysObjects]:table RenderStep RenderStage RenderKeysDone RenderObjectsPrepared RenderObjectsPrepareType RenderObjectsOrder:array RenderCancel # rendering
+@persist [GetLast SchemeEdit EditorComponents]:table [SelectedObject RefreshSpecific]:string LastHoveredEnt LastAimPos:vector WasHit EditRunningLoop ClipsAvailable RefreshObjects:array Key_E # edit
+@persist [ClipHolos SectionLastSubs SectionLastBodygroups]:array TextStep SectionNumMaterials SectionStep SectionValidStep # module edit
+@persist [PTHProps PTHOriginalColors]:array # prop to holo
+@persist Task_Speed TaskClk [Tasks Tasks2 TaskLoops TaskDelayed Task2Delayed]:table # tasks
+@persist BoundingBox:vector Axis InputDisabled # misc
+#New in 3.1:
+@persist HashIncrementer
+
+if(first() | duped()){ entity():setName("RATTLECAN 3 | NOT STARTED"), entity():setColor(vec(255,255,0)), entity():setMaterial("models/shiny"),runOnChat(0),runOnLast(0),runOnKeys(owner(),0),runOnFile(0),runOnHTTP(0), if(duped()){ exit() } }
+if(!first() & !duped() & !dupefinished() & changed(->Base) & !->Base){NotReady = 1,entity():setName("RATTLECAN 3 | NOT STARTED"), entity():setColor(vec(255,255,0)), entity():setMaterial("models/shiny"), propDeleteAll(), holoDeleteAll()
+    printColor(vec(255,0,0),"[RATTLECAN 3 | ERROR] ",vec(255),"Wire Base input!"), runOnChat(0),runOnLast(0),runOnKeys(owner(),0),runOnFile(0),runOnHTTP(0)}, if(last()){ Base:setAlpha(255) }
+if(first() | dupefinished() | (changed(->Base) & ->Base)){
+    runOnChat(0),runOnLast(0),runOnKeys(owner(),0),runOnFile(0),runOnHTTP(0)
+    if(!->Base){printColor(vec(255,0,0),"[RATTLECAN 3 | ERROR] ",vec(255),"Wire Base input!"), exit()}
+    timer("start",1000), NotReady = 0, exit()}
+if(NotReady){exit()}
+
+if(clk("start")){
+    # V3.0.0 Beta Release: "Patch Unit"
+    # Original RATTLECAN 2 Made by Monkatraz | Discord: Monkatraz#7929 #Currently Inactive
+    # Rattlecan 3 Maintained by Metaladon | Discord: sirmetaladon
+    # Credit to Celtronis for the original fixes that brought Rattlecan back from the dead!
+    # If you find a bug you can reproduce, please DM Metaladon on Discord.
+    # Wiki: https://github.com/MagnumMacKivler/RLCPT2/wiki/RATTLECAN-2
+    
+    START_SCHEME = "default" # File that will be loaded when chip first starts.
+    PREFIX = "." # Command prefix, like .create or .save. You could use say, ".rc" for ".rc create", ".rc save"
+    SOUNDS = 1 # Flashy sounds?
+    AUTOSAVE_INTERVAL = 1000000000 # autosave interval in seconds. autosaving WILL break the chip, so for now its set really high.
+    DISABLE_MULTIPLE_RATTLECAN_HANDLING = 0 # if 1, RC2 won't care about other Rattlecan chips being out. i think this breaks the chip, Disabled!
+    BASE_CONSTANTLY_SCAN = 1 # Scan constantly for new bodygroups and submaterials? You have to refresh the scheme otherwise. disabled? untested
+    
+    CUBE_MODEL = "models/sprops/cuboids/height12/size_1/cube_12x12x12.mdl"
+    PLANE_MODEL = "models/sprops/rectangles_thin/size_3/rect_24x24x1_5.mdl"
+    
+    HashIncrementer = 100
+    
+    # Changelog for Beta V3.0.0 "Patch Unit"
+    # Refactored the clipping function to be more easily understood.
+    # Renamed global variables to Global_[name]
+    # Replaced hash function with an incremental system to get around a Wire regression.
+    # Disabled or removed a few features due to crashes - will be fixed later.
+    
+    # Changelog for Beta V0.11.2 "War Bonnet"
+    # Changed how Rattlecan retrieves the scheme from duped contraptions to hopefully improve reliability
+    # Changed the print messages to show which Rattlecan (when you have multiple out) is printing to chat
+    # Fixed RenderCancel not being reset in the start block
+    # Fix a issue with repeated render cancels
+    # Fixed PTH mode not copying alpha correctly
+    # Fixed an issue with the section mirror clip loop
+    # Fixed a variety of issues caused by EDIT mode switching issues
+    # Added a safety to clip application so that the scheme will reset if a prop was deleted
+    # Fixed "Invaid name." typo with variable creation
+    # Changed some print messages with the script error safeties
+    # Made currently selected object handling less annoying with certain refreshes
+    
+    # Known Issues:
+    # Clip previews are not constantly checked
+    # Mirrored sections may not line up nicely if they're suppossed to (hard to fix)
+    # Pressing E with multiple rattlecans out queues the E press for the other rattlecans
+    # Occasionally object props and holos don't spawn when created/duplicated
+    
+    # INIT
+    
+    # who knows when
+    # add russian font
+    # pa mirror warnings
+    # rotating scheme
+    # position undo
+    
+    # V1.0.0 "Pin Stripe"
+    # finish wiki
+    # automatic nan discovery and retification
+    # nicer sub list and bodygroup listing
+    # consider turning [x y z] | [x, y, z] vectors automatically into [x,y,z] vars with certain commands
+    # .undo
+    # PTH pulls submaterials and bodygroups
+    # make edit file saving cleaner, and add make .op request a save
+    # considering making tovector return something that isn't -1 for invalid vectors
+    # .destroy
+    # .preview
+    # allow multiple rattlecan command handling to be forced (.force) ?
+    # rattlecan renderer (separate E2)
+    # clip mirroring ?
+    # .bend for decals
+    # add config auto-updater (can update a scheme progressively)
+    # maybe make mirrors automatically apply a clip to section
+    # add CLIP_VIRTUAL
+    #   object virtual clip = array(clip pos, clip axis)
+    # add "clipCount(ID)" to take into account virtual clips
+    # make multiplerattlecans also accept looking at an editor component
+    # migrate autosave feature
+    # make bodygroup support x,y along with x y
+    # changing offset of a holo doesn't work right sometimes (holo position is also offset)
+
+    # passes
+    # performance pass 2 (may not be actually required)
+    # clean up scheme get calls
+    # checkup on kerning
+        
+    # PERSISTED VARIABLES
+    
+    E = entity()
+    E:setColor(vec(0,255,0))
+    O = owner()
+    
+    VERSION = "0.11.2"
+    VERSION_NAME = "War Bonnet"
+    VERSION_CONFIG = "0.10.0"
+    
+    Scheme = table()
+    
+    RCMode = "LOAD"
+    RunningNumberForced = ""
+    Global_CurrentlyInEditorMode = 0
+    CurName = array("RATTLECAN 3 ["+RCMode+"]","[BETA] V" + VERSION + ": \"" + VERSION_NAME + "\"","[NO SCHEME LOADED]")
+    
+    RunningNumber = "0000"
+    OutputHolos = array()
+    Ops = 0
+    
+    LoadFile = ""
+    NewLoadFile = ""
+    SchemeLoaded = 0
+    SavingFile = 0
+    AutosaveNum = 1
+    
+    RenderQueue = table()
+    RenderKeys = table()
+    RenderKeysObjects = table()
+    RenderStep = 0
+    RenderStage = 0
+    RenderKeysDone = 0
+    RenderObjectsPrepared = 0
+    RenderObjectsPrepareType = 1
+    RenderObjectsOrder = array("mirror","clip","section","holo","decal","text2d","text3d")
+    RenderCancel = 0
+    
+    GetLast = table()
+    SchemeEdit = table()
+    EditorComponents = table()
+    SelectedObject = ""
+    RefreshSpecific = ""
+    RefreshObjects = array()
+    LastHoveredEnt = 0
+    LastAimPos = vec(0)
+    WasHit = 0
+    EditRunningLoop = 0
+    ClipsAvailable = holoClipsAvailable()
+    Key_E = 0
+    
+    PTHProps = array()
+    PTHOriginalColors = array()
+    
+    Task_Speed = 50
+    TaskClk = 0
+    Tasks = table()
+    Tasks2 = table()
+    TaskLoops = table()
+    TaskDelayed = table()
+    Task2Delayed = table()
+    timer("task",50)
+    timer("task2",100)
+    
+    BoundingBox = Base:boxSize()
+    Axis = BoundingBox:x() > BoundingBox:y()
+    InputDisabled = 0
+    
+    runOnChat(1)
+    runOnFile(1)
+    runOnLast(1)
+    runOnKeys(O,1,array("e","r","mouse_left","mouse_right"))
+    propSpawnUndo(0)
+    
+    # VERSIONING
+    #include "magspack2/includes/updatelib"
+    # returns 2 if ahead, returns 1 if the same, returns 0 if behind
+    function number versionCompare(Old:string, New:string){
+        local SplitOld = Old:explode(".")
+        local SplitNew = New:explode(".")
+        foreach(K,V:string = SplitOld){ SplitOld[K,number] = V:toNumber() }
+        foreach(K,V:string = SplitNew){ SplitNew[K,number] = V:toNumber() }
+        
+        if(SplitOld[1,number] > SplitNew[1,number]){ return 2 }
+        elseif(SplitOld[2,number] > SplitNew[2,number]){ return 2 }
+        elseif(SplitOld[3,number] > SplitNew[3,number]){ return 2 }
+        if(SplitOld[1,number] < SplitNew[1,number]){ return 0 }
+        elseif(SplitOld[2,number] < SplitNew[2,number]){ return 0 }
+        elseif(SplitOld[3,number] < SplitNew[3,number]){ return 0 }
+        return 1
+    }
+    
+    # BASE FUNCTIONS
+    
+    function rcName(Field,String:string){
+        if(Field){ CurName[Field,string] = String }
+        local NameString = ""
+        foreach(K,V:string = CurName){
+            NameString += V
+            if(K!=  CurName:count()){ NameString += "\n" }
+        }
+        setName(NameString)
+    }
+    rcName(0,"")
+    
+    function rcprint(Type:string,MSG:string){
+        local StartString = MultipleRattlecans ? "[RATTLECAN 3:" + (RunningNumber !=  "0000" ? RunningNumber : E:id():toString()) + " " : "[RATTLECAN 3" 
+        switch(Type){
+            case "info", printColor(vec(0,255,0),StartString + "] ",vec(255),MSG) break
+            case "warning", printColor(vec(255,255,0),StartString + "| WARNING] ",vec(255),MSG) break
+            case "error", printColor(vec(255,0,0),StartString + "| ERROR] ",vec(255),MSG) break
+        }
+    }
+    
+    function entity:rcPlay(Index:string,Length,Sound:string,Pitch){
+        if(SOUNDS){
+            This:soundPlay(Index,Length,Sound)
+            if(Pitch !=  0){
+                soundPitch(Index,Pitch)
+            }
+        }
+    }
+    function entity:rcPlay(Index:string,Length,Sound:string){ This:rcPlay(Index,Length,Sound,0) }
+    
+    function number string:validFrom(ValidTypes:array){
+        return invert(ValidTypes):exists(This)
+    }
+    
+    # just a lot cleaner looking
+    function number n(String:string){
+        return String:toNumber()
+    }
+    
+    function vector string:toVector(){
+        Split = This:explode(",")
+        local Count = Split:count()
+        if(Count  ==  1){
+            if(Split[1,string]:replace(" ","")  ==  "") { return vec(-1) }
+            return vec(Split[1,string]:toNumber())
+        }elseif(Count  ==  3){
+            if(Split[2,string]:replace(" ","")  ==  "") { return vec(-1) }
+            if(Split[3,string]:replace(" ","")  ==  "") { return vec(-1) }
+            return vec(Split[1,string]:toNumber(),Split[2,string]:toNumber(),Split[3,string]:toNumber())
+        }else{
+            return vec(-1)
+        }
+    }
+    function vector2 string:toVector2(){
+        Split = This:explode(",")
+        local Count = Split:count()
+        if(Count  ==  1){
+            if(Split[1,string]:replace(" ","")  ==  "") { return vec2(-1) }
+            return vec2(Split[1,string]:toNumber())
+        }elseif(Count  ==  2){
+            if(Split[2,string]:replace(" ","")  ==  "") { return vec2(-1) }
+            return vec2(Split[1,string]:toNumber(),Split[2,string]:toNumber())
+        }else{
+            return vec2(-1)
+        }
+    }
+    
+    function string array:deTokenize(Start){
+        local Data = ""
+        for(N = Start,This:count()){
+            Data = Data + This[N,string] + " "
+        }
+        Data = Data:sub(1,Data:length()-1) # get rid of the floating space
+        return Data
+    }
+    
+    function string createSaltedHashID(){
+        HashIncrementer += randint(1,15)
+        return HashIncrementer:toString()
+        #3.1 change: This was creating amazingly long holoID's that were causing engine problems. Replaced with a less cool system, RIP salt and hash
+        #return hash((curtime() + randint(1,10000)):toString()):toString() # salt and hash boyeee
+    }
+    
+    # smart get function
+    function table get(Key:string){
+        switch(Key){
+            case "OBJECTS", return Scheme["OBJECTS",table] break
+            case "ALLOBJECTS",
+                # this whole thing works due to references being bizarre
+                local NeedUpdate = 0
+                foreach(K,V:table = Scheme["OBJECTS",table]){
+                    if(V:count() !=  GetLast[K,number]){
+                        NeedUpdate = 1
+                        GetLast[K,number] = V:count()
+                    }
+                }
+                if(NeedUpdate){
+                    local Return = table()
+                    foreach(K,V:table = Scheme["OBJECTS",table]){
+                        foreach(K2,V2:table = V){
+                            Return[K2,table] = V2
+                        }
+                    }
+                    GetLast["TABLE",table] = Return
+                    return Return
+                }else{
+                    return GetLast["TABLE",table]
+                }
+            break
+            default, # assume ID or type
+            if(Scheme["OBJECTS",table]:exists(Key)){ return Scheme["OBJECTS",table][Key,table] }
+            else{ return get("ALLOBJECTS")[Key,table] } # assumption
+            break
+        }
+        return table()
+    }
+    function table get(Type:string,ID:string){
+        return get("OBJECTS")[Type,table][ID,table]
+    }
+    function table get(ObjectTypes:array){
+        local Return = table()
+        foreach(K,V:string = ObjectTypes){
+            Return = Return:add(get(V))
+        }
+        return Return
+    }
+    
+    # prints a buncha statistics, and also returns the stats table
+    # 0 = console, 1 = chat, 2 = none
+    function table stats(PrintLocation){
+        local Objects = get("ALLOBJECTS")
+        local ObjectKeys = Objects:keys()
+        local Stats = table()
+        Stats["NUM_OBJECTS",number] = Objects:count()
+        Stats["NUM_SECTIONS",number] = get("section"):count()
+        Stats["NUM_HOLOS",number] = get("holo"):count()
+        Stats["NUM_DECALS",number] = get("decal"):count()
+        Stats["NUM_TEXT2D",number] = get("text2d"):count()
+        Stats["NUM_TEXT3D",number] = get("text3d"):count()
+        Stats["NUM_CLIPS",number] = get("clip"):count()
+        Stats["NUM_MIRRORS",number] = get("mirror"):count()
+        
+        local SectionTotalClips = 0
+        local TextTotalCharacters = 0
+        local NumMirroredElements = 0
+        local NumMirroredSections = 0
+        
+        local Step = 0
+        while(perf() & Step <= Objects:count()){
+            local Object = Objects[ObjectKeys[Step,string],table]
+            local Type = Object["TYPE",string]
+            switch(Type){
+                case "section",
+                    SectionTotalClips += Scheme["CLIPS_ASSIGNED",table][ObjectKeys[Step,string],table]:count()
+                    NumMirroredSections = Object["MIRROR",string] ? NumMirroredSections+1 : NumMirroredSections
+                break
+                case "text2d", case "text3d",
+                    TextTotalCharacters += Object["TEXT",string]:length()
+                    NumMirroredElements = Object["MIRROR",string] ? NumMirroredElements+1 : NumMirroredElements
+                break
+                case "decal", case "holo",
+                    NumMirroredElements = Object["MIRROR",string] ? NumMirroredElements+1 : NumMirroredElements
+                break
+            }
+            Step++
+        }
+        if(Step < Objects:count()){ return table() } # failed to go through all objects
+        Stats["SECTION_TOTAL_CLIPS",number] = SectionTotalClips
+        Stats["TEXT_TOTAL_CHARACTERS",number] = TextTotalCharacters
+        Stats["NUM_MIRRORED_ELEMENTS",number] = NumMirroredElements
+        Stats["NUM_MIRRORED_SECTIONS",number] = NumMirroredSections
+        
+        if(PrintLocation  ==  1){
+            local String = "Statistics:\n"
+            String += Stats["NUM_OBJECTS",number] + " objects\n"
+            String += Stats["NUM_MIRRORS",number] + " mirrors\n"
+            String += Stats["NUM_HOLOS",number] + " generic holograms\n"
+            String += Stats["NUM_DECALS",number] + " decals\n"
+            String += Stats["NUM_TEXT2D",number] + " 2D text elements\n"
+            String += Stats["NUM_TEXT3D",number] + " 3D text elements\n"
+            String += Stats["NUM_SECTIONS",number] + " sections\n"
+            String += Stats["NUM_CLIPS",number] + " clips\n\n"
+            String += Stats["SECTION_TOTAL_CLIPS",number] + " clip planes applied to sections\n"
+            String += Stats["TEXT_TOTAL_CHARACTERS",number] + " total characters in all text elements\n"
+            String += Stats["NUM_MIRRORED_ELEMENTS",number] + " mirrored elements\n"
+            String += Stats["NUM_MIRRORED_SECTIONS",number] + " mirrored sections"
+            rcprint("info",String)
+        }elseif(PrintLocation  ==  0){
+            print(_HUD_PRINTCONSOLE,"[RATTLECAN 3] Scheme Statistics:")
+            print(_HUD_PRINTCONSOLE,"Num. Objects  =  " + Stats["NUM_OBJECTS",number])
+            print(_HUD_PRINTCONSOLE,"Num. Mirrors  =  " + Stats["NUM_MIRRORS",number])
+            print(_HUD_PRINTCONSOLE,"Num. Holos    =  " + Stats["NUM_HOLOS",number])
+            print(_HUD_PRINTCONSOLE,"Num. Decals   =  " + Stats["NUM_DECALS",number])
+            print(_HUD_PRINTCONSOLE,"Num. Text2Ds  =  " + Stats["NUM_TEXT2D",number])
+            print(_HUD_PRINTCONSOLE,"Num. Text3Ds  =  " + Stats["NUM_TEXT3D",number])
+            print(_HUD_PRINTCONSOLE,"Num. Sections =  " + Stats["NUM_SECTIONS",number])
+            print(_HUD_PRINTCONSOLE,"Num. Clips    =  " + Stats["NUM_CLIPS",number])
+            print(_HUD_PRINTCONSOLE,"    ")
+            print(_HUD_PRINTCONSOLE,"Section Total Applied Clips: " + Stats["SECTION_TOTAL_CLIPS",number])
+            print(_HUD_PRINTCONSOLE,"Text Total Characters: " + Stats["TEXT_TOTAL_CHARACTERS",number])
+            print(_HUD_PRINTCONSOLE,"Number of Mirrored Objects: " + Stats["NUM_MIRRORED_ELEMENTS",number])
+            print(_HUD_PRINTCONSOLE,"Number of Mirrored Sections: " + Stats["NUM_MIRRORED_SECTIONS",number])
+        }
+        return Stats
+    }
+    
+    # TASK HANDLING
+    
+    #loops
+    function startTaskLoop(ID:string,Function:string,Arguments:array,Delay){
+        TaskLoops[ID+"_LOOP",table] = table(Function,Arguments,Delay)
+        timer(ID+"_LOOP",Delay)
+    }
+    function startTaskLoop(ID:string,Function:string,Delay){ startTaskLoop(ID,Function,array(),Delay) }
+    function stopTaskLoop(ID:string){
+        TaskLoops:remove(ID+"_LOOP")
+        stoptimer(ID+"_LOOP")
+    }
+    
+    # simple addition
+    function addTask(Thread,Function:string,Arguments:array){
+        if(Thread  ==  1){ Tasks:pushTable(table(Function,Arguments)), TaskClk = 1 }
+        elseif(Thread  ==  2){ Tasks2:pushTable(table(Function,Arguments)), TaskClk = 2 }
+    }
+    function addTask(Thread,Function:string){ addTask(Thread,Function,array()) }
+    
+    # delayed variant
+    function addTask(Thread,Function:string,Arguments:array,Delay){
+        local ID = Function + "_" + round(curtime() + randint(1,9999)) # hopefully works
+        if(Thread  ==  1){ TaskDelayed[ID,table] = table(Function,Arguments,Delay) }
+        elseif(Thread  ==  2){ Task2Delayed[ID,table] = table(Function,Arguments,Delay) }
+        timer(ID,Delay)
+    }
+    function addTask(Thread,Function:string,Delay){ addTask(Thread,Function,array(),Delay) }    
+    
+    # START TASK LOOPS
+    
+    startTaskLoop("OWNER_CHECK","ownerCheck",10000)
+    function ownerCheck(){ O = owner() }
+    
+    function dupeLoad(){
+        Scheme = vonDecodeTable(SchemeDupe)
+        SchemeLoaded = 1
+        LoadFile = Scheme["MISC",table]["filename",string]
+        rcprint("info","Sucessfully started. Loading stored scheme from dupe.")
+        addTask(1,"schemeRender")
+        # checking if dupe file exists
+        runOnList(1)
+        fileList(">e2shared/rattlecan2/")
+    }
+    
+    local DupeLoaded = 0
+    if(SchemeDupe !=  ""){
+        DupeLoaded = 1
+        addTask(1,"dupeLoad",1000)
+    }
+    if(fileCanLoad() & !DupeLoaded){
+        addTask(1,"schemeLoad",array(START_SCHEME))
+        rcprint("info","Sucessfully started. Loading file: \"" + START_SCHEME + "\"")
+    }elseif(!DupeLoaded){
+        startTaskLoop("DELAYED_LOAD","schemeDelayedLoad",1000)
+        function void schemeDelayedLoad(){
+            if(fileCanLoad()){
+                stopTaskLoop("DELAYED_LOAD")
+                rcprint("info","Sucessfully started, with delayed load. Loading file: \"" + START_SCHEME + "\"")
+                addTask(1,"schemeLoad",array(START_SCHEME))
+            }
+        }
+    }
+    #addTask(1,"startRequest",5000) -- its a version check. func is somewhere in updatelib.
+    
+    # MULTIPLE RATTLECAN2 HANDLING
+    
+    MultipleRattlecans = 0
+    if(!DISABLE_MULTIPLE_RATTLECAN_HANDLING){
+        Rattlecans = gTable("rattlecans2")
+        Rattlecans[E:id():toString(),array] = array("0000",E,Base)
+        # doing this with a timed function rather than signals, a bit more tidy and allows passive cleaning
+        function multipleRattlecanCheck(){
+            local Valid = 0
+            # clear out the list, other chips handle deletion to simplify things a bit
+            while(!Valid){
+                foreach(K:string,V:array = Rattlecans){
+                    if(!V[2,entity]:isValid()){
+                        Rattlecans:removeArray(K)
+                        continue # restart the foreach so our indexes are correct
+                    }
+                }
+                Valid = 1
+                break
+            }
+            MultipleRattlecans = Rattlecans:count() > 1
+        }
+        startTaskLoop("MULTIPLE_RATTLECANS","multipleRattlecanCheck",5000)
+    }
+    
+    # RUNNING NUMBER
+    
+    # recursive insanity jesus christ
+    function generateRunningNumber(){
+        local Misc = Scheme["MISC",table]
+        if(!Misc["rn_random",number]){
+            RunningNumber = RunningNumberForced ? RunningNumberForced : Misc["runningnumber",string]
+            RunningNumberForced = "" # one use only
+        }else{
+            local Split = Misc["rn_range",string]:explode("-")
+            local Start = Split[1,string]
+            local End = Split[2,string]
+            local MinLength = Start:length()
+            local ZeroString = "0":repeat(MinLength)
+            StartNum = Start:toNumber()
+            EndNum = End:toNumber()
+            if(!MultipleRattlecans){
+                local Num = (ZeroString + randint(StartNum,EndNum))
+                RunningNumber = Num:sub(Num:length()-MinLength+1)
+            }else{
+                local Num = (ZeroString + randint(StartNum,EndNum))
+                Num = Num:sub(Num:length()-MinLength+1)
+                if(Rattlecans:count() > (EndNum-StartNum)){
+                    local NumFound = 0
+                    for(N = 1,EndNum-StartNum){
+                        foreach(K:string,V:array = Rattlecans){
+                            if((StartNum-1 + N)  ==  V[1,string]:toNumber()){
+                                NumFound++
+                            }
+                        }
+                    }
+                    if(NumFound >= StartNum-EndNum){
+                        local Num = (ZeroString + randint(StartNum,EndNum))
+                        RunningNumber = Num:sub(Num:length()-MinLength+1)
+                    }else{
+                        generateRunningNumber()
+                    }
+                }
+                foreach(K:string,V:array = Rattlecans){
+                    if(Num  ==  V[1,string]){
+                        generateRunningNumber()
+                    }
+                }
+                # set running number in global system
+                RunningNumber = Num
+            }
+        }
+        if(!DISABLE_MULTIPLE_RATTLECAN_HANDLING){ Rattlecans[E:id():toString(),array] = array(RunningNumber,E,Base) }
+    }
+    
+    # OBJECTS
+    
+    function entity getProp(ID:string){
+        local Object = get(ID)
+        return SchemeEdit[Object["TYPE",string],table][ID,table]["PROP",entity]
+    }
+    
+    function objectSelect(ID:string){
+        if(SelectedObject !=  ""){
+            local Old = get(SelectedObject)
+            if(Old["TYPE",string]){ # safety for invalid selectedobject (may have been deleted)
+               Old["TYPE",string](Old["ID",string],"UNSELECT")
+            }else{ print(_HUD_PRINTCONSOLE,"[RATTLECAN 3] Averted running \"UNSELECT\" on missing object!") }
+        }
+        SelectedObject = ID
+    }
+    
+    # sets the subs (clears the subs first as well)
+    function sectionSetSubs(Args:array){} # need to make a dummy function
+    function setSubs(ID:string,Override:string){
+        # reset
+        local Holo = holoEntity(n(Override ? Override : ID))
+        local Num = Holo:getMaterials():count()
+        for(N = 1,Num){ Holo:setSubMaterial(N,"") }
+        if(get(ID)["TYPE",string]  ==  "section"){ addTask(1,"sectionSetSubs",array(ID),100) } # additional section behavior kinda HAcky
+        #subs
+        local Subs = get(ID)["SUBS",table]
+        if(Subs:count()  ==  0){ return } # don't need to do the rest
+        if(Subs:exists("all")){ for(N = 1,Num){ Holo:setSubMaterial(N,Subs["all",string]) } }
+        if(Subs:exists("isolate")){ 
+            for(N = 1,Num){ 
+                Holo:setSubMaterial(N,"models/proppertextures/invisible") 
+                Holo:setSubMaterial(n(Subs["isolate",string]),"")
+            }
+        }
+        foreach(K,V:string = Subs){
+            local N = n(K)
+            if(N){ Holo:setSubMaterial(n(K),V) }
+        }
+    }
+    function setSubs(ID:string){ setSubs(ID,"") }
+    # sets bodygroups
+    function setBodygroups(ID:string,Override:string){
+        # reset
+        local Holo = n(Override ? Override : ID)
+        for(N = 1,32){ holoBodygroup(Holo,N,0) }
+        #subs
+        local Bodygroups = get(ID)["BODYGROUPS",table]
+        if(Bodygroups:count()  ==  0){ return } # don't need to do the rest
+        foreach(K,V:number = Bodygroups){
+            local N = n(K)
+            if(N){ holoBodygroup(Holo,n(K),V) }
+        }
+    }
+    function setBodygroups(ID:string){ setBodygroups(ID,"") }
+    
+    # functions that aren't defined yet but will be
+    function mirrorApply(String1:string,String2:string){} # have to do this because Aaa
+    function number hasMirror(String1:string){ return 1 }
+    function updateMirror(String:string){} # aaa
+    function clipAddIndex(String:string){}
+    
+    # mainly used for the cube based objects, used sorta like an inherited class
+    function generic(ID:string,Event:string){
+        
+        local Object = get(ID)
+        local Type = Object["TYPE",string]
+        switch(Event){
+            case "PREPARE",
+                RenderQueue:pushArray(array(ID,Type,1,Global_CurrentlyInEditorMode))
+                if(holoEntity(n(ID+"0001")):isValid()){ holoDelete(n(ID+"0001")) }
+                if(holoEntity(n(ID)):isValid()){ holoDelete(n(ID)) } # for refreshing
+                if(Global_CurrentlyInEditorMode){ getProp(ID):propDelete() }
+            break
+            case "SAVE",
+                local Prop = getProp(ID)
+                if(Prop:isValidPhysics()){
+                    local Offset = Object["OFFSET",vector]
+                    local LastPos = Object["POS",vector] - Offset
+                    local LastAng = Object["ANG",angle]
+                    local Pos = round(Base:toLocal(Prop:pos()),3) - Offset
+                    local Ang = round(Base:toLocal(Prop:angles()),3)
+                    Object["POS",vector] = Pos
+                    Object["ANG",angle] = Ang
+                    # mirror handling
+                    #if(hasMirror(ID) & (LastPos !=  Pos | LastAng !=  Ang)){ addTask(1,"mirrorApply",array(ID,Object["MIRROR",string])) }
+                    updateMirror(ID) # some performance cost doing this
+                }else{ # prop deleted
+                    #remove
+                    Scheme["OBJECTS",table][Type,table]:remove(ID)
+                    local OldID = SchemeEdit[Type,table][ID,table]["ID",number]
+                    SchemeEdit[Type,table]:remove(ID)
+                    EditorComponents:remove(OldID)
+                    if(SelectedObject  ==  ID){ SelectedObject = "" }
+                }
+            break
+            case "HOVER",
+                local Prop = getProp(ID)
+                # editor holo
+                if(ID !=  SelectedObject){
+                    holoAlpha(1,50)
+                    holoPos(1,Prop:pos() - Object["OFFSET",vector])
+                    holoAng(1,Prop:angles())
+                    holoScale(1,Object["SCALE",vector] ? Object["SCALE",vector]*1.01 : vec(Object["SCALE",vector2],0.05))
+                    holoModel(1,Object["MODEL",string] ? Object["MODEL",string] : "cube")
+                    holoParent(1,Prop)
+                }
+            break
+            case "KEY_E",
+                local Prop = getProp(ID)
+                if(O:aimEntity()  ==  Prop & SelectedObject !=  ID){
+                    objectSelect(ID)
+                    Prop:rcPlay("contextual",0.25,"buttons/button9.wav",200)
+                }
+            break
+        }
+    }
+    
+    # used by various objects as a sort of inherited class, such as their color, material, etc
+    function generic_command(ID:string,Event:string,Tokens:array){
+        local Object = get(ID)
+        local HasMirror = hasMirror(ID)
+        local MID = ID+"0001"
+        switch(Event){
+            case "COLOR",
+                local Color = Tokens[2,string]:toVector()
+                if(Color  ==  vec(-1) | Tokens[2,string]  ==  ""){ rcprint("info","Color: " + Object["COLOR",vector]), break }
+                Object["COLOR",vector] = Color
+                holoColor(n(ID),Color)
+                if(HasMirror){ holoColor(n(MID),Color) }
+                rcprint("info","Color set.")
+            break
+            case "ALPHA",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Alpha: " + Object["ALPHA",number]), break }
+                Object["ALPHA",number] = n(Tokens[2,string])
+                holoAlpha(n(ID),n(Tokens[2,string]))
+                if(HasMirror){ holoAlpha(n(MID),n(Tokens[2,string])) }
+                rcprint("info","Alpha set.")
+            break
+            case "MATERIAL",
+                Object["MATERIAL",string] = Tokens[2,string]
+                holoMaterial(n(ID),Tokens[2,string])
+                if(HasMirror){ holoMaterial(n(MID),Tokens[2,string]) }
+                rcprint("info","Material set.")
+            break
+            case "DUPLICATE",
+                local NewID = createSaltedHashID()
+                local NewObject = Object:clone()
+                NewObject["POS",vector] = vec(0,0,BoundingBox:z())
+                NewObject["ANG",angle] = ang(0)
+                NewObject["MIRROR",string] = ""
+                NewObject["OFFSET",vector] = vec(0)
+                objectSelect(NewID)
+                clipAddIndex(NewID)
+                Scheme["OBJECTS",table][NewObject["TYPE",string],table][NewID,table] = NewObject
+                NewObject["TYPE",string](NewID,"RENDER")
+            break
+            # list, clear, delete, all, isolate
+            case "SUB_ADD",
+                if(Tokens[3,string]  ==  ""){ Object["SUBS",table]:remove(Tokens[2,string]), setSubs(ID) break } # removing submaterial by leaving it blank
+                Object["SUBS",table][Tokens[2,string],string] = Tokens[3,string]
+                setSubs(ID)
+                if(HasMirror){ setSubs(ID,MID) }
+            break
+            case "SUB_LIST",
+                printTable(Object["SUBS",table]) # make better?
+            break
+            case "SUB_CLEAR",
+                Object["SUBS",table]:clear()
+                setSubs(ID)
+                if(HasMirror){ setSubs(ID,MID) }
+            break
+            case "SUB_DELETE",
+                Object["SUBS",table]:remove(Tokens[3,string])
+                setSubs(ID)
+                if(HasMirror){ setSubs(ID,MID) }
+            break
+            case "SUB_ALL",
+                Object["SUBS",table]["all",string] = Tokens[3,string]
+                setSubs(ID)
+                if(HasMirror){ setSubs(ID,MID) }
+            break
+            case "SUB_ISOLATE",
+                Object["SUBS",table]["isolate",string] = Tokens[3,string]
+                setSubs(ID)
+                if(HasMirror){ setSubs(ID,MID) }
+            break
+            case "BODYGROUP_LIST",
+                printTable(Object["BODYGROUPS",table])
+            break
+            case "BODYGROUP_ADD",
+                if(Tokens[3,string]  ==  ""){ Object["BODYGROUPS",table]:remove(Tokens[2,string]), setBodygroups(ID) break }
+                Object["BODYGROUPS",table][Tokens[2,string],number] = n(Tokens[3,string])
+                setBodygroups(ID)
+                if(HasMirror){ setBodygroups(ID,MID) }
+            break
+            case "BODYGROUP_CLEAR",
+                Object["BODYGROUPS",table]:clear()
+                setBodygroups(ID)
+                if(HasMirror){ setBodygroups(ID,MID) }
+            break
+            case "BODYGROUP_DELETE",
+                Object["BODYGROUPS",table]:remove(Tokens[3,string])
+                setBodygroups(ID)
+                if(HasMirror){ setBodygroups(ID,MID) }
+            break
+        }
+    }
+    
+    ClipHolos = array()    
+    function clipAddIndex(ID:string){
+        Scheme["CLIPS_ASSIGNED",table][ID,table] = table()
+    }
+    function clipRemoveIndex(ID:string){
+        Scheme["CLIPS_ASSIGNED",table]:remove(ID)
+    }
+    function table clipGetAssigned(ID:string){
+        return Scheme["CLIPS_ASSIGNED",table][ID,table]
+    }
+    function number hasClips(ID:string){
+        return Scheme["CLIPS_ASSIGNED",table]:exists(ID)
+    }
+    
+    function generateClipHolos(ID:string){
+        if(hasClips(ID)){
+            local Clips = clipGetAssigned(ID)
+            local N = 0
+            foreach(K,V:number = Clips){
+                # plane
+                N++
+                local ID = N + 99
+                local Prop = getProp(K)
+                holoCreate(ID)
+                holoPos(ID,Prop:pos())
+                holoAng(ID,Prop:angles())
+                holoParent(ID,Prop)
+                holoColor(ID,V  ==  -1 ? vec(255,0,0) : vec(0,255,0))
+                holoAlpha(ID,100)
+                holoScale(ID,vec(1.5,1.5,0.01))
+                # normals
+                N++
+                ID = N + 99
+                holoCreate(ID)
+                holoPos(ID,Prop:toWorld(vec(0,0,-3*V)))
+                holoAng(ID,Prop:toWorld(ang(0,90*V,0)))
+                holoParent(ID,Prop)
+                holoColor(ID,vec(0,255,255))
+                holoAlpha(ID,255)
+                holoScale(ID,vec(0.025,0.025,0.5))
+                ClipHolos:pushNumber(ID)
+                ClipHolos:pushNumber(ID-1)
+            }
+        }
+    }
+    function generateClipHolos(Args:array){ generateClipHolos(Args[1,string]) } # for tasks
+    function deleteClipHolos(ID:string){
+        if(ClipHolos:count() !=  0){
+            foreach(K,V:number = ClipHolos){
+                holoDelete(V)
+            }
+        }
+        ClipHolos:clear()
+    }
+    
+    function void disable_existing_clips(HoloID){
+        
+        for(N = 1,5){holoClipEnabled(HoloID,N,0) }
+        
+    }
+    
+    function clipsApply(ID:string,Override:string){
+        
+        if(!hasClips(ID)){ return } #if no clips, no work to do
+        
+        
+        
+        disable_existing_clips(n(ID)) #not sure why this ID is calculated differently...
+        local HoloID = n(Override ? Override : ID)
+        local HoloClipID = 1
+        local ClipsAssigned = clipGetAssigned(ID)
+        
+        if(Global_CurrentlyInEditorMode){
+            
+            foreach(K,V:number = ClipsAssigned){
+                local Prop = getProp(K)
+                if(!Prop:isValidPhysics()){
+                    rcprint("error","Bad clip entity! Restarting render...")
+                    addTask(1,"schemeRenderCancel")
+                    addTask(1,"schemeRender",2000)
+                    return
+                }
+                local Sign = V
+                
+                holoClipEnabled(HoloID,HoloClipID,1)
+                holoClip(HoloID,HoloClipID,vec(0),vec(0,0,1 * Sign),Prop)
+                HoloClipID++
+            }
+            
+        }else{
+            
+            #HANDLES NON-EDITOR SCHEME CLIPPING
+            
+            foreach(K,V:number = ClipsAssigned){
+                
+                local Sign = V
+                local Clip = get(K)
+                local Pos = holoEntity(HoloID):toLocal(Base:toWorld(Clip["POS",vector]))
+                local Angle = holoEntity(HoloID):toLocal(Base:toWorld(Clip["ANG",angle]))
+                
+                holoClipEnabled(HoloID,HoloClipID,1)
+                holoClip(HoloID,HoloClipID,Pos,Angle:up() * Sign,0)
+                HoloClipID++
+                
+            }
+            
+        }
+        
+    }
+    
+    function clipsApply(ID:string){ clipsApply(ID,"") }
+    
+    function unsetPreviewClip(ID:string){
+        if(SchemeEdit["clip",table][ID,table]["PREVIEW",string] !=  ""){
+            local N = SchemeEdit["clip",table][ID,table]["PREVIEW_NUM",number]
+            holoClipEnabled(SchemeEdit["clip",table][ID,table]["PREVIEW",string]:toNumber(),N ? N : 5,N ? 1 : 0)
+            SchemeEdit["clip",table][ID,table]["PREVIEW",string] = ""
+        }
+    }
+    
+    function clip(ID:string,Event:string){
+        local Clip = get("clip")[ID,table]
+        switch(Event){
+            case "PREPARE",
+                if(Global_CurrentlyInEditorMode){
+                    RenderQueue:pushArray(array(ID,"clip",0,1))
+                }
+            break
+            case "INIT_EDIT",
+                SchemeEdit["clip",table] = table()
+                SchemeEdit["CLIP_PREVIEW",number] = 0
+            break
+            case "RENDER",
+                if(Global_CurrentlyInEditorMode){
+                    local Prop = propSpawn(PLANE_MODEL,Base:toWorld(Clip["POS",vector]),Base:toWorld(Clip["ANG",angle]),1)
+                    
+                    local EditTable = table()
+                    EditTable["PROP",entity] = Prop
+                    EditTable["ID",number] = Prop:id()
+                    EditTable["PREVIEW",string] = ""
+                    SchemeEdit["clip",table][ID,table] = EditTable
+                    EditorComponents[Prop:id(),string] = ID
+                    
+                    Prop:setColor(vec(0,255,0))
+                    Prop:setMaterial("models/wireframe")
+                    noCollideAll(Prop,1)
+                    
+                    Prop:rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                    
+                }
+                RenderStep++
+            break
+            case "SAVE",
+                local Prop = getProp(ID)
+                if(Prop:isValidPhysics()){
+                    local Pos = round(Base:toLocal(Prop:pos()),3)
+                    local Ang = round(Base:toLocal(Prop:angles()),3)
+                    local Clip = get("clip",ID)
+                    Clip["POS",vector] = Pos
+                    Clip["ANG",angle] = Ang
+                }else{ # prop deleted
+                    rcprint("info","Clip deleted.")
+                    unsetPreviewClip(ID)
+                    # remove from assigned
+                    foreach(K,V:table = Scheme["CLIPS_ASSIGNED",table]){
+                        if(V:exists(ID)){ 
+                            V:remove(ID) 
+                            clipsApply(K)
+                        }
+                    }
+                    #remove
+                    Scheme["OBJECTS",table]["clip",table]:remove(ID)
+                    local OldID = SchemeEdit["clip",table][ID,table]["ID",number]
+                    SchemeEdit["clip",table]:remove(ID)
+                    EditorComponents:remove(OldID)
+                }
+            break
+            case "HOVER",
+                if(!SchemeEdit["CLIP_PREVIEW",number]){ # already previewed?
+                    local Prop = getProp(ID)
+                    local Clips = clipGetAssigned(SelectedObject)
+                    local Valid = get(SelectedObject)["TYPE",string]:validFrom(array("section","holo","decal"))
+                    local AlreadyClipped = Scheme["CLIPS_ASSIGNED",table][SelectedObject,table]:exists(ID)
+                    if(Valid & !AlreadyClipped & Clips:count() < ClipsAvailable){ # accepted type, not already being clipped, and available clips
+                        Prop:setColor(vec(0,255,255))
+                        local Sign = -1
+                        if(O:aimNormal():dot(Prop:angles():up()) < 0){ Sign = 1 } # determine the side of the clip we're on
+                        SchemeEdit["clip",table][ID,table]["PREVIEW",string] = SelectedObject
+                        SchemeEdit["clip",table][ID,table]["PREVIEW_NUM",number] = 0
+                        holoClipEnabled(n(SelectedObject),5,1)
+                        holoClip(n(SelectedObject),5,vec(0),vec(0,0,1 * Sign),Prop)
+                    }elseif(Valid & AlreadyClipped){ # already has a clip, show preview of it disabled
+                        Prop:setColor(vec(255,255,0))
+                        local N = 0
+                        foreach(K,V:number = Clips){
+                            N++
+                            if(K  ==  ID){ break }
+                        }
+                        holoClipEnabled(n(SelectedObject),N,0)
+                        SchemeEdit["clip",table][ID,table]["PREVIEW",string] = SelectedObject
+                        SchemeEdit["clip",table][ID,table]["PREVIEW_NUM",number] = N
+                    }elseif(Valid & !AlreadyClipped & Clips:count() >= ClipsAvailable){ # can't preview, too many clips
+                        Prop:setColor(vec(255,0,0))
+                    }
+                }
+            break
+            case "UNHOVER",
+            case "AIM_AWAY",
+                local Prop = getProp(ID)
+                Prop:setColor(vec(0,255,0))
+                unsetPreviewClip(ID)
+                SchemeEdit["CLIP_PREVIEW",number] = 0
+            break
+            case "KEY_E",
+                local Prop = getProp(ID)
+                local Object = get(SelectedObject)
+                local ClipCount = clipGetAssigned(SelectedObject):count()
+                local Valid = Object["TYPE",string]:validFrom(array("section","holo","decal"))
+                local AlreadyClipped = Scheme["CLIPS_ASSIGNED",table][SelectedObject,table]:exists(ID)
+                if(Valid & !AlreadyClipped){ # applying clips
+                    if(ClipCount < ClipsAvailable){
+                        Prop:rcPlay("contextual",0.25,"buttons/button9.wav",200)
+                        Prop:setColor(vec(255,255,0)) # match hover color
+                        local Sign = -1
+                        if(O:aimNormal():dot(Prop:angles():up()) < 0){ Sign = 1 } # determine the side of the clip we're on
+                        unsetPreviewClip(ID)
+                        # assign clip, make table if needed
+                        local Assigned = Scheme["CLIPS_ASSIGNED",table][SelectedObject,table]
+                        Assigned[ID,number] = Sign
+                        clipsApply(SelectedObject)
+                        SchemeEdit["CLIP_PREVIEW",number] = 1
+                        deleteClipHolos(SelectedObject)
+                        addTask(1,"generateClipHolos",array(SelectedObject),100)
+                    }else{ # exceeded clip limit
+                        rcprint("error","Too many clips on section already! Max: " + ClipsAvailable)
+                        Prop:rcPlay("contextual",0.25,"buttons/button11.wav",150)
+                    }
+                }elseif(Valid & AlreadyClipped){ # removing clips
+                    Prop:rcPlay("contextual",0.25,"buttons/button9.wav",150)
+                    Prop:setColor(vec(0,255,255)) # match hover color
+                    local Assigned = Scheme["CLIPS_ASSIGNED",table][SelectedObject,table]
+                    Assigned:remove(ID)
+                    unsetPreviewClip(ID)
+                    clipsApply(SelectedObject)
+                    SchemeEdit["CLIP_PREVIEW",number] = 1
+                    deleteClipHolos(SelectedObject) 
+                    addTask(1,"generateClipHolos",array(SelectedObject),100)
+                }
+            break
+        }
+    }
+    function clip(Args:array){ clip(Args[1,string],Args[2,string]) } # for tasks
+    
+    function clip_command(ID:string,Event:string,Tokens:array){
+        local Clip = Scheme["OBJECTS",table]["clip",table][ID,table]
+        switch(Event){
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Clip = table()
+                local Ang = Axis ? ang(0,90,90) : ang(90,90,0)
+                Clip["TYPE",string] = "clip"
+                Clip["POS",vector] = vec(0,0,BoundingBox:z())
+                Clip["ANG",angle] = Ang
+                Scheme["OBJECTS",table]["clip",table][ID,table] = Clip
+                clip(ID,"RENDER")
+            break
+        }
+    }
+    
+    function generateMirrorHolo(ID:string){
+        if(hasMirror(ID)){
+            local Prop = getProp(get(ID)["MIRROR",string])
+            local ID = 50
+            holoCreate(ID)
+            holoPos(ID,Prop:pos())
+            holoAng(ID,Prop:angles())
+            holoParent(ID,Prop)
+            holoColor(ID,vec(0,0,255))
+            holoAlpha(ID,100)
+            holoScale(ID,vec(1.5,1.5,0.01))
+        }
+    }
+    function generateMirrorHolo(Args:array){ generateMirrorHolo(Args[1,string]) } # for tasks
+    function deleteMirrorHolo(ID:string){ holoDelete(50) }
+    
+    function number hasMirror(ID:string){
+        local Object = get(ID)
+        if(Object["MIRROR",string]  ==  ""){ return 0 }
+        return 1
+    }
+    function sectionMirror(S1:string,S2:string){} # dummy function
+    function mirrorApply(ID:string,MID:string){
+        local Object = get(ID)
+        if(Object["TYPE",string]  ==  "section"){ sectionMirror(ID,MID), return } # due to how different section mirroring is, we'll just handle it in a different function
+        local Mirror = get("mirror",MID)
+        local HasMirror = hasMirror(ID)
+        
+        local MP = Mirror["POS",vector]
+        local N = Mirror["ANG",angle]:up()
+        local Mag = N:dot(MP - Object["POS",vector])
+        local MirrorPos = Base:toWorld(Object["POS",vector]+(N*Mag*2))
+        local MirrorAng = Base:toWorld(Object["ANG",angle]:rotateAroundAxis(-N,180))
+        MirrorAng = MirrorAng:rotateAroundAxis(MirrorAng:right(),180)
+        
+        switch(Object["TYPE",string]){
+            case "text3d",
+            case "text2d",
+                if(!HasMirror){
+                    if(holoEntity(n(ID + "0001")):isValid()){ holoDelete(n(ID + "0001")) }
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table]:remove(ID) }
+                }else{
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table][ID,number] = 0 }
+                    local Index = n(ID + "0001")
+                    holoCreate(Index)
+                    holoPos(Index,MirrorPos)
+                    holoAng(Index,MirrorAng)
+                    holoAlpha(Index,0)
+                    holoParent(Index,Global_CurrentlyInEditorMode ? getProp(ID) : Base)
+                }
+            break
+             case "decal",
+                if(!HasMirror){
+                    if(holoEntity(n(ID + "0001")):isValid()){ holoDelete(n(ID + "0001")) }
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table]:remove(ID) }
+                }else{
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table][ID,number] = 0 }
+                    
+                    local Index = n(ID + "0001")
+                    holoCreate(Index)
+                    holoPos(Index,MirrorPos)
+                    holoAng(Index,MirrorAng)
+                    holoScale(Index,vec(Object["SCALE",vector2],1))
+                    holoColor(Index,Object["COLOR",vector])
+                    holoAlpha(Index,Object["ALPHA",number])
+                    holoMaterial(Index,Object["MATERIAL",string])
+                    holoModel(Index,"plane")
+                    holoParent(Index,Global_CurrentlyInEditorMode ? getProp(ID) : Base)
+                    clipsApply(ID,ID + "0001")
+                }
+            break
+            default,
+                if(!HasMirror){
+                    if(holoEntity(n(ID + "0001")):isValid()){ holoDelete(n(ID + "0001")) }
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table]:remove(ID) }
+                }else{
+                    if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table][ID,number] = 0 }
+                    
+                    local Index = n(ID + "0001")
+                    holoCreate(Index)
+                    holoPos(Index,MirrorPos)
+                    holoAng(Index,MirrorAng)
+                    holoScale(Index,Object["SCALE",vector])
+                    holoColor(Index,Object["COLOR",vector])
+                    holoAlpha(Index,Object["ALPHA",number])
+                    holoMaterial(Index,Object["MATERIAL",string])
+                    holoModel(Index,Object["MODEL",string])
+                    holoParent(Index,Global_CurrentlyInEditorMode ? getProp(ID) : Base)
+                    clipsApply(ID,ID + "0001")
+                    setSubs(ID,ID + "0001")
+                    setBodygroups(ID,ID + "0001")
+                }
+            break
+        }
+    }
+    function mirrorApply(Args:array){ mirrorApply(Args[1,string],Args[2,string]) }
+    
+    function updateMirror(ID:string){
+        local Object = get(ID)
+        if(Object["MIRROR",string]){
+            mirrorApply(ID,Object["MIRROR",string])
+        }
+    }
+    
+    function mirror(ID:string,Event:string){
+        local Mirror = get("mirror",ID)
+        switch(Event){
+             case "PREPARE",
+                if(Global_CurrentlyInEditorMode){
+                    RenderQueue:pushArray(array(ID,"mirror",0,1))
+                }
+            break
+            case "INIT_EDIT",
+                SchemeEdit["mirror",table] = table()
+            break
+            case "RENDER",
+                if(Global_CurrentlyInEditorMode){
+                    local Prop = propSpawn(PLANE_MODEL,Base:toWorld(Mirror["POS",vector]),Base:toWorld(Mirror["ANG",angle]),1)
+                    
+                    local EditTable = table()
+                    EditTable["PROP",entity] = Prop
+                    EditTable["ID",number] = Prop:id()
+                    EditTable["APPLIED",table] = table()
+                    SchemeEdit["mirror",table][ID,table] = EditTable
+                    EditorComponents[Prop:id(),string] = ID
+                    
+                    Prop:setColor(vec(0,0,255))
+                    Prop:setMaterial("models/wireframe")
+                    noCollideAll(Prop,1)
+                    
+                    Prop:rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                    
+                }
+                RenderStep++
+            break
+            case "SAVE",
+                local Prop = getProp(ID)
+                if(Prop:isValidPhysics()){
+                    local LastPos = Mirror["POS",vector]
+                    local LastAng = Mirror["ANG",angle]
+                    local Pos = round(Base:toLocal(Prop:pos()),3)
+                    local Ang = round(Base:toLocal(Prop:angles()),3)
+                    Mirror["POS",vector] = Pos
+                    Mirror["ANG",angle] = Ang
+                    
+                    if(LastPos !=  Pos | LastAng !=  Ang){
+                        foreach(K,V:number = SchemeEdit["mirror",table][ID,table]["APPLIED",table]){
+                            addTask(1,"mirrorApply",array(K,ID))
+                        }
+                    }
+                    
+                }else{ # prop deleted
+                    rcprint("info","Mirror deleted.")
+                    # remove from assigned
+                    foreach(K,V:number = SchemeEdit["mirror",table][ID,table]["APPLIED",table]){
+                        local Object = get(K)
+                        Object["MIRROR",string] = ""
+                    }
+                    #remove
+                    Scheme["OBJECTS",table]["mirror",table]:remove(ID)
+                    local OldID = SchemeEdit["mirror",table][ID,table]["ID",number]
+                    SchemeEdit["mirror",table]:remove(ID)
+                    EditorComponents:remove(OldID)
+                    
+                    addTask(1,"schemeRender") # we'll rerender for mirror deletions
+                }
+            break 
+            case "HOVER",
+                local Prop = getProp(ID)
+                if(SelectedObject  ==  ""){ break }
+                if(get(SelectedObject)["TYPE",string]:validFrom(array("holo","decal","text2d","text3d"))){
+                    if(!hasMirror(SelectedObject)){
+                        Prop:setColor(vec(255,0,255))
+                    }else{
+                        Prop:setColor(vec(255,0,0))
+                    }
+                }
+            break
+            case "UNHOVER",
+            case "AIM_AWAY",
+                local Prop = getProp(ID)
+                Prop:setColor(vec(0,0,255))
+            break
+            case "KEY_E",
+                local Object = get(SelectedObject)
+                if(SelectedObject  ==  ""){ break }
+                if(!Object["TYPE",string]:validFrom(array("section","holo","decal","text2d","text3d"))){ break }
+                local Prop = getProp(ID)
+                if(!hasMirror(SelectedObject)){
+                    Object["MIRROR",string] = ID
+                    mirrorApply(SelectedObject,ID)
+                    Prop:rcPlay("contextual",0.25,"buttons/button9.wav",200)
+                    Prop:setColor(vec(255,0,0))
+                    generateMirrorHolo(SelectedObject)
+                    if(Object["TYPE",string]:find("text")){ addTask(1,Object["TYPE",string],array(SelectedObject,"REFRESH")) }
+                }else{
+                    Object["MIRROR",string] = ""
+                    mirrorApply(SelectedObject,ID)
+                    Prop:rcPlay("contextual",0.25,"buttons/button9.wav",150)
+                    Prop:setColor(vec(255,0,255))
+                    deleteMirrorHolo(SelectedObject)
+                }
+            break
+        }
+    }
+    function mirror(Args:array){ mirror(Args[1,string],Args[2,string]) } # for tasks
+    
+    function mirror_command(ID:string,Event:string,Tokens:array){
+        local Mirror = get("mirror",ID)
+        switch(Event){
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Mirror = table()
+                local Ang = !Axis ? ang(0,90,90) : ang(90,90,0)
+                Mirror["TYPE",string] = "mirror"
+                Mirror["POS",vector] = vec(0,0,BoundingBox:z())
+                Mirror["ANG",angle] = Ang
+                Scheme["OBJECTS",table]["mirror",table][ID,table] = Mirror
+                mirror(ID,"RENDER")
+            break
+        }
+    }
+    
+    function holo(ID:string,Event:string){
+        local Holo = Scheme["OBJECTS",table]["holo",table][ID,table]
+        switch(Event){
+            case "PREPARE", generic(ID,"PREPARE") break
+            case "INIT_EDIT", SchemeEdit["holo",table] = table(), break
+            case "RENDER",
+                local Index = n(ID)
+                holoCreate(Index)
+                holoPos(Index,Base:toWorld(Holo["POS",vector]))
+                holoAng(Index,Base:toWorld(Holo["ANG",angle]))
+                holoScale(Index,Holo["SCALE",vector])
+                holoColor(Index,Holo["COLOR",vector])
+                holoAlpha(Index,Holo["ALPHA",number])
+                holoMaterial(Index,Holo["MATERIAL",string])
+                holoModel(Index,Holo["MODEL",string])
+                clipsApply(ID)
+                setSubs(ID)
+                setBodygroups(ID)
+                mirrorApply(ID, Holo["MIRROR",string])
+                holoEntity(Index):rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                
+                if(Global_CurrentlyInEditorMode){
+                    # prop
+                    local Prop = propSpawn(CUBE_MODEL,Base:toWorld(Holo["POS",vector] + Holo["OFFSET",vector]),Base:toWorld(Holo["ANG",angle]),1)
+                    local EditTable = table()
+                    EditTable["PROP",entity] = Prop
+                    EditTable["ID",number] = Prop:id()
+                    SchemeEdit["holo",table][ID,table] = EditTable
+                    EditorComponents[Prop:id(),string] = ID
+                    Prop:setMaterial("models/wireframe")
+                    noCollideAll(Prop,1)
+                    holoParent(Index,Prop)
+                    if(ID  ==  SelectedObject){ 
+                        deleteClipHolos(SelectedObject)
+                        deleteMirrorHolo(SelectedObject)
+                        addTask(1,"generateClipHolos",array(SelectedObject),100)
+                        addTask(1,"generateMirrorHolo",array(SelectedObject),200)
+                    }
+                }else{
+                    holoParent(Index,Base)
+                }
+                RenderStep++
+            break
+            case "SAVE",
+                local Prop = getProp(ID)
+                generic(ID,"SAVE")
+                if(!Prop:isValidPhysics()){
+                    rcprint("info","Holo deleted.")
+                }
+            break
+            case "HOVER", generic(ID,"HOVER") break
+            case "UNHOVER",
+            case "AIM_AWAY", generic(ID,"AIM_AWAY"), break
+            case "KEY_E",
+                local LastSelected = SelectedObject
+                generic(ID,"KEY_E")
+                if(SelectedObject  ==  ID & LastSelected !=  SelectedObject){
+                    addTask(1,"generateClipHolos",array(ID),100)
+                    addTask(1,"generateMirrorHolo",array(ID),200)
+                }
+            break
+            case "UNSELECT", deleteClipHolos(ID), deleteMirrorHolo(ID) break
+        }
+    }
+    function holo(Args:array){ holo(Args[1,string],Args[2,string]) } # for tasks
+    
+    function holo_command(ID:string,Event:string,Tokens:array){
+        local Holo = Scheme["OBJECTS",table]["holo",table][ID,table]
+        switch(Event){
+            case "MODEL",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Model: " + Tokens[2,string]), break }
+                Holo["MODEL",string] = Tokens[2,string]
+                holoModel(n(ID),Tokens[2,string])
+            break
+            case "SCALE",
+                if(Tokens[2,string]  ==  "" | Tokens[2,string]:toVector()  ==  vec(-1)){ rcprint("info", "Scale: " + Holo["SCALE",vector]), break }
+                local Split = Tokens[2,string]:explode(",")
+                local Scale = Holo["SCALE",vector]
+                if(Split:count()  ==  1){
+                    local ScaleAxis = Scale:x()
+                    for(N = 1,3){
+                        if(ScaleAxis > Scale[N]){ ScaleAxis = Scale[N] }
+                    }
+                    Scale = (Scale/ScaleAxis) * n(Tokens[2,string])
+                }else{
+                    Scale = Tokens[2,string]:toVector()
+                    
+                }
+                holoScale(n(SelectedObject),Scale)
+                Holo["SCALE",vector] = Scale
+                rcprint("info","Scale set.")
+            break
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Holo = table()
+                Holo["TYPE",string] = "holo"
+                Holo["POS",vector] = vec(0,0,BoundingBox:z())
+                Holo["ANG",angle] = ang(0,0,0)
+                Holo["SCALE",vector] = vec(1)
+                Holo["COLOR",vector] = vec(255)
+                Holo["ALPHA",number] = 255
+                Holo["MATERIAL",string] = ""
+                Holo["MODEL",string] = Tokens[3,string] ? Tokens[3,string] : "cube"
+                Holo["SUBS",table] = table()
+                Holo["BODYGROUPS",table] = table()
+                Holo["MIRROR",string] = ""
+                Holo["OFFSET",vector] = vec(0)
+                Scheme["OBJECTS",table]["holo",table][ID,table] = Holo
+                objectSelect(ID)
+                clipAddIndex(ID) # allows clipping
+                holo(ID,"RENDER")
+            break
+        }
+    }
+    
+     function decal(ID:string,Event:string){
+        local Decal = Scheme["OBJECTS",table]["decal",table][ID,table]
+        switch(Event){
+            case "PREPARE", generic(ID,"PREPARE") break
+            case "INIT_EDIT", SchemeEdit["decal",table] = table(), break
+            case "RENDER",
+                local Index = n(ID)
+                holoCreate(Index)
+                holoPos(Index,Base:toWorld(Decal["POS",vector]))
+                holoAng(Index,Base:toWorld(Decal["ANG",angle]))
+                holoScale(Index,vec(Decal["SCALE",vector2],1))
+                holoColor(Index,Decal["COLOR",vector])
+                holoAlpha(Index,Decal["ALPHA",number])
+                holoMaterial(Index,Decal["MATERIAL",string])
+                holoModel(Index,"plane")
+                clipsApply(ID)
+                mirrorApply(ID, Decal["MIRROR",string])
+                holoEntity(Index):rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                
+                if(Global_CurrentlyInEditorMode){
+                    # prop
+                    local Prop = propSpawn(CUBE_MODEL,Base:toWorld(Decal["POS",vector] + Decal["OFFSET",vector]),Base:toWorld(Decal["ANG",angle]),1)
+                    local EditTable = table()
+                    EditTable["PROP",entity] = Prop
+                    EditTable["ID",number] = Prop:id()
+                    SchemeEdit["decal",table][ID,table] = EditTable
+                    EditorComponents[Prop:id(),string] = ID
+                    Prop:setMaterial("models/wireframe")
+                    noCollideAll(Prop,1)
+                    holoParent(Index,Prop)
+                    if(ID  ==  SelectedObject){ 
+                        deleteClipHolos(SelectedObject)
+                        deleteMirrorHolo(SelectedObject)
+                        addTask(1,"generateClipHolos",array(SelectedObject),100)
+                        addTask(1,"generateMirrorHolo",array(SelectedObject),200)
+                    }
+                }else{
+                    holoParent(Index,Base)
+                }
+                RenderStep++
+            break
+            case "SAVE",
+                local Prop = getProp(ID)
+                generic(ID,"SAVE")
+                if(!Prop:isValidPhysics()){
+                    rcprint("info","Decal deleted.")
+                }
+            break
+            case "HOVER", generic(ID,"HOVER") break
+            case "UNHOVER",
+            case "AIM_AWAY", generic(ID,"AIM_AWAY"), break
+            case "KEY_E",
+                local LastSelected = SelectedObject
+                generic(ID,"KEY_E")
+                if(SelectedObject  ==  ID & LastSelected !=  SelectedObject){
+                    addTask(1,"generateClipHolos",array(ID),100)
+                    addTask(1,"generateMirrorHolo",array(ID),200)
+                }
+            break
+            case "UNSELECT", deleteClipHolos(ID), deleteMirrorHolo(ID) break
+        }
+    }
+    function decal(Args:array){ decal(Args[1,string],Args[2,string]) } # for tasks
+    
+    function decal_command(ID:string,Event:string,Tokens:array){
+        local Decal = Scheme["OBJECTS",table]["decal",table][ID,table]
+        switch(Event){
+            case "SCALE",
+                if(Tokens[2,string]  ==  "" | Tokens[2,string]:toVector2()  ==  vec2(-1)){ rcprint("info", "Scale: " + Decal["SCALE",vector2]:x() + "," + Decal["SCALE",vector2]:y()), break }
+                local Split = Tokens[2,string]:explode(",")
+                local Scale = Decal["SCALE",vector2]
+                if(Split:count()  ==  1){
+                    local ScaleAxis = Scale:x()
+                    for(N = 1,3){
+                        if(ScaleAxis > Scale[N]){ ScaleAxis = Scale[N] }
+                    }
+                    Scale = (Scale/ScaleAxis) * n(Tokens[2,string])
+                }else{
+                    Scale = Tokens[2,string]:toVector2()
+                    
+                }
+                holoScale(n(SelectedObject),vec(Scale,1))
+                Decal["SCALE",vector2] = Scale
+                rcprint("info","Scale set.")
+            break
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Decal = table()
+                local Ang = ang(0,0,0)
+                Decal["TYPE",string] = "decal"
+                Decal["POS",vector] = vec(0,0,BoundingBox:z())
+                Decal["ANG",angle] = Ang
+                Decal["SCALE",vector2] = vec2(1)
+                Decal["COLOR",vector] = vec(255)
+                Decal["ALPHA",number] = 255
+                Decal["MATERIAL",string] = Tokens[3,string]
+                Decal["MIRROR",string] = ""
+                Decal["OFFSET",vector] = vec(0)
+                Scheme["OBJECTS",table]["decal",table][ID,table] = Decal
+                objectSelect(ID)
+                clipAddIndex(ID) # allows clipping
+                decal(ID,"RENDER")
+            break
+        }
+    }
+    
+    #include "magspack2/includes/rattlecan2_text_definitions"
+    
+    function number textCharWidth(C:string,Scale:vector2,KerningMul){
+        local W = 10
+        local Width = Scale:y()
+        if(TextKerning:exists(C)){
+            W = TextKerning[C,number]
+        }
+        return W*Width*KerningMul
+    }
+    
+    function number array:textTotalWidth(Start,End){
+        local TruncatedArray = array()
+        for(N = Start,End){
+            TruncatedArray:pushNumber(This[N,number])
+        }
+        return TruncatedArray:sum()
+    }
+    function number array:textTotalWidth(){ return This:sum() }
+    
+    function textCompileWidths(ID:string){
+        local Object = get(ID)
+        local Text = Object["TEXT",string]
+        local Scale = Object["SCALE",vector2]
+        local KerningMul = Object["KERNING_MUL",number]
+        local Widths = array()
+        for(N = 1,Text:length()){
+            Widths[N,number] = textCharWidth(Text[N],Scale,KerningMul)
+        }
+        Object["WIDTHS",array] = Widths
+    }
+    
+    function string string:capitals(Cap){
+        if(Cap  ==  1){ return This:upper() }
+        elseif(Cap  ==  -1){ return This:lower() }
+        return This
+    }
+    
+    function textCompileValidText(ID:string){
+        local Object = get(ID)
+        local Text = Object["INPUT_TEXT",string]:replace("|runningnumber|",RunningNumber)
+        local Type = Object["TYPE",string]  ==  "text2d" ? 0 : 1
+        local Font = !Type ? Text2DFonts[Object["FONT",string],table] : table()
+        
+        if(!Type){ Text = Text:capitals(Font["Capitals",number]) }
+        local NewText = array()
+        foreach(K,V:string = Text:explode("")){
+            if(Type){
+                local Valid = 0
+                if(Text3DExtra:exists(V)){
+                    Valid = 1
+                }elseif("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890":find(V)){
+                    Valid = 1
+                }elseif("abcdefghijklmnopqrstuvwxyz":find(V)){
+                    Valid = 1
+                }elseif(V  ==  " "){
+                    Valid = 1
+                }
+                if(Valid){ NewText:pushString(V) }
+            }else{
+                if(Font:exists(V) | V  ==  " "){ NewText:pushString(V) }
+            }
+        }
+        Object["TEXT",string] = NewText:concat()
+    }
+    
+    function renderCharacter(ID:string,Step){
+        local Object = get(ID)
+        local Type = Object["TYPE",string]  ==  "text2d" ? 0 : 1
+        local Text = Object["TEXT",string]
+        local Scale = Object["SCALE",vector2]
+        local KerningMul = Object["KERNING_MUL",number]
+        local TotalLength = Object["WIDTHS",array]:textTotalWidth()
+        local StartOffset = Step  ==  1 ? 0 : Object["WIDTHS",array]:textTotalWidth(1,Step-1)
+        local Char = Text[Step]
+        local Width = textCharWidth(Char,Scale,KerningMul)
+        local HasMirror = hasMirror(ID)
+        
+        # differences between text3d and text2d are handled here
+        local Model = ""
+        local Material = ""
+        if(Type){
+             if(Text3DExtra:exists(Char)){
+                Model = "models/sprops/misc/alphanum/alphanum_" + Text3DExtra[Char,string] + ".mdl"
+            }elseif("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890":find(Char)){
+                Model = "models/sprops/misc/alphanum/alphanum_" + Char:lower() + ".mdl"
+            }elseif("abcdefghijklmnopqrstuvwxyz":find(Char)){
+                Model = "models/sprops/misc/alphanum/alphanum_l_" + Char + ".mdl"
+            }elseif(Char  ==  " "){
+                Model = ""
+            }
+            Material = Object["MATERIAL",string]
+        }else{
+            Model = Char  ==  " " ? "" : "plane"
+            Material = Text2DFonts[Object["FONT",string],table][Char,string]
+        }
+        
+        if(Model !=  ""){
+            local Index = n(ID+"0002"+Step)
+            local Holo = holoEntity(n(ID))
+            holoCreate(Index)
+            holoModel(Index,Model)
+            holoMaterial(Index,Material)
+            local Pos = vec(0,(-TotalLength/2+(Width/2))+StartOffset,0)
+            local Ang = Type ? ang(0,-90,0) : ang(0)
+            local Scale = Type ? vec(Scale:y(),0.1,Scale:x()) : vec(Scale,0.1)
+            holoPos(Index,Holo:toWorld(Pos))
+            holoAng(Index,Holo:toWorld(Ang))
+            holoScale(Index,Scale)
+            holoColor(Index,Object["COLOR",vector])
+            holoAlpha(Index,Object["ALPHA",number])
+            if(Type){ holoBodygroup(Index,0,Object["FONT",number]) }
+            holoParent(Index,Holo)
+            if(HasMirror){
+                local MirrorHolo = holoEntity(n(ID+"0001"))
+                local MirrorIndex = n(ID+"0001"+Step)
+                holoCreate(MirrorIndex)
+                holoModel(MirrorIndex,Model)
+                holoMaterial(MirrorIndex,Material)
+                holoPos(MirrorIndex,MirrorHolo:toWorld(Pos))
+                holoAng(MirrorIndex,MirrorHolo:toWorld(Ang))
+                holoScale(MirrorIndex,Scale)
+                holoColor(MirrorIndex,Object["COLOR",vector])
+                holoAlpha(MirrorIndex,Object["ALPHA",number])
+                if(Type){ holoBodygroup(MirrorIndex,0,Object["FONT",number]) }
+                holoParent(MirrorIndex,MirrorHolo)
+            }
+            holoEntity(Index):rcPlay("textrender",0.5,"ambient/machines/keyboard"+randint(1,7)+"_clicks.wav",100)
+        }
+    }
+    function renderCharacter(Args:array){ renderCharacter(Args[1,string],Args[3,number]) }
+    
+    function textDelete(ID:string){
+        local Text = get(ID)
+        local HasMirror = hasMirror(ID)
+        for(N = 1,Text["TEXT",string]:length()){
+            holoDelete(n(ID+"0002"+N)) # delete old character
+            if(HasMirror){ holoDelete(n(ID+"0001"+N)) }
+        }
+    }
+    function textQueue(ID:string){
+        local Text = get(ID)
+        for(N = 1,Text["TEXT",string]:length()){
+            addTask(2,"renderCharacter",array(ID,holoEntity(n(ID)),N),50*N)
+        }
+    }
+    
+    function text(ID:string,Event:string){
+        local Text = get(ID)
+        local Type = Text["TYPE",string]
+        switch(Event){
+            case "PREPARE", generic(ID,"PREPARE") break
+            case "RENDER",
+                if(TextStep  ==  0){
+                    local Index = n(ID)
+                    holoCreate(Index)
+                    holoPos(Index,Base:toWorld(Text["POS",vector]))
+                    holoAng(Index,Base:toWorld(Text["ANG",angle]))
+                    holoAlpha(Index,0)
+                    mirrorApply(ID, Text["MIRROR",string])
+                    holoEntity(Index):rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                    
+                    # kinda hacky, but I can't think of a simpler way of doing this
+                    if(Text["LAST_RUNNING_NUMBER",string] !=  RunningNumber){
+                        textCompileValidText(ID)
+                        textCompileWidths(ID)
+                    }
+                    
+                    if(Global_CurrentlyInEditorMode){
+                        # prop
+                        local Prop = propSpawn(CUBE_MODEL,Base:toWorld(Text["POS",vector] + Text["OFFSET",vector]),Base:toWorld(Text["ANG",angle]),1)
+                        local EditTable = table()
+                        EditTable["PROP",entity] = Prop
+                        EditTable["ID",number] = Prop:id()
+                        SchemeEdit[Type,table][ID,table] = EditTable
+                        EditorComponents[Prop:id(),string] = ID
+                        Prop:setMaterial("models/wireframe")
+                        noCollideAll(Prop,1)
+                        holoParent(Index,Prop)
+                        if(ID  ==  SelectedObject){ 
+                            deleteMirrorHolo(SelectedObject)
+                            addTask(1,"generateMirrorHolo",array(SelectedObject),200)
+                        }
+                    }else{
+                        holoParent(Index,Base)
+                    }
+                    TextStep = 1
+                    # rendering without rendermode
+                    if(RCMode !=  "RENDER"){
+                        textQueue(ID)
+                        TextStep = 0
+                    }
+                }else{
+                    if(TextStep <= Text["TEXT",string]:length()){
+                        renderCharacter(ID,TextStep)
+                        TextStep++
+                    }else{
+                        RenderStep++
+                        TextStep = 0
+                    }
+                }
+            break
+            case "REFRESH",
+                textDelete(ID)
+                textQueue(ID)
+            break
+            case "HOVER",
+                local Prop = getProp(ID)
+                # editor holo
+                if(ID !=  SelectedObject){
+                    holoAlpha(1,50)
+                    holoPos(1,Prop:pos() - Text["OFFSET",vector])
+                    holoAng(1,Prop:angles())
+                    local Scale = Type  ==  "text2d" ? vec(Text["SCALE",vector2]:x()*12,Text["WIDTHS",array]:textTotalWidth(),0.1) : vec(0.1,Text["WIDTHS",array]:textTotalWidth(),Text["SCALE",vector2]:x()*12)
+                    holoScaleUnits(1,Scale)
+                    holoModel(1,"cube")
+                    holoParent(1,Prop)
+                }
+             break
+            case "KEY_E",
+                local LastSelected = SelectedObject
+                generic(ID,"KEY_E")
+                if(SelectedObject  ==  ID & LastSelected !=  SelectedObject){
+                    addTask(1,"generateMirrorHolo",array(ID),200)
+                }
+            break
+            case "UNSELECT", deleteMirrorHolo(ID) break
+        }
+    }
+    function text(Args:array){ text(Args[1,string],Args[2,string]) } # for tasks
+    
+    function text_command(ID:string,Event:string,Tokens:array){
+        local Text = get(ID)
+        local Type = Text["TYPE",string]
+        switch(Event){
+            case "SCALE",
+                if(Tokens[2,string]  ==  ""){ rcprint("info", "Scale: " + Text["SCALE",vector2]:x() + "," + Text["SCALE",vector2]:y()), break }
+                local Split = Tokens[2,string]:explode(",")
+                local Scale = Text["SCALE",vector2]
+                if(Split:count()  ==  1){
+                    local ScaleAxis = Scale:x()
+                    for(N = 1,3){
+                        if(ScaleAxis > Scale[N]){ ScaleAxis = Scale[N] }
+                    }
+                    Scale = (Scale/ScaleAxis) * n(Tokens[2,string])
+                }else{
+                    local InScale = Tokens[2,string]:toVector2()
+                    Scale = vec2(InScale:y(),InScale:x())  # swap sides, kinda dirty but whatever
+                    
+                }
+                Text["SCALE",vector2] = Scale
+                textCompileWidths(ID)
+                text(ID,"REFRESH")
+                rcprint("info","Scale set.")
+            break
+            case "COLOR",
+                local Color = Tokens[2,string]:toVector()
+                if(Color  ==  vec(-1)){ rcprint("info","Color: " + Text["COLOR",vector]), break }
+                Text["COLOR",vector] = Color
+                text(ID,"REFRESH")
+                rcprint("info","Color set.")
+            break            
+            case "ALPHA",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Alpha: " + Text["ALPHA",number]), break }
+                Text["ALPHA",number] = n(Tokens[2,string])
+                text(ID,"REFRESH")
+                rcprint("info","Alpha set.")
+            break
+            case "KERNING",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Kerning multiplier: " + Text["KERNING_MUL",number]), break }
+                Text["KERNING_MUL",number] = n(Tokens[2,string])
+                textCompileWidths(ID)
+                text(ID,"REFRESH")
+                rcprint("info","Kerning multiplier set.")
+            break
+            case "TEXT",
+                if(Tokens[2,string]  ==  ""){ rcprint("info", "Text: " + Text["INPUT_TEXT",string]), break }
+                Text["INPUT_TEXT",string] = Tokens:deTokenize(2)
+                textDelete(ID)
+                textCompileValidText(ID)
+                textCompileWidths(ID)
+                textQueue(ID)
+                rcprint("info","Text set.")
+            break
+        }
+    }
+    
+    TextStep = 0
+    function text2d(ID:string,Event:string){
+        local Text2D = Scheme["OBJECTS",table]["text2d",table][ID,table]
+        switch(Event){
+            case "PREPARE", text(ID,"PREPARE") break
+            case "INIT_EDIT", SchemeEdit["text2d",table] = table(), break
+            case "RENDER", text(ID,"RENDER") break
+            case "REFRESH", text(ID,"REFRESH") break
+            case "SAVE",
+            local Prop = getProp(ID)
+                if(Prop:isValidPhysics()){
+                    local Offset = Text2D["OFFSET",vector]
+                    local LastPos = Text2D["POS",vector] - Offset
+                    local LastAng = Text2D["ANG",angle]
+                    local Pos = round(Base:toLocal(Prop:pos()),3) - Offset
+                    local Ang = round(Base:toLocal(Prop:angles()),3)
+                    Text2D["POS",vector] = Pos
+                    Text2D["ANG",angle] = Ang
+                    # mirror handling
+                    if(hasMirror(ID) & (LastPos !=  Pos | LastAng !=  Ang)){ addTask(1,"mirrorApply",array(ID,Text2D["MIRROR",string])) }
+                }else{ # prop deleted
+                    #remove
+                    Scheme["OBJECTS",table]["text2d",table]:remove(ID)
+                    local OldID = SchemeEdit["text2d",table][ID,table]["ID",number]
+                    SchemeEdit["text2d",table]:remove(ID)
+                    EditorComponents:remove(OldID)
+                    if(SelectedObject  ==  ID){ SelectedObject = "" }
+                    rcprint("info","Text2D deleted.")
+                }
+            break
+            case "HOVER", text(ID,"HOVER") break
+            case "KEY_E", text(ID,"KEY_E") break
+            case "UNSELECT", text(ID,"UNSELECT") break
+        }
+    }
+    function text2d(Args:array){ text2d(Args[1,string],Args[2,string]) } # for tasks
+    
+    function text2d_command(ID:string,Event:string,Tokens:array){
+        local Text2D = Scheme["OBJECTS",table]["text2d",table][ID,table]
+        switch(Event){
+            case "FONT",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Font: " + Text2D["FONT",string]), break }
+                if(Text2DFonts:exists(Tokens[2,string])){
+                    Text2D["FONT",string] = Tokens[2,string]
+                    textDelete(ID)
+                    textCompileValidText(ID)
+                    textCompileWidths(ID)
+                    textQueue(ID)
+                    rcprint("info","Font set.")
+                }else{ rcprint("error","Invalid font.") }
+            break
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Text2D = table()
+                local Ang = ang(0,0,0)
+                Text2D["TYPE",string] = "text2d"
+                Text2D["POS",vector] = vec(0,0,BoundingBox:z())
+                Text2D["ANG",angle] = Ang
+                Text2D["SCALE",vector2] = vec2(1)
+                Text2D["COLOR",vector] = vec(255)
+                Text2D["ALPHA",number] = 255
+                Text2D["MIRROR",string] = ""
+                Text2D["OFFSET",vector] = vec(0)
+                Text2D["FONT",string] = "sylfaen"
+                Text2D["KERNING_MUL",number] = 1
+                Text2D["INPUT_TEXT",string] = Tokens[3,string]
+                Text2D["TEXT",string] = ""
+                Text2D["WIDTHS",array] = array()
+                Text2D["LAST_RUNNING_NUMBER",string] = RunningNumber
+                Scheme["OBJECTS",table]["text2d",table][ID,table] = Text2D
+                textCompileValidText(ID)
+                textCompileWidths(ID)
+                objectSelect(ID)
+                text2d(ID,"RENDER")
+            break
+        }
+    }
+    
+    function text3d(ID:string,Event:string){
+        local Text3D = Scheme["OBJECTS",table]["text3d",table][ID,table]
+        switch(Event){
+            case "PREPARE", text(ID,"PREPARE") break
+            case "INIT_EDIT", SchemeEdit["text3d",table] = table(), break
+            case "RENDER", text(ID,"RENDER") break
+            case "REFRESH", text(ID,"REFRESH") break
+            case "SAVE",
+            local Prop = getProp(ID)
+                if(Prop:isValidPhysics()){
+                    local LastPos = Text3D["POS",vector]
+                    local LastAng = Text3D["ANG",angle]
+                    local Pos = round(Base:toLocal(Prop:pos()),3)
+                    local Ang = round(Base:toLocal(Prop:angles()),3)
+                    Text3D["POS",vector] = Pos
+                    Text3D["ANG",angle] = Ang
+                    # mirror handling
+                    if(hasMirror(ID) & (LastPos !=  Pos | LastAng !=  Ang)){ addTask(1,"mirrorApply",array(ID,Text3D["MIRROR",string])) }
+                }else{ # prop deleted
+                    #remove
+                    Scheme["OBJECTS",table]["text3d",table]:remove(ID)
+                    local OldID = SchemeEdit["text3d",table][ID,table]["ID",number]
+                    SchemeEdit["text3d",table]:remove(ID)
+                    EditorComponents:remove(OldID)
+                    if(SelectedObject  ==  ID){ SelectedObject = "" }
+                    rcprint("info","Text3D deleted.")
+                }
+            break
+            case "HOVER", text(ID,"HOVER") break
+            case "KEY_E", text(ID,"KEY_E") break
+            case "UNSELECT", text(ID,"UNSELECT") break
+        }
+    }
+    function text3d(Args:array){ text3d(Args[1,string],Args[2,string]) } # for tasks
+    
+    function text3d_command(ID:string,Event:string,Tokens:array){
+        local Text3D = Scheme["OBJECTS",table]["text3d",table][ID,table]
+        switch(Event){
+            case "FONT",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Font: " + Text3D["FONT",number]), break }
+                if(inrange(n(Tokens[2,string]),0,3)){
+                    Text3D["FONT",number] = n(Tokens[2,string])
+                    textDelete(ID)
+                    textCompileValidText(ID)
+                    textCompileWidths(ID)
+                    textQueue(ID)
+                    rcprint("info","Font set.")
+                }else{ rcprint("error","Invalid font.") }
+            break
+            case "MATERIAL",
+                if(Tokens[2,string]  ==  ""){ rcprint("info","Material: " + Text3D["MATERIAL",string]), break }
+                Text3D["MATERIAL",string] = Tokens[2,string]
+                text3d(ID,"REFRESH")
+                rcprint("info","Material set.")
+            break
+            case "CREATE",
+                local ID = createSaltedHashID()
+                local Text3D = table()
+                local Ang = ang(0,0,0)
+                Text3D["TYPE",string] = "text3d"
+                Text3D["POS",vector] = vec(0,0,BoundingBox:z())
+                Text3D["ANG",angle] = Ang
+                Text3D["SCALE",vector2] = vec2(1)
+                Text3D["COLOR",vector] = vec(255)
+                Text3D["ALPHA",number] = 255
+                Text3D["MATERIAL",string] = ""
+                Text3D["MIRROR",string] = ""
+                Text3D["OFFSET",vector] = vec(0)
+                Text3D["FONT",number] = 0
+                Text3D["KERNING_MUL",number] = 1
+                Text3D["INPUT_TEXT",string] = Tokens[3,string]
+                Text3D["TEXT",string] = ""
+                Text3D["WIDTHS",array] = array()
+                Text3D["LAST_RUNNING_NUMBER",string] = RunningNumber
+                Scheme["OBJECTS",table]["text3d",table][ID,table] = Text3D
+                textCompileValidText(ID)
+                textCompileWidths(ID)
+                objectSelect(ID)
+                text3d(ID,"RENDER")
+            break
+        }
+    }
+    
+    # causes a section to flash
+    function sectionBlink(Args:array){
+        local ID = Args[1,string]
+        local Mode = Args[2,number]
+        local HasMirror = hasMirror(ID)
+        
+        if(Mode  ==  1){
+            local Col = get(ID)["COLOR",vector]
+            local Brightness = array(Col[1],Col[2],Col[3]):max() > 128 ? -60 : 30
+            local Fade = Col + (Brightness*2)
+            holoColor(n(ID),Fade)
+            if(HasMirror){ holoColor(n(ID+"0001"), Fade) }
+            addTask(1,"sectionBlink",array(ID,2),50)
+        }else{
+            local Col = get(ID)["COLOR",vector]
+            holoColor(n(ID),Col)
+            if(HasMirror){ holoColor(n(ID+"0001"),Col) }
+        }
+    }
+    
+    # causes a section to fade, starts at step 0 and goes to 2
+    function sectionFade(Args:array){
+        local ID = Args[1,string]
+        local Step = Args[2,number]
+        local HasMirror = hasMirror(ID)
+        
+        local Col = get(ID)["COLOR",vector]
+        local Brightness = array(Col[1],Col[2],Col[3]):max() > 128 ? -60 : 30
+        local Fade = Col+(Brightness*((2-Step)/2))
+        holoColor(n(ID),Fade)
+        if(HasMirror){ holoColor(n(ID+"0001"), Fade) }
+        
+        if(Step !=  2){
+            Step++
+            addTask(1,"sectionFade",array(ID,Step),10)
+        }
+    }
+    
+    SectionValidStep = 1
+    # finds the section the player is currently looking at when called, and then runs the visual fluff if it is a different section
+    function sectionFindValid(){
+        local Sections = get("section")
+        local SectionKeys = Sections:keys()
+        local ValidSection = ""
+        local AimEnt = O:aimEntity()
+        local AimPos = Base:toLocal(O:aimPos())
+        if(AimEnt !=  Base){ SectionValidStep = 1, SchemeEdit["SECTION_VALID_SECTION",string]  ==  "", return } # don't do anything unless we're actually looking at the base
+        
+        while(perf(50) & SectionValidStep <= Sections:count()){
+            local ID = SectionKeys[SectionValidStep,string]
+            local Section = Sections[ID,table]
+            local HasMirror = hasMirror(ID)
+            # checking section validity
+            local Clips = clipGetAssigned(ID)
+            if(Clips:count()  ==  0){ SectionValidStep++, continue }
+            local Valid = 1
+            foreach(K,V:number = Clips){
+                local Clip = get("clip",K)
+                local Normal = Clip["ANG",angle]:up() * V
+                if(Normal:dot((Clip["POS",vector] - AimPos):normalized()) > 0){ Valid = 0, break }
+            }
+            # now we check the mirrored variant
+            if(!Valid & HasMirror){
+                Valid = 1
+                # set up opposite aimpos
+                local Mirror = get("mirror",Section["MIRROR",string])
+                local MP = Mirror["POS",vector]
+                local N = Mirror["ANG",angle]:up()
+                local Mag = N:dot(MP - AimPos)
+                local MirrorAimPos = AimPos+(N*Mag*2)
+                # check clips
+                foreach(K,V:number = Clips){
+                    local Clip = get("clip",K)
+                    local Normal = Clip["ANG",angle]:up() * V
+                    if(Normal:dot((Clip["POS",vector] - MirrorAimPos):normalized()) > 0){ Valid = 0, break }
+                }
+            }
+            if(!Valid){ SectionValidStep++, continue } # continue perf loop
+            # found section
+            ValidSection = ID
+            break
+        }
+        
+        if(!ValidSection){ 
+            if(SectionValidStep > Sections:count()){SectionValidStep = 1, return } # skip restarting if we just found nothing
+            addTask(1,"sectionFindValid",array(),50) 
+            return 
+        }
+        # only executes past here if valid section is found
+        SectionValidStep = 1
+        # set up valid section stuff, like highlighting
+        if(SchemeEdit["SECTION_VALID_SECTION",string] !=  ValidSection){
+            SchemeEdit["SECTION_VALID_SECTION",string] = ValidSection
+            if(SelectedObject !=  ValidSection){ # this section is valid, but our selected one, so don't do any effects
+                local Col = Sections[ValidSection,table]["COLOR",vector]
+                local Brightness = array(Col[1],Col[2],Col[3]):max() > 128 ? -60 : 30
+                local Fade = Col + (Brightness*2)
+                holoColor(n(ValidSection),Fade)
+                if(hasMirror(ValidSection)){ holoColor(n(ValidSection+"0001"),Fade) }
+                addTask(1,"sectionFade",array(ValidSection,0),10)
+            }
+        }
+    }
+    
+    SectionLastSubs = array() 
+    SectionLastBodygroups = array()
+    SectionNumMaterials = Base:getMaterials():count()
+    function sectionSetSubs(Args:array){
+        local ID = Args[1,string]
+        local Section = get(ID)
+        local Isolate = Section["SUBS",table]["isolate",string]
+        local All = Section["SUBS",table]["all",string]
+        local HasMirror = hasMirror(ID)
+        for(N = 1,SectionNumMaterials){
+            NewSubmaterial = Base:getSubMaterial(N)
+            if(!Isolate & !All){
+                if((NewSubmaterial !=  SectionLastSubs[N,string] | SectionLastSubs:count() < N) & !Section["SUBS",table]:exists(N:toString())){
+                    holoEntity(n(ID)):setSubMaterial(N,NewSubmaterial)
+                    if(HasMirror){ holoEntity(n(ID+"0001")):setSubMaterial(N,NewSubmaterial) }
+                }
+            }elseif(N  ==  n(Isolate)){
+                if((NewSubmaterial !=  SectionLastSubs[N,string] | SectionLastSubs:count() < N) & !Section["SUBS",table]:exists(N:toString())){
+                    holoEntity(n(ID)):setSubMaterial(N,NewSubmaterial)
+                    if(HasMirror){ holoEntity(n(ID+"001")):setSubMaterial(N,NewSubmaterial) }
+                }
+            }
+        }
+    }
+    function sectionsSetSubs(){
+        if(RCMode !=  "EDIT" & RCMode !=  "OPERATION"){ return }
+        local Sections = get("section")
+        local N = 0
+        local Interval = 9000/Sections:count()
+        foreach(K,V:table = Sections){
+            N++
+            addTask(1,"sectionSetSubs",array(K),N*Interval)
+        }
+    }
+    function setBodygroupSections(Args:array){
+        local Bodygroup = Args[1,vector2]
+        foreach(K,V:table = get("section")){
+            if(!V["BODYGROUPS",table]:exists(Bodygroup:x():toString())){
+                holoBodygroup(n(K),Bodygroup:x(),Bodygroup:y())
+                if(hasMirror(K)){ holoBodygroup(n(K+"0001"),Bodygroup:x(),Bodygroup:y()) }
+            }
+        }
+    }
+    function sectionsSetBodygroups(){
+        if(RCMode !=  "EDIT" & RCMode !=  "OPERATION"){ return }
+        local Sections = get("section")
+        for(N = 1,32){
+            local NewBodygroup = Base:getBodygroup(N)
+            if(NewBodygroup !=  SectionLastBodygroups[N,number] | SectionLastBodygroups:count() < N){
+                addTask(1,"setBodygroupSections",array(vec2(N,NewBodygroup)))
+                SectionLastBodygroups[N,number] = NewBodygroup
+            }
+        }
+    }
+    
+    if(BASE_CONSTANTLY_SCAN){
+        startTaskLoop("sectionsubscan","sectionsSetSubs",10000)
+        startTaskLoop("sectionbgscan","sectionsSetBodygroups",1000)
+    }
+    
+    function sectionMirror(ID:string,MID:string){
+        local Section = get(ID)
+        local Mirror = get(MID)
+        if(!hasMirror(ID)){ 
+            holoDelete(n(ID+"0001"))
+            if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table]:remove(ID) }
+            return
+        }else{
+            if(Global_CurrentlyInEditorMode){ SchemeEdit["mirror",table][MID,table]["APPLIED",table][ID,number] = 0 }
+        }
+        local IDN = n(ID+"0001")
+        if(!holoEntity(IDN):isValid()){
+            holoCreate(IDN)
+            holoModel(IDN,Base:model())
+            holoColor(IDN,Section["COLOR",vector])
+            holoPos(IDN,Base:pos())
+            holoAng(IDN,Base:angles())
+            holoParent(IDN,Base)
+            if(SectionStep  ==  0){ # hacky bullshit
+                SectionStep = 3
+                addTask(1,"section",array(ID,"RENDER"),100)
+            }
+        }
+        disable_existing_clips(IDN)
+        local ClipN = 1
+        foreach(K,V:number = clipGetAssigned(ID)){
+            local Clip = get("clip",K)
+            local Sign = V
+            local MP = Mirror["POS",vector]
+            local N = Mirror["ANG",angle]:up()
+            local Mag = N:dot(MP - Clip["POS",vector])
+            local MirrorPos = Clip["POS",vector]+(N*Mag*2)
+            local UsePropInstead = 0
+            if(abs(MirrorPos:distance(Clip["POS",vector])) < 0.5){
+                if(Global_CurrentlyInEditorMode){ 
+                    UsePropInstead = 1
+                }else{
+                    MirrorPos = Clip["POS",vector]
+                }
+            }
+            local MirrorAng = Clip["ANG",angle]:rotateAroundAxis(-N,180)
+            MirrorAng = MirrorAng:rotateAroundAxis(MirrorAng:right(),180)
+
+            holoClipEnabled(IDN,ClipN,1)
+            if(!UsePropInstead){
+                holoClip(IDN,ClipN,MirrorPos,MirrorAng:up() * Sign,0)
+            }else{
+                local Prop = getProp(K)
+                holoClip(IDN,ClipN,Base:toLocal(Prop:pos()),MirrorAng:up() * Sign,0)
+            }
+            ClipN++
+        }
+    }
+    function sectionMirror(Args:array){ sectionMirror(Args[1,string],Args[2,string]) }
+    
+    function sectionMirrorLoop(){
+        if(!EditRunningLoop){ return }
+        local MirrorSections = table()
+        foreach(K,V:table = get("section")){
+            if(hasMirror(K)){
+                MirrorSections[K,table] = V
+            }
+        }
+        if(MirrorSections:count()  ==  0){ return }
+        local Interval = 4000/MirrorSections:count()
+        local N = 1
+        foreach(K,V:table = MirrorSections){
+            addTask(1,"sectionMirror",array(K,V["MIRROR",string]),N*Interval)
+            N++
+        }
+    }
+    
+    # [timehash:number]: table(type:SECTION,color:vector)
+    SectionStep = 0
+    function section(ID:string,Event:string){
+        local Section = Scheme["OBJECTS",table]["section",table][ID,table]
+        switch(Event){
+            case "PREPARE",
+                RenderQueue:pushArray(array(ID,"section",1,0))
+                if(holoEntity(n(ID)):isValid()){ holoDelete(n(ID)) } # for refreshing
+                if(holoEntity(n(ID+"0001")):isValid()){ holoDelete(n(ID+"0001")) }
+            break
+            case "INIT_EDIT",
+                SchemeEdit["SECTION_VALID_SECTION",string] = ""
+            break
+            case "RENDER",
+                if(SectionStep  ==  0){
+                    if(Base:getAlpha() !=  0){ Base:setAlpha(0) }
+                    SectionLastSubs = array() # any time a section is rendered, we need to reset these
+                    SectionLastBodygroups = array()
+                    local IDN = n(ID)
+                    holoCreate(IDN)
+                    holoModel(IDN,Base:model())
+                    holoColor(IDN,Section["COLOR",vector])
+                    holoPos(IDN,Base:pos())
+                    holoAng(IDN,Base:angles())
+                    holoParent(IDN,Base)
+                    clipsApply(ID)
+                    Base:rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                    SectionStep = 1
+                    if(RCMode !=  "RENDER"){ addTask(1,"section",array(ID,"RENDER")) } # render out second step if not in render
+                }elseif(SectionStep  ==  1){ # submaterials/bodygroups for section
+                    setSubs(ID)
+                    setBodygroups(ID)
+                    # clip holo
+                    if(ID  ==  SelectedObject & Global_CurrentlyInEditorMode){ 
+                        deleteClipHolos(SelectedObject)
+                        addTask(1,"generateClipHolos",array(SelectedObject),100)
+                        addTask(1,"generateMirrorHolo",array(SelectedObject),200)
+                    }
+                    if(hasMirror(ID)){
+                        SectionStep = 2
+                        if(RCMode !=  "RENDER"){ addTask(1,"section",array(ID,"RENDER")) }
+                    }else{
+                        SectionStep = 0
+                        RenderStep++
+                    }
+                }elseif(SectionStep  ==  2){ # create mirrored section
+                    sectionMirror(ID,Section["MIRROR",string])
+                    Base:rcPlay("renderpop",0.5,"garrysmod/balloon_pop_cute.wav",RCMode  ==  "RENDER" ? 0 : 100)
+                    SectionStep = 3
+                    if(RCMode !=  "RENDER"){ addTask(1,"section",array(ID,"RENDER")) }
+                }elseif(SectionStep  ==  3){ # set subs/bgs for mirrored section
+                    setSubs(ID,ID+"0001")
+                    setBodygroups(ID,ID+"0001")
+                    SectionStep = 0
+                    RenderStep++
+                }
+            break
+            case "UNHOVER",
+            case "AIM_AWAY",
+                SchemeEdit["SECTION_VALID_SECTION",string] = ""
+                holoColor(n(ID),Section["COLOR",vector])
+            break
+            case "KEY_E",
+                if(SelectedObject !=  ID & ID  ==  SchemeEdit["SECTION_VALID_SECTION",string]){
+                    objectSelect(ID)
+                    Base:rcPlay("contextual",0.25,"buttons/button9.wav",200)
+                    sectionBlink(array(ID,1))
+                    addTask(1,"generateClipHolos",array(ID),100) # delayed, so that holoDelete doesn't interfere
+                    addTask(1,"generateMirrorHolo",array(ID),200)
+                }
+            break
+            case "UNSELECT",
+                deleteClipHolos(ID), deleteMirrorHolo(ID)
+            break
+        }
+    }
+    function section(Args:array){ section(Args[1,string],Args[2,string]) } # for tasks
+    
+    function section_command(ID:string,Event:string,Tokens:array){
+        local Section = Scheme["OBJECTS",table]["section",table][ID,table]
+        local HasMirror = hasMirror(ID)
+        local MID = ID+"0001"
+        switch(Event){
+            case "DELETE",
+                Scheme["OBJECTS",table]["section",table]:remove(ID)
+                deleteClipHolos(ID)
+                clipRemoveIndex(ID)
+                holoDelete(n(ID))
+                if(HasMirror){ holoDelete(n(MID)) } 
+                rcprint("info","Section deleted.")
+            break
+            case "CREATE", # needs to go last due to switch case statement stupidity
+                local ID = createSaltedHashID()
+                Section = table()
+                Section["TYPE",string] = "section"
+                Section["COLOR",vector] = Tokens[3,string] !=  "" ? Tokens[3,string]:toVector() : vec(255)
+                Section["SUBS",table] = table()
+                Section["BODYGROUPS",table] = table()
+                Section["MIRROR",string] = ""
+                Scheme["OBJECTS",table]["section",table][ID,table] = Section
+                objectSelect(ID)
+                clipAddIndex(ID) # allows clipping
+                section(ID,"RENDER")
+            break
+        }
+    }
+    
+    # SAVING / UNDO
+    
+    # returns 1 if successful 
+    function number save(Filename:string,Autosave){
+        if(Filename !=  ""){
+            if(fileCanWrite() & SchemeLoaded){
+                if(Scheme["MISC",table]["name",string]:explode("_")[1,string]  ==  "nn"){
+                    Scheme["MISC",table]["name",string] = "nn_" + Filename # default scheme name if we have no name
+                }
+                local SaveString = Autosave ? ">e2shared/rattlecan2/autosave/" + Filename + ".txt" : ">e2shared/rattlecan2/" + Filename + ".txt"
+                local SchemeString = vonEncode(Scheme)
+                SchemeDupe = SchemeString
+                fileWrite(SaveString, SchemeString)
+                if(!Autosave){ Scheme["MISC",table]["filename",string] = Filename }
+                return 1
+            }else{
+                return 0
+            }
+        }else{
+            if(fileCanWrite() & SchemeLoaded){
+                local SchemeString = vonEncode(Scheme)
+                SchemeDupe = SchemeString
+                fileWrite(">e2shared/rattlecan2/" + LoadFile + ".txt", SchemeString)
+                Scheme["MISC",table]["filename",string] = Filename
+                return 1
+            }else{
+                return 0
+            }
+        }
+    }
+    
+    function number autosave(){
+        if(AutosaveNum  ==  11){ AutosaveNum = 1 }
+        local Success = save(LoadFile + "_" + AutosaveNum,1)
+        if(Success){ AutosaveNum++ }
+        print(Success)
+        return Success
+    }
+    
+    # SCHEME MANAGEMENT
+    
+    function schemeLoad(Args:array){
+        LoadFile = Args[1,string]
+        fileLoad(">e2shared/rattlecan2/" + LoadFile + ".txt")
+    }
+    
+    # scheme
+    # Scheme Table
+    #   OBJECTS
+    #       [objecttype]
+    #           [timehash:number]: table(object)
+    #           ...
+    #       ...
+    #   CLIPS_ASSIGNED
+    #       ...
+    #   VARS
+    #       [var]: data:string
+    #       ...
+    #   MISC
+    #       basecolor: vec3
+    #       runningnumber: string
+    #       name: string
+    #       version: string
+    #       rn_num: number
+    #       rn_random: number
+    #       rn_range: string
+    
+    # object determines when Step advances, allows an object to take multiple steps if it likes
+    
+    # dummy functions
+    function stopEdit(){}
+    function startEdit(){}
+    
+    function schemeFinish(){
+        RCMode = Global_CurrentlyInEditorMode ? "EDIT" : "OPERATION"
+        rcName(1,"RATTLECAN 3 | ["+RCMode+"]")
+        rcName(3,Scheme["MISC",table]["name",string])
+        if(Global_CurrentlyInEditorMode){ startEdit() }
+        soundStop("renderidle")
+        Base:rcPlay("renderdone",1,"npc/roller/remote_yes.wav")
+        RefreshSpecific = ""
+        RefreshObjects = array()
+        RenderStage = 1
+        stats(0)
+        # object specific
+        sectionsSetBodygroups()
+        # dupe, we'll update the dupe file every time we finish rendering something in operation mode
+        if(RCMode  ==  "OPERATION"){
+            SchemeDupe = vonEncode(Scheme)
+        }
+    }
+    
+    function schemeDestroy(){
+        holoDeleteAll()
+        propDeleteAll()
+        Base:setAlpha(255)
+        SchemeEdit:clear()
+        EditorComponents:clear()
+    }
+    
+    function schemeCancelReset(){ RenderCancel = 0 }
+    function schemeRenderCancel(){ # cancels rendering the scheme, and then restarts it
+        if(RenderCancel){ return }
+        RCMode = "RENDER_RESTART"
+        rcName(1,"RATTLECAN 3 | [RESTARTING RENDER]")
+        rcName(3,"RESTARTING")
+        schemeDestroy()
+        soundStop("renderidle")
+        Base:rcPlay("renderdone",1,"npc/roller/mine/rmine_blip1.wav")
+        RefreshSpecific = ""
+        RefreshObjects = array()
+        RenderStage = 1
+        addTask(1,"schemeCancelReset",900)
+        RenderCancel = 1
+    }
+    
+    function schemeRender(Stage){
+        if(RenderCancel){ return }
+        if(RCMode !=  "RENDER"){
+            if(SOUNDS){
+                soundPlay("renderidle",0,"ambient/levels/labs/equipment_printer_loop1.wav") 
+                soundPitch("renderidle",75)
+                soundVolume("renderidle",0.7)
+            }
+            if(!Stage){ RenderStage = 1 }
+            RCMode = "RENDER"
+            rcName(1,"RATTLECAN 3 | [RENDER]")
+        }
+        if(RenderStage  ==  1){ # we use this tick to let tasks die down, and get some editor components started
+            if(Global_CurrentlyInEditorMode){ stopEdit() }
+            RenderStage = Stage ? Stage : 2
+            
+            # reset renderer
+            RenderKeys:clear()
+            RenderKeysObjects:clear()
+            RenderKeysDone = 0
+            RenderObjectsPrepared = 0
+            RenderObjectsPrepareType = 1
+            RenderQueue = table()
+            RenderStep = 1
+            
+            addTask(1,"schemeRender",250)
+            rcName(3,"RENDER | SETUP | 1/2")
+        }
+        elseif(RenderStage  ==  2){ # reset scheme
+            schemeDestroy()
+            if(Global_CurrentlyInEditorMode){ # prepare schemeedit table
+                foreach(K,V:string = RenderObjectsOrder){
+                    V("","INIT_EDIT")
+                }
+            }
+            EditorComponents[Base:id(),number] = 1 # just for simplicity
+            SelectedObject = ""
+            
+            generateRunningNumber()
+            Base:setColor(Scheme["MISC",table]["basecolor",vector])
+            
+            if(get("ALLOBJECTS"):count()  ==  0){ schemeFinish(), return }
+            
+            if(SOUNDS){ soundPitch("renderidle",75,0.25) }
+            RenderStage = 3
+            addTask(1,"schemeRender")
+            rcName(3,"RENDER | SETUP | 2/2")
+        }
+        elseif(RenderStage  ==  3){
+            if(!RenderObjectsPrepared){ # insert objects into the queue, in order
+                while(perf(50)){
+                    local IsSpecific = RefreshSpecific !=  ""
+                    local ObjectTable = table()
+                    switch(RefreshSpecific){
+                        case "text",
+                            ObjectTable = get("text2d"):add(get("text3d"))
+                        break
+                        case "objects",
+                            foreach(K,V:string = RefreshObjects){
+                                ObjectTable[V,table] = get(V)
+                            }
+                        break
+                        default,
+                            ObjectTable = get(!IsSpecific ? RenderObjectsOrder[RenderObjectsPrepareType,string] : RefreshSpecific)
+                        break
+                    } 
+                    if(ObjectTable:count()  ==  0){
+                        if(RenderObjectsPrepareType  ==  RenderObjectsOrder:count() | IsSpecific){
+                            RenderObjectsPrepared = 1
+                            break
+                        }
+                        RenderObjectsPrepareType++
+                    }else{
+                        local Objects = ObjectTable:keys()
+                        local NumObjects = Objects:count()
+                        local ID = Objects[RenderStep,string]
+                        local Object = ObjectTable[ID,table]
+                        if(Object["TYPE",string] !=  ""){
+                            Object["TYPE",string](ID,"PREPARE")
+                        }else{
+                            rcprint("error","Caught bad object! This is likely a Wiremod bug and is safe to ignore. Restarting... | RenderStep = " + RenderStep + " | RenderObjectsPrepareType = " + RenderObjectsPrepareType)
+                            schemeRenderCancel()
+                            addTask(1,"schemeRender",1000)
+                            return
+                        }
+                        RenderStep++
+                        if(RenderStep > NumObjects){
+                            if(RenderObjectsPrepareType  ==  RenderObjectsOrder:count() | IsSpecific){ # we iterate through the table until we go through every type, thats how we go in order
+                                RenderObjectsPrepared = 1
+                                RenderStep = 1
+                                break
+                            }else{ # going through all our different object types
+                                RenderObjectsPrepareType++
+                                RenderStep = 1
+                            }
+                        }
+                        rcName(3,"RENDER | OBJECT PREPARATION | "+RenderStep+"/"+NumObjects + " | " + RenderObjectsPrepareType + "/" + RenderObjectsOrder:count())
+                    }
+                }
+            }else{ # here we do render keys, an aligned 1-x storage of all holograms
+                if(RenderKeysDone !=  2 & !Global_CurrentlyInEditorMode){
+                    if(RenderKeysDone  ==  0){ # adding mirrors
+                        local Objects = get("holo"):add(get("decal")):add(get("text2d")):add(get("text3d"))
+                        local ObjectKeys = Objects:keys()
+                        local NumObjects = Objects:count()
+                        while(perf(50)){
+                            if(RenderStep <= NumObjects){
+                                local ID = ObjectKeys[RenderStep,string]
+                                if(hasMirror(ID)){ RenderKeysObjects[ID+"0001",number] = 0 } # don't need any data, just the key
+                                RenderStep++
+                            }else{
+                                RenderKeysObjects = RenderKeysObjects:add(Objects)
+                                RenderKeysDone = 1 
+                                RenderStep = 1
+                                break
+                            }
+                            rcName(3,"RENDER | RENDER KEYS (MIRRORS) | "+RenderStep+"/"+NumObjects)
+                        }
+                    }elseif(RenderKeysDone  ==  1){
+                        local ObjectKeys = RenderKeysObjects:keys()
+                        local NumObjects = RenderKeysObjects:count()
+                        while(perf(50)){
+                            if(RenderStep <= NumObjects){
+                                local ID = ObjectKeys[RenderStep,string]
+                                RenderKeys[ID,number] = RenderStep
+                                RenderStep++
+                            }else{ RenderKeysDone = 2, break }
+                            rcName(3,"RENDER | RENDER KEYS | "+RenderStep+"/"+NumObjects)
+                        }
+                    }
+                }else{
+                    RenderStep = 1
+                    RenderStage = 4
+                }
+            }
+            
+            if(SOUNDS){ soundPitch("renderidle",150,0.25) }
+            addTask(1,"schemeRender")
+        
+        }
+        elseif(RenderStage  ==  4){
+            if(RenderStep > RenderQueue:count()){
+                schemeFinish()
+                return
+            }
+            rcName(3,"RENDER | OBJECTS | "+RenderStep+"/"+RenderQueue:count())
+            addTask(1,"schemeRender")
+
+            local HoloRemaining = holoRemainingSpawns()
+            
+            # holo remaining, prop can spawn, etc work here
+            local ObjectNumHolos = RenderQueue[RenderStep,array][3,number]
+            local ObjectNumProps = RenderQueue[RenderStep,array][4,number]
+            if(HoloRemaining < ObjectNumHolos){ if(SOUNDS){ soundPitch("renderidle",50,0.25) }, return }
+            if(ObjectNumProps & !propCanCreate()){ if(SOUNDS){ soundPitch("renderidle",50,0.25) }, return }
+            
+            local ID = RenderQueue[RenderStep,array][1,string]
+            RenderQueue[RenderStep,array][2,string](ID,"RENDER")
+            
+            # output holos, only object specific things in the render code (maybe clean up and shove in the object functions)
+            # won't work for anything that has multiple rendersteps (text, sections)
+            if(!Global_CurrentlyInEditorMode){
+                if(!RenderQueue[RenderStep,array][2,string]:validFrom(array("text2d","text3d","section"))){
+                    OutputHolos[RenderKeys[ID,number],entity] = holoEntity(n(ID))
+                }
+            }
+            
+            if(SOUNDS){ 
+                soundPitch("renderidle",100,0.25) 
+                soundPitch("renderpop",100 + ((155*1.25 / RenderQueue:count()) * RenderStep))
+            }
+        }
+    }
+    function schemeRender() { schemeRender(0) }
+    
+    function schemeRefresh(Type:string,Objects:array){
+        RefreshSpecific = Type
+        RefreshObjects = Objects
+        schemeRender(3)
+    }
+    function schemeRefresh(Type:string){ schemeRefresh(Type,array()) }
+    function schemeRefresh(Objects:array){ schemeRefresh("objects",Objects) }
+    
+    function schemeClear(){ # creates an empty, valid scheme, and then loads it
+        Scheme:clear()
+        Scheme["OBJECTS",table] = table()
+        Scheme["VARS",table] = table()
+        Scheme["MISC",table] = table()
+        local Obj = Scheme["OBJECTS",table]
+        Obj["mirror",table] = table()
+        Obj["section",table] = table()
+        Obj["holo",table] = table()
+        Obj["decal",table] = table()
+        Obj["text2d",table] = table()
+        Obj["text3d",table] = table()
+        Obj["clip",table] = table()
+        Scheme["CLIPS_ASSIGNED",table] = table()
+        local Misc = Scheme["MISC",table]
+        Misc["basecolor",vector] = vec(255)
+        Misc["name",string] = "nn_none"
+        Misc["filename",string] = ""
+        Misc["version",string] = VERSION_CONFIG
+        Misc["runningnumber",string] = "0000"
+        Misc["rn_random",number] = 0
+        Misc["rn_range",string] = "0000-1000"
+
+        schemeRender()
+    }
+    
+    # EDITING
+    
+    # this loop is going to go through all the objects and tell them to run their respective save function in loop
+    function editSaveLoop(Args:array){
+        if(!EditRunningLoop){ return } # stops the loop
+        if(!SavingFile){
+            local Step = Args[1,number]
+            local Objects = get(array("holo","decal","text2d","text3d","clip","mirror"))
+            local ObjectIDs = Objects:keys()
+            local ID = ObjectIDs[Step,string]
+            local CurObject = Objects[ID,table]
+            
+            if(Objects:exists(ID)){
+                CurObject["TYPE",string](ID,"SAVE")
+                holoPos(2,getProp(ID):pos())
+            }
+            
+            Scheme["MISC",table]["basecolor",vector] = Base:getColor()
+            
+            Step++
+            Step = Step > Objects:count() ? 1 : Step
+            addTask(2,"editSaveLoop",array(Step),10000/max(Objects:count(),20)) # always 10 seconds unless a low amount of objects
+        }else{ # rapid saving section, saves the scheme at the end of the loop
+            local Step = Args[1,number]
+            local Objects = get(array("holo","decal","text2d","text3d","clip","mirror"))
+            local ObjectIDs = Objects:keys()
+            Scheme["MISC",table]["basecolor",vector] = Base:getColor()
+            while(perf(50) & Step <= Objects:count()){
+                local ID = ObjectIDs[Step,string]
+                local CurObject = Objects[ID,table]
+                
+                if(Objects:exists(ID)){
+                    CurObject["TYPE",string](ID,"SAVE")
+                }
+                
+                Step++
+            }
+            if(Step > Objects:count()){ # save process complete
+                SavingFile = 0
+                Step = 1
+                addTask(2,"editSaveLoop",array(Step),1000)
+                NewLoadFile = NewLoadFile ? NewLoadFile : LoadFile # kinda hacky
+                if(save(NewLoadFile,0)){
+                    LoadFile = NewLoadFile
+                    rcprint("info","Successfully wrote file \"" + NewLoadFile + ".txt\"")
+                }else{
+                    rcprint("error","Can't write file.")
+                }
+            }else{
+                addTask(2,"editSaveLoop",array(Step),250) # perf limit
+            }
+        }
+    }
+    
+    # 
+    function editControlLoop(Args:array){
+        if(!EditRunningLoop){ return } # stops the loop
+        local AimEnt = O:aimEntity():id()
+        local AimPos = O:aimPos()
+        local Weapon = O:weapon():type()
+        
+        if(EditorComponents:exists(AimEnt) & Weapon  ==  "weapon_crowbar"){
+            WasHit = 1
+            #unhovering
+            if(LastHoveredEnt !=  AimEnt){
+                if(LastHoveredEnt  ==  Base:id()){
+                    local N = 0
+                    foreach(K,V:table = get("section")){
+                        N++
+                        local Thread = mod(N,2)  ==  0 ? 1 : 2 # alternating thread
+                        addTask(Thread,"section",array(K,"UNHOVER"),25*N)
+                    }
+                }else{
+                    if(EditorComponents:exists(LastHoveredEnt)){
+                        local Object = get(EditorComponents[LastHoveredEnt,string])
+                        addTask(1,Object["TYPE",string],array(EditorComponents[LastHoveredEnt,string],"UNHOVER"),10) # tiny timer to force the chip to execute it faster
+                        holoAlpha(1,0) # hide editor holo
+                    }
+                }
+            }
+            # hovering
+            if(AimEnt  ==  Base:id()){
+                if(LastAimPos !=  AimPos){
+                    if(SectionValidStep  ==  1){ sectionFindValid() } # work around, to prevent massive stacking of this function
+                    holoAlpha(1,0) # if we're looking at a section, its a certainty to hide the editor holo
+                }
+            }else{
+                if((LastHoveredEnt !=  AimEnt)){
+                    local Object = get(EditorComponents[AimEnt,string])
+                    addTask(1,Object["TYPE",string],array(EditorComponents[AimEnt,string],"HOVER"),20) # hovers take slightly longer than unhovers (race condition)
+                }
+            }
+
+            # key press events
+            if(Key_E){
+                Key_E = 0
+                if(AimEnt  ==  Base:id()){
+                    local N = 0
+                    foreach(K,V:table = get("section")){
+                        N++
+                        local Thread = mod(N,2)  ==  0 ? 1 : 2
+                        addTask(Thread,"section",array(K,"KEY_E"))
+                    }
+                }else{
+                    local Object = get(EditorComponents[AimEnt,string])
+                    addTask(1,Object["TYPE",string],array(EditorComponents[AimEnt,string],"KEY_E"),10)
+                    holoAlpha(1,0)
+                }
+            }
+            
+            LastHoveredEnt = AimEnt
+            LastAimPos = AimPos
+        }else{
+            # aiming away from contraption
+            if(WasHit){
+                WasHit = 0
+                if(LastHoveredEnt  ==  Base:id()){
+                    local N = 0
+                    foreach(K,V:table = get("section")){
+                        N++
+                        local Thread = mod(N,2)  ==  0 ? 1 : 2
+                        addTask(Thread,"section",array(K,"AIM_AWAY"))
+                    }
+                }else{
+                    local Object = get(EditorComponents[LastHoveredEnt,string])
+                    addTask(1,Object["TYPE",string],array(EditorComponents[LastHoveredEnt,string],"AIM_AWAY"))
+                }
+                holoAlpha(1,0)
+                LastHoveredEnt = 0
+            }
+        }
+        if(Args[1,number] !=  0){ addTask(2,"editControlLoop",array(1),75) }
+    }
+    
+    function startEdit(){
+        EditRunningLoop = 1
+        editSaveLoop(array(1))
+        editControlLoop(array(1))
+        startTaskLoop("AUTOSAVE","autosave",AUTOSAVE_INTERVAL*1000)
+        startTaskLoop("sectionmirrorscan","sectionMirrorLoop",5000)
+        # editor holos
+        holoCreate(2) # save holo ??
+        holoAlpha(2,50)
+        holoModel(2,"hq_sphere")
+        holoParent(2,E)
+        
+        holoCreate(1) # editor hologram
+        holoAlpha(1,0)
+        holoColor(1,vec(0,255,0))
+        holoMaterial(1,"models/debug/debugwhite")
+    }
+    
+    function stopEdit(){
+        EditRunningLoop = 0
+        stopTaskLoop("AUTOSAVE")
+        stopTaskLoop("sectionmirrorscan")
+        holoDelete(2)
+        holoDelete(1)
+    }
+    
+    # COMMAND HANDLING
+    
+    function string varProc(String:string) { # looks for variables in the text and replaces them
+        
+        local Vars = Scheme["VARS",table]
+        
+        local Self = String:trim() + " " # safety space for end variable detection
+        Self = Self:replace("\""," ") # so we can find variables in quotes
+        while(Self:find("$")){
+            local Loc = Self:find("$")
+            local Var = Self:sub(Loc)
+            local Var = Var:sub(2,Var:find(" ")-1)
+            local LocEnd = Self:find("$" + Var) + Var:length()+1
+            if(Vars:exists(Var)){
+                Self = Self:sub(1,Loc-1) + Vars[Var,string] + Self:sub(LocEnd)
+            }else{
+                rcprint("error","Undefined variable: " +"\"$"+Var+"\"")
+                Self = Self:sub(1,Loc-1) + "UNDEFINED_VARIABLE" + Self:sub(LocEnd)
+            } 
+        }
+        
+        return Self
+    }
+    
+    function array string:getTokens(){ # returns an array with all the tokens of a command in them if valid with the prefix
+        if(This:find("|_|") | This:find("_BLOCK-END")){ rcprint("error","Control characters found in input!"), return array() }
+        String = This:trim():replace("  "," ")
+        LastTokenInput = This
+        local QuoteFound = 0
+        local Start = 0
+        local Blocks = array()
+        foreach(K,V:string = String:explode("")){
+            if(QuoteFound & V  ==  "\""){ 
+                QuoteFound = 0 
+                Blocks:pushString(String:sub(Start,K))
+            }
+            if(V  ==  "\""){ QuoteFound = 1, Start = K }
+        }
+        foreach(K,V:string = Blocks){
+            local Block = V
+            Block = Block:replace(" ","|_|"):replace("\"","") + "_BLOCK-END"
+            String = String:replace(V,Block)
+        }
+        
+        # DUPLICATED CODEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        local AimEnt = O:aimEntity()
+        local TruePrefix = PREFIX
+        if(MultipleRattlecans){
+            if(AimEnt !=  Base & AimEnt !=  E){
+                if(RunningNumber !=  "0000"){ TruePrefix = PREFIX + ":" + RunningNumber }
+                else{TruePrefix = PREFIX + ":" + E:id()}
+            }
+        }
+        if(String:lower()[1]  ==  TruePrefix){ String = String:sub(2):trim() }
+        elseif(String:lower():explode(" ")[1,string]  ==  TruePrefix){
+            String = String:replace(TruePrefix,""):trim()
+        }
+        
+        local Array = String:explode(" ")
+        if(!String:lower():find("var ")){ String = varProc(String):trim() }
+        
+        local Array = String:explode(" ")
+        for(N = 1,Array:count()){
+            local Token = Array[N,string]
+            if(Token:find("_BLOCK-END")){
+                Token = Token:replace("|_|"," "):replace("_BLOCK-END","")
+            }else{
+                Token = Token:lower()
+            }
+            Array[N,string] = Token
+        }
+        
+        return Array
+    }
+    
+    function number sentCommandClk(){ # checks if a command was sent by owner
+        if(InputDisabled){ return 0 }
+        if(chatClk(O)){
+            local AimEnt = O:aimEntity()
+            local TruePrefix = PREFIX
+            if(MultipleRattlecans){
+                if(AimEnt !=  Base & AimEnt !=  E){
+                    if(RunningNumber !=  "0000"){ TruePrefix = PREFIX + ":" + RunningNumber }
+                    else{TruePrefix = PREFIX + ":" + E:id()}
+                }
+            }
+            local String = O:lastSaid()
+            if(String:lower()[1]  ==  TruePrefix){ 
+                hideChat(1)
+                return 1
+            }
+            elseif(String:lower():explode(" ")[1,string]  ==  TruePrefix){
+                hideChat(1)
+                return 1
+            }
+            # if we're here, nothing was valid
+            local R = array()
+            local ValidEnt = 0
+            foreach(K:string,V:array = Rattlecans){
+                R:pushNumber(V[2,entity]:id())
+                if(V[2,entity]  ==  AimEnt | V[3,entity]  ==  AimEnt){ ValidEnt = 1 }
+            }
+            local IsLowest = R:min()  ==  E:id() ? 1 : 0
+            if(MultipleRattlecans & IsLowest & ValidEnt  ==  0){ # no valid target block
+                if(String:lower()[1]  ==  PREFIX & String:lower()[2] !=  ":"){ 
+                    hideChat(1)
+                    rcprint("error","Command sent, but no valid target! Use either " + PREFIX + ":[runningnumber or entity id] or look at the Base/E2 when making a command!")
+                    return 0
+                }
+                elseif(String:lower():explode(" ")[1,string]  ==  PREFIX){
+                    hideChat(1)
+                    rcprint("error","Command sent, but no valid target! Use either " + PREFIX + ":[runningnumber or entity id] or look at the Base/E2 when making a command!")
+                    return 0
+                }
+            }
+        }
+        return 0
+    }
+    
+    # handles some repeated code, mainly about requiring editor, not being rendered, and scheme is loaded
+    function number validEdit(){
+        if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), return 0 }
+        if(RCMode !=  "EDIT"){ rcprint("warning","Not in \"EDIT\" mode!"), return 0 }
+        if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before editing!"), return 0}
+        return 1
+    }
+    
+    function handleCommand(Args:array){
+        local LS = Args[1,string]
+        local Tokens = LS:getTokens()
+        switch(Tokens[1,string]){
+            case "reset",
+                rcprint("info","Resetting chip...")
+                addTask(1,"reset",100)
+            break
+            case "clear",
+                if(!validEdit()){ break }
+                schemeClear()
+                rcprint("info", "Cleared scheme.")
+            break
+            case "ref",
+            case "refresh",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before editing!"), break }
+                if(Tokens[2,string]:validFrom(array("section","holo","decal","text2d","text3d","text"))){ 
+                    schemeRefresh(Tokens[2,string])
+                }else{
+                    schemeRender()
+                }
+                rcprint("info","Refreshing scheme...")
+            break
+            case "ed",
+            case "editor",
+            case "edit",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode  ==  "EDIT"){ rcprint("warning","Already in \"EDIT\" mode!"), break }
+                if(RCMode  ==  "RENDER" & !Global_CurrentlyInEditorMode){ schemeRenderCancel() }
+                elseif(RCMode !=  "OPERATION"){ rcprint("warning", "Can't switch to \"EDIT\" right now!") break }
+                RCMode = "EDIT"
+                Global_CurrentlyInEditorMode = 1
+                rcName(1,"RATTLECAN 3 | [EDIT]")
+                rcprint("info","Loading editor...")
+                addTask(1,"schemeRender",1000)
+            break
+            case "op",
+            case "oper",
+            case "operation",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode   ==  "OPERATION"){ rcprint("warning","Already in \"OPERATION\" mode!"), break }
+                if(RCMode  ==  "RENDER" & Global_CurrentlyInEditorMode){ schemeRenderCancel() }
+                elseif(RCMode !=  "EDIT"){ rcprint("warning", "Can't switch to \"OPERATION\" right now!") break }
+                RCMode = "OPERATION"
+                Global_CurrentlyInEditorMode = 0
+                rcName(1,"RATTLECAN 3 | [OPERATION]")
+                rcprint("info","Deleting editor components, refreshing scheme...")
+                stopEdit()
+                addTask(1,"schemeRender",1000)
+            break
+            case "saveas",
+            case "save",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before saving!"), break }
+                if(Tokens[2,string] !=  ""){
+                    if(!Global_CurrentlyInEditorMode){
+                        if(save(Tokens[2,string],0)){
+                            LoadFile = Tokens[2,string]
+                            rcprint("info","Successfully wrote file \"" + Tokens[2,string] + ".txt\"")
+                        }else{
+                            rcprint("error","Can't write file.")
+                        }
+                    }else{
+                        NewLoadFile = Tokens[2,string]
+                        SavingFile = 1
+                        rcprint("info","Saving...")
+                    }
+                }else{
+                    if(!Global_CurrentlyInEditorMode){
+                        if(save(LoadFile,0)){
+                            rcprint("info","Successfully wrote file \"" + LoadFile + ".txt\"")
+                        }
+                    }else{
+                        NewLoadFile = ""
+                        SavingFile = 1
+                        rcprint("info","Saving...")
+                    }
+                }
+            break
+            case "load",
+                if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before loading a new scheme!"), break }
+                if(Tokens[2,string] !=  ""){
+                    if(fileCanLoad()){
+                        rcprint("info","Loading file: " + Tokens[2,string])
+                        RCMode = "LOAD"
+                        SchemeLoaded = 0
+                        schemeLoad(array(Tokens[2,string]))
+                        LoadFile = Tokens[2,string]
+                    }else{ rcprint("error","File function timeout. Try reuploading after a few seconds.") }
+                }else { rcprint("error", "Invalid filename.") }
+            break
+            case "var",
+                if(!validEdit()){ break }
+                local Var = Tokens[2,string]:replace("$","")
+                local Data = Tokens:deTokenize(3)
+                if(Data  ==  ""){ rcprint("error","Invalid name."), return }
+                if(Var  ==  "" | Data  ==  ""){ rcprint("error", "Invalid variable."), break }
+                
+                Scheme["VARS",table][Var,string] = Data
+                
+                rcprint("info","Variable \"" + "$" + Var + "\" created.")
+            break
+            case "ss", 
+            case "sectionselect",
+                if(!validEdit()){ break }
+                local Sections = get("section")
+                local Keys = Sections:keys()
+                switch(Tokens[2,string]){
+                    case "list",
+                        local String = "Sections:"
+                        foreach(K,V:string = Keys){
+                            String += "\n" + K + " | " + clipGetAssigned(V):count() + " clips | Color: " + get("section",V)["COLOR",vector]
+                        }
+                        rcprint("info",String)
+                    break
+                    default, # numbers
+                        local Section = n(Tokens[2,string])
+                        local ID = Keys[Section,string]
+                        if(Section  ==  0){ rcprint("error","Invalid section!"), break }
+                        objectSelect(ID)
+                        Base:rcPlay("contextual",0.25,"buttons/button9.wav",200)
+                        rcprint("info","Section selected.")
+                        sectionBlink(array(ID,1))
+                        addTask(1,"generateClipHolos",array(ID),100) # delayed, so that holoDelete doesn't interfere
+                    break
+                }
+            break
+            case "sectionremovenoclips",
+                if(!validEdit()){ break }
+                local Sections = get("section")
+                local NumDeleted = 0
+                foreach(K,V:table = Sections){
+                    local Clips = clipGetAssigned(K)
+                    if(Clips:count()  ==  0){
+                        if(SelectedObject  ==  K){ SelectedObject = "" }
+                        section_command(K,"DELETE",Tokens)
+                        NumDeleted++
+                    }
+                }
+                rcprint("info", NumDeleted + " sections deleted.")
+            break
+            case "stats",
+            case "statistics",
+                stats(1) # pretty simple lol
+            break
+            case "dup",
+            case "dupe",
+            case "duplicate",
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo", case "decal", case "text2d", case "text3d",
+                        generic_command(SelectedObject,"DUPLICATE",Tokens)
+                    break
+                    default, rcprint("error", "Selected object can't be duplicated.") break
+                }
+            break
+            case "name",
+                if(!validEdit()){ break }
+                if(Tokens[2,string]  ==  ""){ rcprint("error", "Invalid string.") break }
+                Scheme["MISC",table]["name",string] = Tokens[2,string]
+                rcName(3,Tokens[2,string])
+                rcprint("info","Name set.")
+            break
+            case "rn",
+            case "number",
+            case "runningnumber",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before editing!"), break }
+                if(Tokens[2,string]  ==  ""){ rcprint("error", "Invalid string.") }
+                if(Tokens[2,string]:find("-")){
+                    if(RCMode !=  "EDIT"){ rcprint("warning","Not in \"EDIT\" mode!"), break }
+                    local Misc = Scheme["MISC",table]
+                    local Split = Tokens[2,string]:explode("-")
+                    if(Split[1,string]  ==  Split[2,string]){
+                        Misc["rn_random",number] = 0
+                        Misc["runningnumber",string] = Tokens[1,string]
+                    }else{
+                        Misc["rn_random",number] = 1
+                    }
+                    Misc["rn_range",string] = Tokens[2,string]:replace(" ","")
+                    schemeRender(3)
+                    RefreshSpecific = "text"
+                    generateRunningNumber()
+                    rcprint("info","Running number range set.")
+                }else{
+                    RunningNumber = Tokens[2,string]
+                    if(RCMode  ==  "EDIT"){
+                        local Misc = Scheme["MISC",table]
+                        Misc["rn_random",number] = 0
+                        Misc["runningnumber",string] = RunningNumber
+                        
+                        rcprint("info","Running number set.")
+                    }else{
+                        RunningNumberForced = Tokens[2,string]
+                        rcprint("info","Running number forced.")
+                    }
+                    schemeRender(3)
+                    RefreshSpecific = "text"
+                    generateRunningNumber()
+                }
+            break
+            case "pth",
+            case "proptoholo",
+                if(!SchemeLoaded){ rcprint("error","Scheme is not loaded yet, please wait."), break }
+                if(!Global_CurrentlyInEditorMode & RCMode !=  "PTH"){ rcprint("warning","Not in \"EDIT\" mode!"), break }
+                if(RCMode  ==  "RENDER"){ rcprint("warning","Wait for render to finish before editing!"), break }
+                switch(Tokens[2,string]){
+                    case "save",
+                        if(RCMode !=  "PTH"){ rcprint("error","Not in \"PROP TO HOLO\" mode!"), break }
+                        foreach(K,V:entity = PTHProps){
+                            local ID = createSaltedHashID()
+                            local Holo = table()
+                            Holo["TYPE",string] = "holo"
+                            Holo["POS",vector] = Base:toLocal(V:pos())
+                            Holo["ANG",angle] = Base:toLocal(V:angles())
+                            Holo["SCALE",vector] = vec(1)
+                            Holo["COLOR",vector] = vec(PTHOriginalColors[V:id(),vector4])
+                            Holo["ALPHA",number] = PTHOriginalColors[V:id(),vector4]:w()
+                            Holo["MATERIAL",string] = V:getMaterial()
+                            Holo["MODEL",string] = V:model()
+                            Holo["SUBS",table] = table()
+                            Holo["BODYGROUPS",table] = table()
+                            Holo["MIRROR",string] = ""
+                            Holo["OFFSET",vector] = vec(0)
+                            Scheme["OBJECTS",table]["holo",table][ID,table] = Holo
+                            clipAddIndex(ID)
+                            V:propDelete()
+                        }
+                        rcprint("info","PTH: " + PTHProps:count() + " props saved.")
+                        O:rcPlay("pth",0,"garrysmod/save_load3.wav",200)
+                        PTHOriginalColors:clear()
+                        PTHProps:clear()
+                    break
+                    default, # start and end pth
+                        if(RCMode  ==  "PTH"){
+                            rcprint("info", "PTH mode ended.")
+                            foreach(K,V:vector4 = PTHOriginalColors){
+                                entity(K):setColor(V)
+                            }
+                            PTHOriginalColors:clear()
+                            PTHProps:clear()
+                            schemeRender()
+                        }else{
+                            RCMode = "PTH"
+                            rcprint("info","PTH mode started.")
+                            stopEdit()
+                            schemeDestroy()
+                            rcName(1,"RATTLECAN 3 | [PROP TO HOLO]")
+                        }
+                    break
+                }
+            break
+            # manipulation functions
+            case "create",
+                if(!validEdit()){ break }
+                switch(Tokens[2,string]){
+                    case "section", section_command("","CREATE",Tokens) break
+                    case "clip", clip_command("","CREATE",Tokens) break
+                    case "mirror", mirror_command("","CREATE",Tokens) break
+                    case "holo", holo_command("","CREATE",Tokens) break
+                    case "decal", decal_command("","CREATE",Tokens) break
+                    case "text2d", text2d_command("","CREATE",Tokens) break
+                    case "text3d", text3d_command("","CREATE",Tokens) break
+                    default, rcprint("error", "No object type by that name.") break
+                }
+            break
+            case "offset", # handled a bit differently due to the scheme refreshing requirements
+                if(!validEdit()){ break }
+                local Object = get(SelectedObject)
+                if(Object["TYPE",string]:validFrom(array("holo","decal","text2d","text3d"))){
+                    local Split = Tokens[2,string]:explode(",")
+                    if(Split:count()  ==  1 & Tokens[2,string] !=  ""){
+                        Object["OFFSET",vector] = vec(0,0,n(Tokens[2,string]))
+                        schemeRefresh(array(SelectedObject))
+                    }elseif(Split:count()  ==  3){
+                        Object["OFFSET",vector] = Tokens[2,string]:toVector()
+                        schemeRefresh(array(SelectedObject))
+                    }else{
+                        rcprint("info","Offset: " + Object["OFFSET",vector])
+                    }
+                }else{
+                    rcprint("error","Selected object can't have its offset changed.")
+                }
+            break
+            case "del",
+            case "delete",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "section", section_command(SelectedObject,"DELETE",Tokens), SelectedObject = "" break
+                    default, rcprint("error", "Selected object isn't valid for chat command deletion. Try deleting the prop instead.") break
+                }
+            break
+            case "col",
+            case "color",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo",
+                    case "decal",
+                    case "section",
+                        generic_command(SelectedObject,"COLOR",Tokens) 
+                    break
+                    case "text2d",
+                    case "text3d",
+                        text_command(SelectedObject,"COLOR",Tokens) 
+                    break
+                    default, rcprint("error", "Selected object can't be colored.") break
+                }
+            break         
+            case "alpha",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo",
+                    case "decal",
+                        generic_command(SelectedObject,"ALPHA",Tokens) 
+                    break
+                    case "text2d",
+                    case "text3d",
+                        text_command(SelectedObject,"ALPHA",Tokens) 
+                    break
+                    default, rcprint("error", "Selected object can't have its alpha changed.") break
+                }
+            break
+            case "mat",
+            case "material",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo",
+                    case "decal",
+                        generic_command(SelectedObject,"MATERIAL",Tokens) 
+                    break
+                    case "text3d",
+                        text3d_command(SelectedObject,"MATERIAL",Tokens) 
+                    break
+                    default, rcprint("error", "Selected object can't be materialed.") break
+                }
+            break
+            case "sub",
+            case "submat",
+            case "submaterial",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    
+                    case "section",
+                    case "holo",
+                        local Object = get(SelectedObject)
+                        switch(Tokens[2,string]){
+                            case "list",
+                                generic_command(SelectedObject,"SUB_LIST",Tokens) 
+                            break
+                            case "clear",
+                                generic_command(SelectedObject,"SUB_CLEAR",Tokens) 
+                                rcprint("info","Submaterials cleared.")
+                            break
+                            case "delete",
+                            if(n(Tokens[3,string])  ==  0 & Tokens[3,string] !=  "all" & Tokens[3,string] !=  "isolate"){ rcprint("error","Invalid index."), break }
+                                generic_command(SelectedObject,"SUB_DELETE",Tokens) 
+                                rcprint("info","Submaterial definition deleted.")
+                            break
+                            case "all",
+                                generic_command(SelectedObject,"SUB_ALL",Tokens) 
+                                rcprint("info","Submaterial definition set.")
+                            break
+                            case "isolate",
+                                generic_command(SelectedObject,"SUB_ISOLATE",Tokens) 
+                                rcprint("info","Submaterial definition set.")
+                            break
+                            default,
+                                if(n(Tokens[2,string])  ==  0){ rcprint("error","Invalid number."), break }
+                                generic_command(SelectedObject,"SUB_ADD",Tokens) 
+                                rcprint("info","Submaterial definition set.")
+                            break
+                        }
+                    break
+                    default, rcprint("error", "Selected object can't be submaterialed.") break
+                }
+            break
+            case "bg",            
+            case "bodygroup",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){ 
+                    case "section",
+                    case "holo",
+                        local Object = get(SelectedObject)
+                        switch(Tokens[2,string]){
+                            case "list",
+                                generic_command(SelectedObject,"BODYGROUP_LIST",Tokens) 
+                            break
+                            case "clear",
+                                generic_command(SelectedObject,"BODYGROUP_CLEAR",Tokens) 
+                                rcprint("info","Bodygroups cleared.")
+                            break
+                            case "delete",
+                                generic_command(SelectedObject,"BODYGROUP_DELETE",Tokens) 
+                                rcprint("info","Bodygroup definition deleted.")
+                            break
+                            default,
+                                generic_command(SelectedObject,"BODYGROUP_ADD",Tokens) 
+                                rcprint("info","Bodygroup definition set.")
+                            break
+                        }
+                    break
+                    default, rcprint("error", "Selected object can't have its bodygroups changed.") break
+                }
+            break
+            case "model",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo", holo_command(SelectedObject,"MODEL",Tokens) break
+                    default, rcprint("error", "Selected object can't be have its model changed.") break
+                }
+            break
+            case "scale",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "holo",
+                        holo_command(SelectedObject,"SCALE",Tokens) 
+                    break
+                    case "decal",
+                        decal_command(SelectedObject,"SCALE",Tokens) 
+                    break
+                    case "text3d",
+                    case "text2d",
+                        text_command(SelectedObject,"SCALE",Tokens) 
+                    break
+                    default, rcprint("error", "Selected object can't be scaled.") break
+                }
+            break
+            case "kerning",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "text3d",
+                    case "text2d",
+                        text_command(SelectedObject,"KERNING",Tokens)
+                    break
+                    default, rcprint("error", "Selected object can't have its kerning changed.") break
+                }
+            break
+            case "text",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "text3d",
+                    case "text2d",
+                        text_command(SelectedObject,"TEXT",Tokens)
+                    break
+                    default, rcprint("error", "Selected object can't have its text changed.") break
+                }
+            break
+            case "font",
+                if(!validEdit()){ break }
+                switch(get(SelectedObject)["TYPE",string]){
+                    case "text2d",
+                        text2d_command(SelectedObject,"FONT",Tokens)
+                    break
+                    case "text3d",
+                        text3d_command(SelectedObject,"FONT",Tokens)
+                    break
+                    default, rcprint("error", "Selected object can't have its font changed.") break
+                }
+            break
+            case "fonts",
+                local String = Text2DFonts:keys():concat("\n")
+                rcprint("info","Fonts:\n" + String)
+            break
+        }
+    }
+
+}
+
+# key block
+elseif(keyClk(O)  ==  1){ # only positive presses
+    if(!O:isTyping() & !O:keyPressed("q")){ # negate typing and spawn menu
+        local WeaponType = O:weapon():type()
+        local UsingCrowbar = WeaponType  ==  "weapon_crowbar"
+        local AimEnt = O:aimEntity()
+        local Key = keyClkPressed()
+        # selecting objects
+        if(RCMode  ==  "EDIT" & UsingCrowbar & Key  ==  "e"){
+            Key_E = 1
+            editControlLoop(array(0)) # shouldn't hurt anything? hopefully?
+        }
+        # adv dupe 2 warnings
+        if(RCMode  ==  "EDIT" & Key  ==  "mouse_right" & WeaponType  ==  "gmod_tool" & O:tool()  ==  "advdupe2"){
+            if(AimEnt  ==  Base | AimEnt  ==  E){ rcprint("warning", "You shouldn't save the contraption while in \"EDIT\" mode!") }
+            elseif(O:aimPos():distance(E:pos()) < 450){ rcprint("warning", "Did you just save your contraption? You shouldn't do that in \"EDIT\" mode!") }
+        }
+        # coloring / materialing objects
+        if(RCMode  ==  "EDIT" & Key  ==  "mouse_left" & EditorComponents:exists(AimEnt:id()) & WeaponType  ==  "gmod_tool" & AimEnt !=  Base){
+            if(O:tool():validFrom(array("colour","material","submaterial"))){
+                local ID = EditorComponents[AimEnt:id(),string]
+                local Object = get(ID)
+                switch(O:tool()){
+                    case "colour",
+                        local Color = AimEnt:getColor()
+                        local Alpha = AimEnt:getAlpha()
+                        Object["COLOR",vector] = Color
+                        Object["ALPHA",number] = Alpha
+                        AimEnt:setColor(vec(255))
+                        AimEnt:setAlpha(255)
+                        switch(Object["TYPE",string]){
+                            case "decal", case "holo", holoColor(n(ID),Color), holoAlpha(n(ID),Alpha) break
+                            case "text2d", text2d(ID,"REFRESH") break
+                            case "text3d", text3d(ID,"REFRESH") break
+                        }
+                    break
+                    case "material", case "submaterial",
+                        local Material = AimEnt:getMaterial()
+                        AimEnt:setMaterial("models/wireframe")
+                        switch(Object["TYPE",string]){
+                            case "decal", case "holo", holoMaterial(n(ID),Material), Object["MATERIAL",string] = Material break
+                            case "text3d", Object["MATERIAL",string] = Material, text3d(ID,"REFRESH") break
+                        }
+                    break
+                }
+            }
+        }
+        # input disabling
+        if(RCMode  ==  "OPERATION" & Key  ==  "e" & AimEnt  ==  E & !E:isPlayerHolding()){
+            InputDisabled = !InputDisabled
+            rcprint("info",InputDisabled ? "Input disabled." : "Input enabled.")
+            E:setColor(InputDisabled ? vec(0,255,255) : vec(0,255,0))
+            E:rcPlay("use",1,"buttons/button7.wav")
+        }
+        # prop to holo is entirely handled here
+        if(RCMode  ==  "PTH" & UsingCrowbar){
+            local Key_E = Key  ==  "e"
+            local Key_R = Key  ==  "r"
+            
+            if(Key_R){
+                foreach(K,V:vector4 = PTHOriginalColors){
+                    entity(K):setColor(V)
+                }
+                PTHOriginalColors:clear()
+                PTHProps:clear()
+                O:rcPlay("pth",1,"garrysmod/content_downloaded.wav",60)
+            }
+            
+            if(Key_E & AimEnt:isValid() & AimEnt:type()  ==  "prop_physics" & AimEnt !=  Base){
+                local AlreadyAdded = 0
+                foreach(K,V:entity = PTHProps){
+                    if(V  ==  AimEnt){ 
+                        AlreadyAdded = 1
+                        PTHProps:remove(K)
+                        break 
+                    }
+                }
+                if(AlreadyAdded){
+                    AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",90)
+                    AimEnt:setColor(PTHOriginalColors[AimEnt:id(),vector4])
+                    PTHOriginalColors:remove(AimEnt:id())
+                }
+                if(!AlreadyAdded){
+                    AimEnt:rcPlay("pth",0.5,"garrysmod/content_downloaded.wav",100)
+                    PTHProps:pushEntity(AimEnt)
+                    PTHOriginalColors[AimEnt:id(),vector4] = AimEnt:getColor4()
+                    AimEnt:setColor(vec4(0,255,0,200))
+                }
+            }
+        }
+    }
+}
+elseif(sentCommandClk()){
+    addTask(2,"handleCommand",array(O:lastSaid()))
+}
+elseif(fileListClk()){
+    local Files = fileReadList()
+    local Filename = Scheme["MISC",table]["filename",string] + ".txt"
+    if(!Filename:validFrom(Files)){
+        rcprint("warning","Dupe loaded file \"" + Filename + "\" wasn't found in your saves folder! You should probably save it.")
+    }
+}
+elseif(fileClk()){
+    if(RCMode  ==  "LOAD"){
+        local Status = fileStatus()
+        switch(Status){
+            case _FILE_UNKNOWN, case _FILE_TIMEOUT, case _FILE_404, case _FILE_TRANSFER_ERROR,
+                if(!SchemeLoaded){
+                    rcprint("error","Error finding file: \"" + LoadFile + "\" Creating empty scheme...")
+                    SchemeLoaded = 1
+                    addTask(1,"schemeClear")
+                }else{
+                    rcprint("error","Error finding file: \"" + LoadFile + "\"")
+                }
+            break
+        }
+        if(fileLoaded()){
+            local FileScheme = vonDecodeTable(fileRead())
+            rcprint("info","File retrieved, loading scheme.")
+            if(FileScheme:count()  ==  0){
+                if(vonError()){
+                    rcprint("error","Scheme load failed, vON decoding error! Check for NaNs in your file.")
+                }else{
+                    rcprint("error","Scheme load failed, selected file is empty!")
+                }
+            }else{
+                if(versionCompare(VERSION_CONFIG,FileScheme["MISC",table]["version",string])  ==  1){
+                    SchemeLoaded = 1
+                    Scheme = FileScheme
+                    addTask(1,"schemeRender")
+                }else{
+                    rcprint("error", "Config version mismatch! File not loaded.")
+                }
+            }
+        }
+    }
+}
+# versiong checking
+#ifdef httpClk()
+if(httpClk()){
+    if(httpData() !=  ""){
+        local VersionData = getUpdateTable("RATTLECAN 3")
+        local ExistsNewVersion = versionCompare(VERSION,VersionData["version",string])  ==  0
+        
+        if(ExistsNewVersion){
+            print(_HUD_PRINTCONSOLE,"[RATTLECAN] New update found.")
+            
+            local NewVersion = VersionData["version",string]
+            local BreaksConfigs = versionCompare(VERSION_CONFIG,VersionData["version_config",string]) !=  1
+            local NewVersionName = VersionData["version_name",string]
+            local Changelog = VersionData["changelog",string]
+            
+            local SplitOld = VERSION:explode(".")
+            local SplitNew = NewVersion:explode(".")
+            foreach(K,V:string = SplitOld){ SplitOld[K,number] = n(V) }
+            foreach(K,V:string = SplitNew){ SplitNew[K,number] = n(V) }
+            
+            local SuperMajor = SplitNew[1,number] > SplitOld[1,number]
+            local Major = SplitNew[2,number] > SplitOld[2,number]
+            local Minor = SplitNew[3,number] > SplitOld[3,number]
+            
+            if(SuperMajor){ 
+                rcprint("info","SUPER MAJOR update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
+                E:rcPlay("updatesound",5,"ambient/music/country_rock_am_radio_loop.wav",150)
+                E:rcPlay("updatesound2",5,"ambient/music/country_rock_am_radio_loop.wav",150)
+                E:rcPlay("updatesoundsupermajor",5,"misc/boring_applause_1.wav")
+            }elseif(Major){ 
+                rcprint("info","Major update available! New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
+                E:rcPlay("updatesound",5,"misc/happy_birthday_tf_25.wav",125)
+                E:rcPlay("updatesoundsupermajor",5,"misc/clap_single_2.wav")
+            }elseif(Minor){ 
+                rcprint("info","Minor update available. New version: [V" + NewVersion + "] \"" + NewVersionName + "\"\nChanges:")
+                E:rcPlay("updatesound",2,"misc/happy_birthday_tf_16.wav")
+            }
+            
+            printColor(vec(255),Changelog)
+            
+
+    }}else{
+        rcprint("warning","Could not find the version info online.")
+    }
+}
+
+if(!clk("task")){ # task loops, and delays (has to run at the bottom)
+    local ClkName = clkName()
+    if(TaskLoops:exists(ClkName)){
+        local NumTaskLoops = TaskLoops:count()
+        addTask(1,TaskLoops[ClkName,table][1,string],TaskLoops[ClkName,table][2,array])
+        timer(ClkName,TaskLoops[ClkName,table][3,number])
+    }
+    elseif(TaskDelayed:exists(ClkName)){
+        addTask(1,TaskDelayed[ClkName,table][1,string],TaskDelayed[ClkName,table][2,array])
+        TaskDelayed:remove(ClkName)
+    }
+    elseif(Task2Delayed:exists(ClkName)){
+        addTask(2,Task2Delayed[ClkName,table][1,string],Task2Delayed[ClkName,table][2,array])
+        Task2Delayed:remove(ClkName)
+    }
+}
+if(clk("task") | clk("task2") | TaskClk !=  0){ # tasks (2 threads)
+    
+    local Thread = 0
+    if(TaskClk){ Thread = TaskClk  ==  1 ? 1 : 2
+    }else{ Thread = clk("task") ? 1 : 2 }
+    local CurTasks = Thread  ==  1 ? Tasks : Tasks2 
+    local NumTasks = CurTasks:count()
+    
+    # speed regulation
+    Ops = E:ops()
+    Weight = Ops/(softQuota()/2)
+    local Clamp = Global_CurrentlyInEditorMode ? 25 : NumTasks  ==  0 ? 200 : 100
+    Task_Speed = clamp(round((200*Weight)+(10*(1-Weight))),Clamp,500)
+    
+    if(Weight < 0.5 & NumTasks > 4){
+        while(perf((1-Weight)*100)){
+        #while(perf(50)){
+            NumTasks = CurTasks:count() # have to do this again due to the while loop
+            if(NumTasks !=  0){
+                local ID = CurTasks:keys()[1,number]
+                local CurTask = CurTasks[ID,table]
+                local Function = CurTask[1,string]
+                local Args = CurTask[2,array]
+                if(Function !=  ""){
+                    if(Args:count()  ==  0){ Function() }else{ Function(Args) }
+                }else{ print(_HUD_PRINTCONSOLE, "[RATTLECAN 3] Averted running empty task!") }
+                CurTasks:remove(ID)
+            }else{
+                break # break the loop so we're not just running a while loop for no reason
+            }
+        }
+    }elseif(NumTasks !=  0){ # slow if too hot
+        local ID = CurTasks:keys()[1,number]
+        local CurTask = CurTasks[ID,table]
+        local Function = CurTask[1,string]
+        local Args = CurTask[2,array]
+        if(Function !=  ""){
+            if(Args:count()  ==  0){Function()}else{ Function(Args) }
+        }else{ print(_HUD_PRINTCONSOLE, "[RATTLECAN 3] Averted running empty task!") }
+        CurTasks:remove(ID)
+    }
+    
+    # restart if required
+    if(Tasks:count() !=  0 & Thread  ==  1){ timer("task",Task_Speed) }
+    if(Tasks2:count() !=  0 & Thread  ==  2){ timer("task2",Task_Speed) }
+    TaskClk = 0
+}
+
+event chat(Ply:entity, Said:string, Team:number){
+    
+    if(Ply  ==  owner() & Said  ==  ".dump"){
+        
+        hideChat(1)
+        print(Scheme["OBJECTS",table]:keys())
+        
+    }
+    
+}
+
+
