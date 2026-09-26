@@ -56,7 +56,7 @@ if(first()|dupefinished()){
 	   #Add 'All is Well' Bleep - done
     #Fix PrintProper - done
     
-    Version = "Gamma 2.0.68"
+    Version = "Gamma 2.0.69"
     
     #See the attached Operator's Manual (ptgamma/RLC PT2 Operator Manual.txt) for setup and operation instructions.
     
@@ -1676,8 +1676,8 @@ if(On1|On2){
     
     #SPEED INFO
     V = -E:velL():z()
-    MPH = toUnit("mph",abs(V))*4/3
-    KPH = toUnit("km/h",abs(V))*4/3
+    MPH = abs(V) / 17.6
+    KPH = abs(V) / 10.94
     
     #Grade Sensor
     local ForAxis = -E:up()
