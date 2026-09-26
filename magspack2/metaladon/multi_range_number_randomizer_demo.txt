@@ -1,0 +1,52 @@
+@name Multi Range Number Randomizer Demo
+
+
+if(first()){
+    
+    function number_range_randomizer(Ranges:array){
+        
+        Roller = array()
+        Total = 0
+
+        for(X = 1, Ranges:count() / 2){
+            
+            High = max(Ranges[X*2-1,number],Ranges[X*2,number])
+            Low = min(Ranges[X*2-1,number],Ranges[X*2,number])
+
+            
+            Total = Total + High-Low+1
+            Roller:pushVector(vec(Low,High,0))
+            Roller:pushNumber(Total)
+            
+            
+        }
+
+        Needle = random(0,Roller[Roller:count(),number])
+           
+        for(X = 1,Roller:count()/2){
+            
+            if(Roller[X*2,number] > Needle){
+                
+                Index = X*2-1
+                break
+                
+            }
+            
+        }
+        
+        Range = Roller[Index,vector]
+        
+        return randint(Range:x(),Range:y())
+        
+        
+    }
+    
+    
+    
+    S = ""
+    for(X = 1, 20){
+        S = S + number_range_randomizer(array(1,1,3,7,100,149)):toString() + ", "
+    }
+    print(S)
+    
+}
